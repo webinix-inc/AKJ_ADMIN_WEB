@@ -1,0 +1,196 @@
+.students {
+  margin-top: 20px;
+}
+
+.students1 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.students2 {
+  display: flex;
+  align-items: center;
+  gap: 50px;
+}
+
+.students2 label {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 21.79px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.students2 select {
+  width: 167px;
+  height: 45px;
+  background-color: #ffffff;
+  border-radius: 4px;
+  box-shadow: 0px 4px 21px 0px #00000026;
+  outline: none;
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24.51px;
+  color: #000000;
+  margin: 0;
+  padding-left: 10px;
+}
+
+.students4 {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+}
+
+.students3 {
+  margin-top: 20px;
+}
+
+.students4 table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "Public Sans", sans-serif;
+}
+
+.students4 table thead tr {
+  background-color: #ffffff66;
+  height: 52px;
+}
+
+.students4 table th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 21.79px;
+  color: #ffffff;
+  padding-left: 5px;
+  /* white-space: nowrap; */
+}
+.students4 table tbody tr {
+  height: 50px;
+}
+
+.students4 table td {
+  text-align: left;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 21.79px;
+  color: #ffffff;
+  padding-left: 5px;
+  padding-top: 5px;
+  cursor: pointer;
+  /* white-space: nowrap; */
+}
+
+.studentprofile {
+  position: relative;
+  height: 242px;
+  background-size: cover;
+  background-position: center;
+  box-sizing: border-box;
+  background-repeat: no-repeat;
+  border-radius: 10px;
+}
+
+.studentprofile1 {
+  display: flex;
+  position: absolute;
+  bottom: -100px;
+  left: 20px;
+}
+
+.studentprofile2 {
+  width: 147px;
+  height: 147px;
+  border-radius: 50%;
+  border: 2px solid #141414;
+  padding: 10px;
+  background: #141414;
+}
+
+.studentprofile2 img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.studentprofile3 {
+}
+
+.studentprofile3 h6 {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 43.58px;
+  color: #000000;
+  margin: 0;
+}
+
+.studentprofile3 h5 {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 32.68px;
+  color: #ffffff;
+  margin: 0;
+  margin-top: 30px;
+}
+
+.studentprofile4 {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  cursor: pointer;
+}
+
+
+
+
+.studentprofile5{
+  margin-top: 130px;
+  margin-bottom: 130px;
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 50px;
+}
+
+.studentprofile6{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+
+.studentprofile6 label{
+  font-family: "Open Sans", sans-serif;
+  font-weight: 700;
+  font-size: 17.05px;
+  line-height: 23.22px;
+  color: #ffffff;
+  margin: 0;
+}
+
+
+.studentprofile6 input{
+  width: auto;
+  height: 45px;
+  background-color: #FFFFFF;
+  border: 1.22px solid #757575;
+  border-radius: 6.09px;
+  outline: none;
+  padding-left: 20px;
+}
+
+.studentprofile6 input::placeholder{
+  font-family: "Open Sans", sans-serif;
+  font-weight: 400;
+  font-size: 17.05px;
+  line-height: 23.22px;
+  color: #737373;
+  margin: 0;
+}

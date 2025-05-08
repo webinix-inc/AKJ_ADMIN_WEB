@@ -1,0 +1,109 @@
+.navbar11 {
+  width: 100%;
+  height: 62px;
+}
+
+.navbar1 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  padding: 25px 24px;
+}
+
+.navbar2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.navbar3 {
+  width: auto;
+  min-width: 438px;
+  height: 50px;
+  border-radius: 50px;
+  background-color: #0d0d0d;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-left: 15px;
+  padding-right: 10px;
+}
+
+.navbar3 input {
+  background: transparent;
+  flex: 1;
+  width: 90%;
+  border: none;
+  outline: none;
+  font-family: "Open Sans", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 20.43px;
+  color: #D0CECE;
+  margin: 0;
+}
+
+.navbar3 input::placeholder {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 20.43px;
+  color: #D0CECE;
+  margin: 0;
+}
+
+
+
+.navbar4{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+
+.navbar5{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navbar6{
+  width: 47px;
+  height: 40.29px;
+  border-radius: 9.59px;
+  background-color: #1A85FF;
+}
+
+.navbar7{
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+
+.navbar7 p{
+  font-family: "Open Sans", sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 20.43px;
+  color: #D0CECE;
+  letter-spacing: -3%;
+  margin: 0;
+}
+
+
+
+.navbar8{
+  position: relative;
+  cursor: pointer;
+}
+
+
+.navbar10{
+  position: absolute;
+  top: -8px;
+  right: -2px;
+}

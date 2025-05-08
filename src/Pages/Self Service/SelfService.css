@@ -1,0 +1,483 @@
+.selfservice {
+  margin-top: 50px;
+}
+
+.selfservice1 {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.selfservice2 {
+  width: auto;
+  height: auto;
+  padding: 10px 25px 10px 25px;
+  border-radius: 30px;
+  background: #81bcff;
+  box-shadow: 0px 4px 4px 0px #ffffff40;
+  box-shadow: 0px 4px 4px 0px #00000040 inset;
+  cursor: pointer;
+}
+
+.selfservice2 h6 {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 800;
+  font-size: 25px;
+  line-height: 65.37px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.selfservice3 {
+  text-decoration: none;
+}
+
+.addcoupon {
+  margin-top: 20px;
+  height: 100vh;
+  overflow-y: scroll;
+}
+
+.addcoupon1 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+}
+
+.addcoupon2 {
+  display: flex;
+  flex-direction: column;
+}
+
+.addcoupon2 label {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 65.37px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.addcoupon2 span {
+  color: #ff0505;
+}
+
+.addcoupon2 input {
+  width: 100%;
+  height: 58px;
+  border-radius: 7px;
+  background: #0d0d0d;
+  border: 1px solid #1a85ff;
+  outline: none;
+  padding-left: 20px;
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 24.51px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.addcoupon2 input::placeholder {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 24.51px;
+  color: #878787;
+  margin: 0;
+}
+
+.addcoupon3 {
+  margin-top: 10px;
+}
+
+.addcoupon4 {
+}
+
+.addcoupon4 label {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 65.37px;
+  color: #ffffff;
+  margin: 0;
+  display: block;
+}
+
+.addcoupon4 span {
+  color: #ff0505;
+}
+
+.addcoupon5 {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+}
+
+.addcoupon6 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.addcoupon6 p {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 27.24px;
+  color: #878787;
+  margin: 0;
+}
+
+.addcoupon6 input {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #d9d9d9;
+  background: transparent;
+  background-color: transparent;
+}
+
+.addcoupon7 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.addcoupon7 p {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 27.24px;
+  color: #878787;
+  margin: 0;
+}
+
+.addcoupon8 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.addcoupon9 {
+}
+
+.addcoupon9 h6 {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  line-height: 27.24px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.addcoupon9 p {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 27.24px;
+  color: #878787;
+  margin: 0;
+  margin-top: 5px;
+}
+
+.addcoupon10 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.addcoupon10 p {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 27.24px;
+  color: #878787;
+  margin: 0;
+}
+
+.custom-date-input {
+  position: relative;
+  display: inline-block;
+}
+
+input[type="date"] {
+  padding-right: 10px;
+}
+
+input[type="time"] {
+  padding-right: 10px;
+}
+
+.date-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background-image: url("../../Image/calendar.png"); /* Replace with your icon path */
+  background-size: cover;
+  pointer-events: none; /* Allow clicks to pass through */
+}
+
+.date-icon1 {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background-image: url("../../Image/clock.png"); /* Replace with your icon path */
+  background-size: cover;
+  pointer-events: none; /* Allow clicks to pass through */
+}
+/* Optional: Styling the input when focused or active */
+.custom-date-input input[type="date"]:focus + .date-icon {
+  /* Example: Change color of the icon when input is focused */
+  filter: brightness(0.8);
+}
+
+.addcoupon11 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.addcoupon11 p {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 27.24px;
+  color: #878787;
+  margin: 0;
+}
+
+.addcoupon11 input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+}
+
+.managebaner {
+  margin-top: 20px;
+}
+
+.managebaner1 {
+  width: 100%;
+  height: 360px;
+  background: #0d0d0d;
+  border: 1px solid #1a85ff;
+  border-radius: 10px;
+  padding: 30px;
+}
+
+.managebaner2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.managebaner2 p {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 21.79px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.managebaner3 {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.managebaner3 span {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 14.98px;
+  color: #ff0505;
+  margin: 0;
+}
+
+.managebaner5 {
+  width: 290px;
+  height: 144px;
+  border-radius: 10px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.managebaner5 img {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+}
+
+.managebaner6 {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.managebaner6 p {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 16.34px;
+  color: #0fb700;
+  margin: 0;
+}
+
+.managebaner7 {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 15px;
+}
+
+.managebaner7 label {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 19.07px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.managebaner8 {
+  width: 100%;
+  height: 28px;
+  border-radius: 5px;
+  border: 1px solid #1a85ff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.managebaner8 p {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 14.98px;
+  color: #d0cece;
+  margin: 0;
+}
+
+.managebaner8 span {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 14.98px;
+  color: #1a85ff;
+  margin: 0;
+}
+
+.managebaner9 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.managebaner9 h6 {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 19.07px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.managebaner10 {
+  width: 100%;
+  height: 360px;
+  background: #0d0d0d;
+  border-radius: 10px;
+  border: 1px solid #1a85ff;
+  padding: 15px;
+}
+
+.managebaner11 {
+}
+
+.managebaner11 h6 {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 21.79px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.managebaner11 p {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 600;
+  font-size: 10px;
+  line-height: 13.62px;
+  color: #ffffff;
+  margin: 0;
+  margin-top: 20px;
+}
+
+.managebaner12 {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.managebaner13 {
+  width: 100%;
+  height: 144px;
+  border-radius: 10px;
+  background: #d9d9d9;
+  border: 1px dashed #1a85ff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.managebaner13 img {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+}
+
+.managebaner13 p {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 13.62px;
+  color: #000000;
+  margin: 0;
+}
+
+.managebaner14 {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100vh;
+  overflow-y: scroll;
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.managebaner15 {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}

@@ -1,0 +1,13 @@
+.orders{
+    display: flex;
+    align-items: center;
+    justify-content: end;
+}
+
+.whiteText {
+    color: white !important;
+}  
+
+.statistic-title {
+    color: white !important;
+}

@@ -1,0 +1,35 @@
+.container1 {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  transition: all 0.3s ease;
+  background-color: #141414;
+}
+
+.sidebar55 {
+  width: 16%;
+  flex: 0 0 auto;
+  transition: width 0.3s ease;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.3s ease;
+}
+
+.child-component {
+  flex: 1;
+  padding: 27px;
+  transition: width 0.3s ease;
+}
+
+.sidebar-hidden .content {
+  flex: 1 1 100%;
+}
+
+/* .sidebar-hidden .child-component {
+  width: 100%;
+  padding: 20px;
+} */

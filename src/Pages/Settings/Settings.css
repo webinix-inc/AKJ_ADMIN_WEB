@@ -1,0 +1,187 @@
+.setting {
+  margin-top: 30px;
+}
+
+.setting1 {
+  border-bottom: 2px solid #1a85ff;
+  width: 187px;
+  padding-bottom: 10px;
+}
+
+.setting1 p {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 27.24px;
+  color: #1a85ff;
+  margin: 0;
+  text-align: center;
+}
+
+.setting2 {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.setting3 {
+  /* display: flex;
+  flex-direction: column; */
+  gap: 5px;
+}
+
+.setting3 label {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 21.79px;
+  color: #4c535f;
+  margin: 0;
+}
+
+.setting4 {
+  width: 130px;
+  height: 132px;
+  border-radius: 18px;
+  border: 1px dashed #4c535f;
+  background: #edf2f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.setting5 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.setting5 p {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16.34px;
+  color: #4c535f;
+  margin: 0;
+  text-align: center;
+}
+
+.setting6 {
+  margin-top: 30px;
+  border-top: 2px solid #e0e4ec;
+}
+
+.setting7 {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+}
+
+.setting8 {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.setting8 label {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 17.98px;
+  color: #4c535f;
+  margin: 0;
+}
+
+.setting8 input {
+  width: auto;
+  height: 52px;
+  background: linear-gradient(0deg, #ffffff, #ffffff),
+    linear-gradient(0deg, #edf2f7, #edf2f7);
+  border: 1px solid #e0e4ec;
+  outline: none;
+  padding-left: 10px;
+  border-radius: 8px;
+}
+
+.setting8 select {
+  width: 321.41px;
+  height: 52px;
+  background: linear-gradient(0deg, #ffffff, #ffffff),
+    linear-gradient(0deg, #edf2f7, #edf2f7);
+  border: 1px solid #e0e4ec;
+  outline: none;
+  padding-left: 10px;
+  border-radius: 8px;
+}
+.setting8 textarea {
+  width: auto;
+  height: 158px;
+  background: linear-gradient(0deg, #ffffff, #ffffff),
+    linear-gradient(0deg, #edf2f7, #edf2f7);
+  border: 1px solid #e0e4ec;
+  outline: none;
+  padding-left: 10px;
+  padding-top: 10px;
+  border-radius: 8px;
+}
+
+.setting8 input::placeholder {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 15.74px;
+  color: #8d98aa;
+  margin: 0;
+}
+
+.setting8 textarea::placeholder {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 15.74px;
+  color: #8d98aa;
+  margin: 0;
+}
+
+.setting9 {
+  margin-top: 30px;
+}
+
+.setting10 {
+  margin-top: 30px;
+  margin-bottom: 50px;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.setting10 button {
+  width: 201px;
+  height: 49px;
+  background-color: #1a85ff;
+  border: none;
+  outline: none;
+  border-radius: 8px;
+  font-family: "Open Sans", sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 24.51px;
+  color: #ffffff;
+  margin: 0;
+  cursor: pointer;
+}
+
+.setting10 p {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 24.51px;
+  color: #d0cece;
+  margin: 0;
+  cursor: pointer;
+}

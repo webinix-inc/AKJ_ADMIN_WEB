@@ -1,0 +1,157 @@
+.teacherprofile {
+  width: auto;
+  height: 134px;
+  padding: 12.18px 24.36px 12.18px 24.36px;
+  background: #ffffff;
+  border: 1.22px solid #757575;
+  border-radius: 6.09px;
+  background-size: cover;
+  background-position: center;
+  box-sizing: border-box;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.addteacher {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.addteacher1 {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.addteacher1 h6 {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 17.98px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.addteacher2 {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.addteacher2 label {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 17.98px;
+  color: #ffffff;
+  margin: 0;
+}
+
+.addteacher2 select {
+  width: auto;
+  height: 52px;
+  background: linear-gradient(0deg, #ffffff, #ffffff),
+    linear-gradient(0deg, #edf2f7, #edf2f7);
+  border: 1px solid #e0e4ec;
+  outline: none;
+  padding-left: 10px;
+  border-radius: 8px;
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 15.74px;
+  color: #8d98aa;
+  margin: 0;
+}
+
+.addteacher3 {
+  margin-top: 30px;
+}
+
+.addteacher4 {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+}
+
+.addteacher2 input {
+  width: auto;
+  height: 52px;
+  background: linear-gradient(0deg, #ffffff, #ffffff),
+    linear-gradient(0deg, #edf2f7, #edf2f7);
+  border: 1px solid #e0e4ec;
+  outline: none;
+  padding-left: 10px;
+  border-radius: 8px;
+}
+.addteacher2 textarea {
+  width: auto;
+  height: 158px;
+  background: linear-gradient(0deg, #ffffff, #ffffff),
+    linear-gradient(0deg, #edf2f7, #edf2f7);
+  border: 1px solid #e0e4ec;
+  outline: none;
+  padding-left: 10px;
+  padding-top: 15px;
+  border-radius: 8px;
+}
+
+.addteacher2 input::placeholder {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 15.74px;
+  color: #8d98aa;
+  margin: 0;
+}
+
+.addteacher2 textarea::placeholder {
+  font-family: "Open Sans", sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 15.74px;
+  color: #8d98aa;
+  margin: 0;
+}
+
+.addteacher5 {
+  width: auto;
+  height: 158px;
+  background: linear-gradient(0deg, #ffffff, #ffffff),
+    linear-gradient(0deg, #edf2f7, #edf2f7);
+  border: 1px solid #e0e4ec;
+  outline: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.addteacher6 {
+  margin-top: 30px;
+  margin-bottom: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: end;
+}
+
+.addteacher6 button {
+  width: 142px;
+  height: 45px;
+  background-color: #1a85ff;
+  border: none;
+  outline: none;
+  border-radius: 8px;
+  font-family: "Open Sans", sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 24.51px;
+  color: #ffffff;
+  margin: 0;
+  cursor: pointer;
+}
