@@ -1,11 +1,11 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../../api/axios'; // Adjust to your axios instance
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import api from "../../api/axios"; // Adjust to your axios instance
 
 // Async Thunks
 
 // Fetch a user's profile by ID
 export const fetchUserProfileById = createAsyncThunk(
-  'user/fetchUserProfileById',
+  "user/fetchUserProfileById",
   async (userId, { rejectWithValue }) => {
     try {
       const response = await api.get(`/admin/getUserProfile/${userId}`);
@@ -18,10 +18,10 @@ export const fetchUserProfileById = createAsyncThunk(
 
 // Fetch all user profiles (if required for a list)
 export const fetchAllUserProfiles = createAsyncThunk(
-  'user/fetchAllUserProfiles',
+  "user/fetchAllUserProfiles",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.put('/user/getAllProfile'); // Adjust the route if necessary
+      const response = await api.put("/user/getAllProfile"); // Adjust the route if necessary
       return response.data.data; // Assuming the API returns an array of profiles in `data`
     } catch (error) {
       return rejectWithValue(error.response.data); // Handle and return the error
@@ -31,7 +31,7 @@ export const fetchAllUserProfiles = createAsyncThunk(
 
 // User Slice
 const userSlice = createSlice({
-  name: 'user',
+  name: "user",
   initialState: {
     selectedUser: null, // Stores a single user's profile for detailed view
     allUsers: [], // Stores all user profiles

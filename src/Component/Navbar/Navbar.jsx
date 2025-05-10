@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./Navbar.css";
 import Offcanvas from "react-bootstrap/Offcanvas";
 import Dropdown from "react-bootstrap/Dropdown";
@@ -13,6 +13,7 @@ import { LiaSignOutAltSolid } from "react-icons/lia";
 // import img from '../../Image/img.png'
 import img from "../../Image/img3.png";
 import Notifications from "../../Pages/Notifications/Notifications";
+import api from "../../api/axios";
 
 const Navbar = ({ toggleSidebar }) => {
   const [show, setShow] = useState(false);
@@ -25,6 +26,28 @@ const Navbar = ({ toggleSidebar }) => {
   // Handlers for hover state
   const handleDropdownMouseEnter = () => setDropdownOpen(true);
   const handleDropdownMouseLeave = () => setDropdownOpen(false);
+
+  const [profile, setProfile] = useState({
+    firstName: "",
+    profilePicture: null,
+  });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get("/admin/getProfile");
+        console.log("getProfile response is here :", res);
+        const data = res.data?.data || {}; // adjust based on actual API structure
+        setProfile({
+          firstName: data.firstName || "",
+          profilePicture: data.image || null,
+        });
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   return (
     <>
@@ -46,16 +69,28 @@ const Navbar = ({ toggleSidebar }) => {
               className="navbar5"
               show={dropdownOpen} // Control dropdown visibility manually
               onMouseEnter={handleDropdownMouseEnter}
-              onMouseLeave={handleDropdownMouseLeave}>
+              onMouseLeave={handleDropdownMouseLeave}
+            >
               <Dropdown.Toggle
                 className=" flex"
                 as="div"
-                id="dropdown-custom-components">
-                <div className="navbar6">
-                  <img className=" mr-3" src={img} alt="Profile" />
-                </div>
+                id="dropdown-custom-components"
+              >
+                {profile.profilePicture ? (
+                  <div className="flex items-center mr-4">
+                    <img
+                      src={profile.profilePicture}
+                      className="w-12 h-12 rounded-full object-cover border shadow"
+                    />
+                  </div>
+                ) : (
+                  <div className="navbar6">
+                    <img className=" mr-3" src={img} alt="Profile" />
+                  </div>
+                )}
+
                 <div className="navbar7">
-                  <p className=" ml-5">Adeola Ayo</p>
+                  <p className=" ml-5">{profile.firstName || "User"}</p>
                   <IoIosArrowDown color="#D0CECE" />
                 </div>
               </Dropdown.Toggle>

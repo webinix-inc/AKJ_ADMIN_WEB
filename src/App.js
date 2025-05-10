@@ -50,6 +50,11 @@ import EditCoupon from "./Pages/Self Service/EditCoupon.jsx";
 function App() {
   const adminData = useSelector((state) => state.admin.adminData);
 
+  const adminData2 = useSelector((state) => state);
+
+  console.log("Admidata is this :", adminData);
+  console.log("Admidata New is this :", adminData2);
+
   const { permissions, userType } = adminData?.data || {};
 
   console.log(permissions); // Debug permissions object
