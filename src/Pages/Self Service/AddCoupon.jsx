@@ -32,6 +32,7 @@ const AddCoupon = () => {
     visibility: true,
     discountType: "Flat",
     discountAmount: "",
+    discountPercentage: "",
     startDate: "",
     startTime: "",
     endDate: "",
@@ -182,9 +183,7 @@ const AddCoupon = () => {
             <Select
               name="courseSelectionType"
               value={formData.courseSelectionType}
-              onChange={(value) =>
-                handleChange("courseSelectionType", value)
-              }
+              onChange={(value) => handleChange("courseSelectionType", value)}
               className="w-full"
             >
               <Option value="All">Assign to All Courses</Option>
@@ -202,9 +201,7 @@ const AddCoupon = () => {
                 mode="multiple"
                 placeholder="Select courses"
                 value={formData.assignedCourseIds}
-                onChange={(value) =>
-                  handleChange("assignedCourseIds", value)
-                }
+                onChange={(value) => handleChange("assignedCourseIds", value)}
                 className="w-full"
                 loading={coursesLoading}
               >
@@ -249,9 +246,7 @@ const AddCoupon = () => {
               type="number"
               name="usagePerStudent"
               value={formData.usagePerStudent}
-              onChange={(e) =>
-                handleChange("usagePerStudent", e.target.value)
-              }
+              onChange={(e) => handleChange("usagePerStudent", e.target.value)}
             />
           </div>
 
@@ -282,7 +277,7 @@ const AddCoupon = () => {
                 <Option value="Percentage">Percentage Discount</Option>
               </Select>
             </div>
-            <div>
+            {/* <div>
               <label className="block mb-2 text-sm font-medium text-gray-600">
                 Discount Amount
               </label>
@@ -294,7 +289,36 @@ const AddCoupon = () => {
                   handleChange("discountAmount", e.target.value)
                 }
               />
-            </div>
+            </div> */}
+            {formData.discountType === "Flat" ? (
+              <div>
+                <label className="block mb-2 text-sm font-medium text-gray-600">
+                  Discount Amount
+                </label>
+                <Input
+                  type="number"
+                  name="discountAmount"
+                  value={formData.discountAmount}
+                  onChange={(e) =>
+                    handleChange("discountAmount", e.target.value)
+                  }
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="block mb-2 text-sm font-medium text-gray-600">
+                  Discount Percentage
+                </label>
+                <Input
+                  type="number"
+                  name="discountPercentage"
+                  value={formData.discountPercentage}
+                  onChange={(e) =>
+                    handleChange("discountPercentage", e.target.value)
+                  }
+                />
+              </div>
+            )}
           </div>
 
           {/* Date & Time */}
@@ -318,9 +342,7 @@ const AddCoupon = () => {
               <TimePicker
                 className="w-full"
                 value={
-                  formData.startTime
-                    ? dayjs(formData.startTime, "HH:mm")
-                    : null
+                  formData.startTime ? dayjs(formData.startTime, "HH:mm") : null
                 }
                 onChange={(time, timeString) =>
                   handleDateChange(time, timeString, "startTime")
@@ -349,9 +371,7 @@ const AddCoupon = () => {
               <TimePicker
                 className="w-full"
                 value={
-                  formData.endTime
-                    ? dayjs(formData.endTime, "HH:mm")
-                    : null
+                  formData.endTime ? dayjs(formData.endTime, "HH:mm") : null
                 }
                 onChange={(time, timeString) =>
                   handleDateChange(time, timeString, "endTime")
