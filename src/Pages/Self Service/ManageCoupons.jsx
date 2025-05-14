@@ -56,12 +56,18 @@ const ManageCoupons = () => {
             <tbody>
               {coupons.map((coupon) => (
                 <tr key={coupon._id}>
-                  <td className="border border-gray-300 px-4 py-2">{coupon.offerName}</td>
-                  <td className="border border-gray-300 px-4 py-2">{coupon.couponCode}</td>
-                  <td className="border border-gray-300 px-4 py-2">{coupon.couponType}</td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {coupon.offerName}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {coupon.couponCode}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    {coupon.couponType}
+                  </td>
                   <td className="border border-gray-300 px-4 py-2">
                     {coupon.discountType === "Percentage"
-                      ? `${coupon.discountAmount}%`
+                      ? `${coupon.discountPercentage}%`
                       : `₹${coupon.discountAmount}`}
                   </td>
                   <td className="border border-gray-300 px-4 py-2">

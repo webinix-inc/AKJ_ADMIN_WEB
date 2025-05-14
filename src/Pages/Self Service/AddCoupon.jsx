@@ -228,13 +228,13 @@ const AddCoupon = () => {
                 disabled={formData.isUnlimited}
               />
             </div>
-            <Checkbox
+            {/* <Checkbox
               name="isUnlimited"
               checked={formData.isUnlimited}
               onChange={(e) => handleChange("isUnlimited", e.target.checked)}
             >
               Set as Unlimited
-            </Checkbox>
+            </Checkbox> */}
           </div>
 
           {/* Usage Per Student */}
