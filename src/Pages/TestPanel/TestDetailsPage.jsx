@@ -18,7 +18,7 @@ import {
 } from "react-icons/fi";
 import { MdClose } from "react-icons/md";
 import { AiFillCheckCircle } from "react-icons/ai";
-import QuestionEditor from "../../Component/editor/QuestionEditor";
+// import QuestionEditor from "../../Component/editor/QuestionEditor";
 
 const useQuizId = () => {
   const { id } = useParams();
