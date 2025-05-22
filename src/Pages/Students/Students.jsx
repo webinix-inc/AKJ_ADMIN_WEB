@@ -5,8 +5,8 @@ import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
-
-import { Pagination } from "antd";
+import { Pagination, Select, DatePicker } from "antd";
+import dayjs from "dayjs";
 
 const Students = () => {
   const [studentsData, setStudentsData] = useState([]);
@@ -14,6 +14,9 @@ const Students = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const studentsPerPage = 10;
+
+  const [dateFilter, setDateFilter] = useState("all");
+  const [customRange, setCustomRange] = useState([null, null]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,13 +48,33 @@ const Students = () => {
       ? initials[0] + initials[1]
       : initials[0] || "NA";
   };
+
   const filteredStudents = studentsData.filter((student) => {
-    const fullName = (student.firstName + " " + student.lastName).toLowerCase();
-    return (
+    const fullName = `${student.firstName ?? ""} ${
+      student.lastName ?? ""
+    }`.toLowerCase();
+    const email = (student.email ?? "").toLowerCase();
+    const phone = String(student.phone ?? "").toLowerCase();
+
+    const matchesSearch =
       fullName.includes(searchTerm) ||
-      student.email?.toLowerCase().includes(searchTerm) ||
-      student.phone?.toLowerCase().includes(searchTerm)
-    );
+      email.includes(searchTerm) ||
+      phone.includes(searchTerm);
+
+    let matchesDate = true;
+    const createdAt = dayjs(student.createdAt);
+
+    if (dateFilter === "today") {
+      matchesDate = createdAt.isSame(dayjs(), "day");
+    } else if (dateFilter === "thisMonth") {
+      matchesDate = createdAt.isSame(dayjs(), "month");
+    } else if (dateFilter === "custom" && customRange[0] && customRange[1]) {
+      matchesDate =
+        createdAt.isAfter(customRange[0].startOf("day")) &&
+        createdAt.isBefore(customRange[1].endOf("day"));
+    }
+
+    return matchesSearch && matchesDate;
   });
 
   const indexOfLastStudent = currentPage * studentsPerPage;
@@ -61,24 +84,79 @@ const Students = () => {
     indexOfLastStudent
   );
 
-  // const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
-
   return (
     <div className="students">
       <div className="students1" style={{ width: "90%" }}>
         {/* Add filter or search options here if needed */}
       </div>
       <div className="students3">
-        <input
-          type="text"
-          placeholder="Search by name, email, or phone"
-          value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value.toLowerCase());
-            setCurrentPage(1); // Reset to page 1 on new search
+        {/* <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
+          <input
+            type="text"
+            placeholder="Search by name, email, or phone"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value.toLowerCase());
+              setCurrentPage(1);
+            }}
+            style={{ padding: "8px", width: "300px" }}
+          />
+
+          <DatePicker
+            placeholder="Filter by registration date"
+            value={selectedDate}
+            onChange={(date) => {
+              setSelectedDate(date);
+              setCurrentPage(1);
+            }}
+            allowClear
+          />
+        </div> */}
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "20px",
+            marginBottom: "20px",
           }}
-          style={{ padding: "8px", width: "300px", marginBottom: "20px" }}
-        />
+        >
+          <input
+            type="text"
+            placeholder="Search by name, email, or phone"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value.toLowerCase());
+              setCurrentPage(1);
+            }}
+            style={{ padding: "8px", width: "300px" }}
+          />
+
+          <Select
+            value={dateFilter}
+            onChange={(value) => {
+              setDateFilter(value);
+              setCurrentPage(1);
+            }}
+            style={{ width: 200 }}
+            options={[
+              { value: "all", label: "All Dates" },
+              { value: "today", label: "Today" },
+              { value: "thisMonth", label: "This Month" },
+              { value: "custom", label: "Custom Range" },
+            ]}
+          />
+
+          {dateFilter === "custom" && (
+            <DatePicker.RangePicker
+              value={customRange}
+              onChange={(dates) => {
+                setCustomRange(dates);
+                setCurrentPage(1);
+              }}
+              allowClear
+            />
+          )}
+        </div>
 
         <div className="students4">
           {loading ? (
