@@ -12,7 +12,8 @@ const Modal = ({ isOpen, onClose, children }) => {
         <button
           onClick={onClose}
           className="absolute top-0 right-4 text-white hover:text-gray-300 rounded-full p-5 text-3xl"
-          aria-label="Close Modal">
+          aria-label="Close Modal"
+        >
           &times;
         </button>
         {children}
@@ -30,12 +31,14 @@ const ConfirmationModal = ({ isOpen, onConfirm, onClose }) => {
       <div className="flex justify-end mt-4">
         <button
           onClick={onClose}
-          className="bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition duration-300 ease-in-out mr-2">
+          className="bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition duration-300 ease-in-out mr-2"
+        >
           Cancel
         </button>
         <button
           onClick={onConfirm}
-          className="bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition duration-300 ease-in-out">
+          className="bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition duration-300 ease-in-out"
+        >
           Confirm
         </button>
       </div>
@@ -110,7 +113,8 @@ const BookStore = () => {
           <h2 className="text-3xl font-bold text-white">Book Management</h2>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out shadow-md">
+            className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out shadow-md"
+          >
             Add Book
           </button>
         </div>
@@ -160,7 +164,8 @@ const BookList = ({ books, onEdit, onDelete, isLoading }) => {
         books.map((book) => (
           <div
             key={book._id}
-            className="bg-white rounded-lg overflow-hidden flex flex-col h-full">
+            className="bg-white rounded-lg overflow-hidden flex flex-col h-full"
+          >
             <img
               src={book.imageUrl}
               alt={book.name}
@@ -196,12 +201,14 @@ const BookList = ({ books, onEdit, onDelete, isLoading }) => {
               <div className="flex space-x-4 mt-4">
                 <button
                   onClick={() => onEdit(book._id)}
-                  className="bg-blue-600 text-white py-1 px-3 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out">
+                  className="bg-blue-600 text-white py-1 px-3 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out"
+                >
                   Edit
                 </button>
                 <button
                   onClick={() => onDelete(book._id)}
-                  className="bg-red-600 text-white py-1 px-3 rounded-md hover:bg-red-700 transition duration-300 ease-in-out">
+                  className="bg-red-600 text-white py-1 px-3 rounded-md hover:bg-red-700 transition duration-300 ease-in-out"
+                >
                   Delete
                 </button>
               </div>
@@ -241,7 +248,19 @@ const BookForm = ({ id, switchToList, fetchBooks }) => {
       api
         .get(`/admin/books/${id}`)
         .then((response) => {
-          setBook(response.data);
+          console.log(`got this response while fetching ${id} book`, response);
+          // setBook(response.data);
+          const bookData = response.data;
+
+          const { dimensions = {}, ...rest } = bookData;
+
+          setBook({
+            ...rest,
+            length: dimensions.length ?? "",
+            breadth: dimensions.breadth ?? "",
+            height: dimensions.height ?? "",
+            weight: dimensions.weight ?? "",
+          });
         })
         .catch((error) => {
           console.error("Error fetching book", error);
@@ -281,6 +300,36 @@ const BookForm = ({ id, switchToList, fetchBooks }) => {
     }
   };
 
+  const handlePrimaryImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setBook((prevBook) => {
+        const currentImages = Array.isArray(prevBook.images)
+          ? prevBook.images
+          : [];
+        return {
+          ...prevBook,
+          images: [file, ...currentImages.slice(1)],
+        };
+      });
+    }
+  };
+
+  const handleAdditionalImagesChange = (e) => {
+    const files = Array.from(e.target.files);
+    setBook((prevBook) => {
+      const currentImages = Array.isArray(prevBook.images)
+        ? prevBook.images
+        : [];
+      const primary = currentImages[0] || null;
+      const additional = primary ? [primary, ...files] : files;
+      return {
+        ...prevBook,
+        images: additional,
+      };
+    });
+  };
+
   const handleCourseNameChange = (e) => {
     setNewCourse(e.target.value);
   };
@@ -310,6 +359,7 @@ const BookForm = ({ id, switchToList, fetchBooks }) => {
     formData.append("name", book.name);
     if (book.author) {
       formData.append("author", book.author);
+      console.log("!@#");
     }
 
     formData.append("price", book.price);
@@ -317,13 +367,21 @@ const BookForm = ({ id, switchToList, fetchBooks }) => {
     formData.append("description", book.description);
     formData.append("courseNames", JSON.stringify(book.courseNames));
     formData.append("showUnder", book.showUnder);
+    formData.append("length", book.length);
+    formData.append("breadth", book.breadth);
+    formData.append("height", book.height);
+    formData.append("weight", book.weight);
 
     // Handle single or multiple images
+
+    console.log("here are the images :", book.images);
     if (book.images && book.images.length > 0) {
       Array.from(book.images).forEach((image) =>
         formData.append("images", image)
       );
     }
+
+    console.log("here is the formData that is goona submitted :", formData);
 
     const apiCall = id
       ? api.put(`/admin/books/${id}`, formData)
@@ -347,14 +405,14 @@ const BookForm = ({ id, switchToList, fetchBooks }) => {
   };
 
   return (
-    <div className="bg-[#141414] p-6 w-full">
+    <div className="bg-[#141414] p-6 w-full h-[90vh] flex flex-col">
       <h2 className="text-xl font-bold text-white mb-4">
         {id ? "Edit Book" : "Add Book"}
       </h2>
       {isLoading ? (
         <p className="text-white">Loading...</p>
       ) : (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 pr-2">
           <input
             type="text"
             name="name"
@@ -406,7 +464,8 @@ const BookForm = ({ id, switchToList, fetchBooks }) => {
               name="showUnder"
               value={book.showUnder}
               onChange={handleChange}
-              className="block w-full border border-white bg-[#141414] text-white p-2">
+              className="block w-full border border-white bg-[#141414] text-white p-2"
+            >
               <option value="home">Trending</option>
               <option value="student">Bestselling</option>
               <option value="both">Teacher's Pick</option>
@@ -472,7 +531,8 @@ const BookForm = ({ id, switchToList, fetchBooks }) => {
               <button
                 type="button"
                 onClick={addCourseField}
-                className="border border-white bg-[#141414] text-white py-2 px-4 ml-2 rounded-md">
+                className="border border-white bg-[#141414] text-white py-2 px-4 ml-2 rounded-md"
+              >
                 ADD
               </button>
             </div>
@@ -483,12 +543,14 @@ const BookForm = ({ id, switchToList, fetchBooks }) => {
                   {book.courseNames.map((courseName, index) => (
                     <li
                       key={index}
-                      className="flex justify-between items-center mt-1">
+                      className="flex justify-between items-center mt-1"
+                    >
                       {courseName}
                       <button
                         type="button"
                         onClick={() => removeCourse(index)}
-                        className="ml-4 border border-white bg-[#141414] text-white px-2 py-1 rounded">
+                        className="ml-4 border border-white bg-[#141414] text-white px-2 py-1 rounded"
+                      >
                         Remove
                       </button>
                     </li>
@@ -506,12 +568,33 @@ const BookForm = ({ id, switchToList, fetchBooks }) => {
               ))}
           </datalist>
 
-          <input type="file" multiple onChange={handleImageChange} />
+          {/* <input type="file" multiple onChange={handleImageChange} /> */}
+          <div className="mb-4 text-white">
+            <label className="block mb-2">Primary Image</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handlePrimaryImageChange}
+              className="block w-full p-2 border border-white bg-[#141414] text-white rounded"
+            />
+          </div>
+
+          <div className="mb-4 text-white">
+            <label className="block mb-2">Additional Images</label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleAdditionalImagesChange}
+              className="block w-full p-2 border border-white bg-[#141414] text-white rounded"
+            />
+          </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="border border-white bg-[#141414] text-white py-2 px-4 rounded-md">
+            className="border border-white bg-[#141414] text-white py-2 px-4 rounded-md"
+          >
             {isLoading ? "Saving..." : id ? "Update Book" : "Add Book"}
           </button>
           {error && <p className="text-red-500 mt-2">{error}</p>}

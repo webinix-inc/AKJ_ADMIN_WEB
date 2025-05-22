@@ -47,6 +47,10 @@ import ImportantLink from "./Pages/Self Service/ImportantLink.jsx";
 import CourseAccess from "./Pages/Self Service/CourseAccess.jsx";
 import EditCoupon from "./Pages/Self Service/EditCoupon.jsx";
 
+// import 'antd/dist/antd.css';
+import "antd/dist/reset.css"; // ✅ Correct for AntD v5
+// import "antd/dist/antd.css";
+
 function App() {
   const adminData = useSelector((state) => state.admin.adminData);
 

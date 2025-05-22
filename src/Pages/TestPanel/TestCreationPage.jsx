@@ -308,21 +308,24 @@ const TestCreationPage = () => {
               setEditingQuiz(record);
               quizForm.setFieldsValue(record);
               setIsModalVisible(true);
-            }}>
+            }}
+          >
             Edit
           </Button>
           <Popconfirm
             title="Are you sure to delete this quiz?"
             onConfirm={() => handleDeleteQuiz(record._id)}
             okText="Yes"
-            cancelText="No">
+            cancelText="No"
+          >
             <Button type="link" icon={<DeleteOutlined />} danger>
               Delete
             </Button>
           </Popconfirm>
           <Button
             icon={<ClockCircleOutlined />}
-            onClick={() => fetchQuizAvailability(record._id)}>
+            onClick={() => fetchQuizAvailability(record._id)}
+          >
             Availability
           </Button>
           <Button
@@ -330,7 +333,8 @@ const TestCreationPage = () => {
             onClick={() => {
               setSelectedQuiz(record._id);
               setAttemptModalVisible(true);
-            }}>
+            }}
+          >
             Attempts
           </Button>
         </Space>
@@ -346,11 +350,13 @@ const TestCreationPage = () => {
           marginBottom: 16,
           display: "flex",
           justifyContent: "space-between",
-        }}>
+        }}
+      >
         <Button
           type="default"
           icon={<ArrowLeftOutlined />}
-          onClick={() => navigate(-1)}>
+          onClick={() => navigate(-1)}
+        >
           Back
         </Button>
         <Button
@@ -360,8 +366,9 @@ const TestCreationPage = () => {
             setIsModalVisible(true);
             setEditingQuiz(null);
             quizForm.resetFields();
-          }}>
-          Add Quiz
+          }}
+        >
+          New Quiz
         </Button>
       </Row>
 
@@ -378,7 +385,8 @@ const TestCreationPage = () => {
             placeholder="Filter by Category"
             onChange={(value) => setSelectedCategory(value)}
             allowClear
-            style={{ width: "100%" }}>
+            style={{ width: "100%" }}
+          >
             {[...new Set(quizzes.map((quiz) => quiz.category))].map(
               (category) => (
                 <Option key={category} value={category}>
@@ -412,7 +420,8 @@ const TestCreationPage = () => {
         title={editingQuiz ? "Edit Quiz" : "Create Quiz"}
         visible={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
-        footer={null}>
+        footer={null}
+      >
         <Form
           form={quizForm}
           layout="vertical"
@@ -426,17 +435,20 @@ const TestCreationPage = () => {
               ? Math.floor(editingQuiz.duration / 60)
               : 0,
             durationMinutes: editingQuiz ? editingQuiz.duration % 60 : 0,
-          }}>
+          }}
+        >
           <Form.Item
             name="quizName"
             label="Quiz Name"
-            rules={[{ required: true, message: "Please input quiz name" }]}>
+            rules={[{ required: true, message: "Please input quiz name" }]}
+          >
             <Input />
           </Form.Item>
           <Form.Item
             name="category"
             label="Category"
-            rules={[{ required: true, message: "Please input category" }]}>
+            rules={[{ required: true, message: "Please input category" }]}
+          >
             <Input />
           </Form.Item>
           <Form.Item label="Duration">
@@ -444,7 +456,8 @@ const TestCreationPage = () => {
               <Form.Item
                 name="durationHours"
                 noStyle
-                rules={[{ required: true, message: "Please input hours" }]}>
+                rules={[{ required: true, message: "Please input hours" }]}
+              >
                 <Input
                   type="number"
                   placeholder="Hours"
@@ -456,7 +469,8 @@ const TestCreationPage = () => {
               <Form.Item
                 name="durationMinutes"
                 noStyle
-                rules={[{ required: true, message: "Please input minutes" }]}>
+                rules={[{ required: true, message: "Please input minutes" }]}
+              >
                 <Input
                   type="number"
                   placeholder="Minutes"
@@ -480,12 +494,14 @@ const TestCreationPage = () => {
         visible={attemptModalVisible}
         onCancel={() => setAttemptModalVisible(false)}
         footer={null}
-        title="Set Quiz Attempts">
+        title="Set Quiz Attempts"
+      >
         <Form onFinish={handleSetQuizAttempts}>
           <Form.Item
             name="maxAttempts"
             label="Maximum Attempts"
-            rules={[{ required: true, message: "Please input max attempts" }]}>
+            rules={[{ required: true, message: "Please input max attempts" }]}
+          >
             <Input type="number" min={1} />
           </Form.Item>
           <Button type="primary" htmlType="submit">
@@ -516,7 +532,8 @@ const TestCreationPage = () => {
                   border: "1px solid #f0f0f0",
                   borderRadius: 8,
                   background: "#fafafa",
-                }}>
+                }}
+              >
                 <h6>Current Availability Details</h6>
                 <p>
                   <strong>Start Date:</strong>{" "}
@@ -576,7 +593,8 @@ const TestCreationPage = () => {
                   }
                 }
                 updateQuizAvailability(selectedQuiz, payload);
-              }}>
+              }}
+            >
               {/* Availability Type Selector */}
               <Form.Item
                 name="availabilityType"
@@ -586,7 +604,8 @@ const TestCreationPage = () => {
                     required: true,
                     message: "Please select an availability type",
                   },
-                ]}>
+                ]}
+              >
                 <Select>
                   <Option value="always">Always</Option>
                   <Option value="scheduled">Scheduled</Option>
@@ -598,7 +617,8 @@ const TestCreationPage = () => {
                 noStyle
                 shouldUpdate={(prev, curr) =>
                   prev.availabilityType !== curr.availabilityType
-                }>
+                }
+              >
                 {({ getFieldValue }) =>
                   getFieldValue("availabilityType") === "scheduled" && (
                     <>
@@ -611,7 +631,8 @@ const TestCreationPage = () => {
                             message:
                               "Start date is required for scheduled availability",
                           },
-                        ]}>
+                        ]}
+                      >
                         <Input type="date" />
                       </Form.Item>
                       <Form.Item
@@ -623,7 +644,8 @@ const TestCreationPage = () => {
                             message:
                               "Start time is required for scheduled availability",
                           },
-                        ]}>
+                        ]}
+                      >
                         <Input type="time" />
                       </Form.Item>
                       <Form.Item name="scheduledEndDate" label="End Date">

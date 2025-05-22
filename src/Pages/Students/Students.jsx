@@ -6,9 +6,14 @@ import Tooltip from "react-bootstrap/Tooltip";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
 
+import { Pagination } from "antd";
+
 const Students = () => {
   const [studentsData, setStudentsData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const studentsPerPage = 10;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,6 +45,23 @@ const Students = () => {
       ? initials[0] + initials[1]
       : initials[0] || "NA";
   };
+  const filteredStudents = studentsData.filter((student) => {
+    const fullName = (student.firstName + " " + student.lastName).toLowerCase();
+    return (
+      fullName.includes(searchTerm) ||
+      student.email?.toLowerCase().includes(searchTerm) ||
+      student.phone?.toLowerCase().includes(searchTerm)
+    );
+  });
+
+  const indexOfLastStudent = currentPage * studentsPerPage;
+  const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
+  const currentStudents = filteredStudents.slice(
+    indexOfFirstStudent,
+    indexOfLastStudent
+  );
+
+  // const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
 
   return (
     <div className="students">
@@ -47,6 +69,17 @@ const Students = () => {
         {/* Add filter or search options here if needed */}
       </div>
       <div className="students3">
+        <input
+          type="text"
+          placeholder="Search by name, email, or phone"
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value.toLowerCase());
+            setCurrentPage(1); // Reset to page 1 on new search
+          }}
+          style={{ padding: "8px", width: "300px", marginBottom: "20px" }}
+        />
+
         <div className="students4">
           {loading ? (
             <p>Loading...</p>
@@ -57,12 +90,14 @@ const Students = () => {
                   <th>IMAGE</th>
                   <th>FULL NAME</th>
                   <th>EMAIL</th>
+                  <th>Registration Date</th>
                   <th>PHONE NO.</th>
                 </tr>
               </thead>
               <tbody>
-                {studentsData.length > 0 ? (
-                  studentsData.map((item, index) => (
+                {/* {studentsData.length > 0 ? ( */}
+                {currentStudents.length > 0 ? (
+                  currentStudents.map((item, index) => (
                     <tr key={index}>
                       <td>
                         <Link
@@ -101,7 +136,9 @@ const Students = () => {
                                   fontWeight: "bold",
                                 }}
                               >
-                                {getInitials(item.firstName + " " + item.lastName)}
+                                {getInitials(
+                                  item.firstName + " " + item.lastName
+                                )}
                               </div>
                             )}
                           </OverlayTrigger>
@@ -109,17 +146,38 @@ const Students = () => {
                       </td>
                       <td>{item.firstName + " " + item.lastName || "N/A"}</td>
                       <td>{item.email || "N/A"}</td>
+                      <td>
+                        {item.createdAt
+                          ? new Date(item.createdAt).toLocaleDateString()
+                          : "N/A"}
+                      </td>
                       <td>{item.phone || "N/A"}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="4">No students found</td>
+                    <td colSpan="5">No students found</td>
                   </tr>
                 )}
               </tbody>
             </table>
           )}
+        </div>
+
+        <div
+          style={{
+            marginTop: "20px",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <Pagination
+            current={currentPage}
+            pageSize={studentsPerPage}
+            total={filteredStudents.length}
+            onChange={(page) => setCurrentPage(page)}
+            showSizeChanger={false}
+          />
         </div>
       </div>
     </div>

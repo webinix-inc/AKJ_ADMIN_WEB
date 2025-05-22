@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import HOC from "../../Component/HOC/HOC";
 import api from "../../api/axios";
@@ -18,6 +18,7 @@ import {
 } from "react-icons/fi";
 import { MdClose } from "react-icons/md";
 import { AiFillCheckCircle } from "react-icons/ai";
+import QuestionEditor from "../../Component/editor/QuestionEditor";
 
 const useQuizId = () => {
   const { id } = useParams();
@@ -91,6 +92,7 @@ const TestDetailsPage = () => {
 
       setQuestions(response.data.questions || []);
       toast.success("Questions loaded successfully!");
+      console.log("hre the the fetched qquestions : ", response.data.questions);
     } catch (error) {
       toast.error("Failed to load questions.");
       console.error("Error fetching questions:", error);
@@ -183,14 +185,25 @@ const TestDetailsPage = () => {
   };
 
   const handleEdit = (question) => {
-    setSelectedQuestion({
+    // setSelectedQuestion({
+    //   ...question,
+    //   questionText: question.tables[0] || question.questionText || "",
+    // });
+    const updatedQuestion = {
       ...question,
       questionText: question.tables[0] || question.questionText || "",
-    });
+    };
+    setSelectedQuestion(updatedQuestion);
+
+    console.log("this is the selected question for editing :", updatedQuestion);
     setEditModal(true);
   };
 
   const handleSaveEdit = async () => {
+    console.log(
+      "this is the selected question to be updated :",
+      selectedQuestion
+    );
     if (!selectedQuestion) return;
 
     const updatedQuestion = {
@@ -199,11 +212,14 @@ const TestDetailsPage = () => {
       questionText: selectedQuestion.questionText,
     };
 
+    console.log("this could be the new question if updated :", updatedQuestion);
+
     try {
       const response = await api.put(
         `/admin/quizzes/${quizId}/questions/${selectedQuestion._id}`,
         updatedQuestion
       );
+      console.log("response for the update :", response);
 
       if (response.status === 200) {
         setQuestions((prev) =>
@@ -225,7 +241,10 @@ const TestDetailsPage = () => {
   };
 
   const handleCopy = (id) => {
-    const questionToCopy = questions.find((q) => q.id === id);
+    console.log("handle copy called");
+
+    const questionToCopy = questions.find((q) => q._id === id);
+    console.log("this is the question to be copied :", questionToCopy);
     if (questionToCopy) {
       setQuestions([...questions, { ...questionToCopy, id: `${id}-copy` }]);
       toast.success("Question copied successfully!");
@@ -305,6 +324,19 @@ const TestDetailsPage = () => {
       return { ...prev, options: updatedOptions };
     });
   };
+
+  const quillRef = useRef();
+
+  // When selectedQuestion changes from outside, update editor content only if different
+  useEffect(() => {
+    if (quillRef.current && selectedQuestion?.questionText) {
+      const editor = quillRef.current.getEditor();
+      const currentContent = editor.root.innerHTML;
+      if (currentContent !== selectedQuestion.questionText) {
+        editor.clipboard.dangerouslyPasteHTML(selectedQuestion.questionText);
+      }
+    }
+  }, [selectedQuestion]);
 
   return (
     <div className="flex h-[95vh] overflow-hidden">
@@ -557,7 +589,7 @@ const TestDetailsPage = () => {
 
         {editModal && (
           <div className="fixed inset-0 flex items-center justify-center text-white bg-black bg-opacity-50">
-            <div className=" w-2/3 p-6 rounded-lg shadow-lg text-white">
+            <div className="  w-2/3 max-h-[90vh] overflow-y-auto p-6 rounded-lg shadow-lg text-white">
               <table className="w-full border border-white bg-[#0d0d0d] rounded-lg shadow-md">
                 <thead>
                   <tr>
@@ -581,7 +613,7 @@ const TestDetailsPage = () => {
                       Question
                     </td>
                     <td className="p-4 border-b border-gray-700">
-                      <ReactQuill
+                      {/* <ReactQuill
                         value={selectedQuestion?.questionText || ""}
                         onChange={(value) =>
                           setSelectedQuestion((prev) => ({
@@ -589,6 +621,24 @@ const TestDetailsPage = () => {
                             questionText: value,
                           }))
                         }
+                        
+                      /> */}
+
+                      <ReactQuill
+                        ref={quillRef}
+                        defaultValue={selectedQuestion.questionText}
+                        // onChange={handleQuillChange}
+                        onChange={(value) =>
+                          setSelectedQuestion((prev) => ({
+                            ...prev,
+                            questionText: value,
+                          }))
+                        }
+                        style={{
+                          minHeight: "150px",
+                          backgroundColor: "black",
+                          color: "white",
+                        }}
                       />
                     </td>
                   </tr>
