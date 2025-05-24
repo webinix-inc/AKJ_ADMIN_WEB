@@ -89,7 +89,8 @@
 
 .studentprofile {
   position: relative;
-  height: 242px;
+  /* height: 242px; */
+  height: 125px;
   background-size: cover;
   background-position: center;
   box-sizing: border-box;
@@ -193,4 +194,31 @@
   line-height: 23.22px;
   color: #737373;
   margin: 0;
+}
+
+
+
+/* Pagination button hover fix */
+.ant-pagination-item a {
+  color: white; /* or any light color */
+}
+
+.ant-pagination-item:hover,
+.ant-pagination-item:focus {
+  border-color: #1890ff; /* optional highlight */
+}
+
+.ant-pagination-item:hover a,
+.ant-pagination-item:focus a {
+  color: #1890ff !important; /* or white */
+}
+
+/* Optional: fix the active (current) page button color */
+.ant-pagination-item-active {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+.ant-pagination-item-active a {
+  color: white;
 }

@@ -14,6 +14,7 @@ import {
   Timeline,
   Card,
   Tag,
+  Drawer,
 } from "antd";
 import { HiPlus } from "react-icons/hi";
 import { IoClose } from "react-icons/io5";
@@ -295,6 +296,8 @@ const Plans = () => {
 
   if (loadingSubscriptions || loadingCourses) return <Spin />;
 
+  console.log("here are the subscriptions :", subscriptions);
+
   return (
     <div className="plans-container p-6 text-white">
       <div className="flex justify-between mb-4">
@@ -331,8 +334,11 @@ const Plans = () => {
             {/* Card Content */}
             <div>
               {/* Heading Section */}
-              <h3 className="text-lg font-bold text-blue-900 text-center mb-2">
+              <h2 className="text-lg font-bold text-black-900 text-center mb-2">
                 {plan.name}
+              </h2>
+              <h3 className="text-lg font-bold text-blue-800 text-center mb-2">
+                {plan.course?.title}
               </h3>
 
               {/* Validities Section */}
@@ -382,15 +388,19 @@ const Plans = () => {
       </div>
 
       {/* View Plan Modal */}
-      <Modal
+      <Drawer
         title="Plan Details"
         visible={isViewModalVisible}
-        onCancel={closeViewPlanModal}
+        // onCancel={closeViewPlanModal}
+        onClose={closeViewPlanModal}
         footer={[
           <Button key="close" onClick={closeViewPlanModal}>
             Close
           </Button>,
         ]}
+        // width={500}
+        // placement="right"
+        // push={true}
       >
         {selectedPlan && (
           <>
@@ -456,7 +466,7 @@ const Plans = () => {
             )}
           </>
         )}
-      </Modal>
+      </Drawer>
 
       {/* Installment Timeline Modal */}
       <InstallmentTimelineModal

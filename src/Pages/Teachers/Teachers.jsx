@@ -6,6 +6,7 @@ import Tooltip from "react-bootstrap/Tooltip";
 import { Link, useNavigate } from "react-router-dom";
 import { HiPlus } from "react-icons/hi";
 import api from "../../api/axios";
+import { Pagination } from "antd";
 
 const Teachers = () => {
   const navigate = useNavigate();
@@ -15,6 +16,9 @@ const Teachers = () => {
     experience: "",
     year: "",
   });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const teachersPerPage = 1;
 
   const [years, setYears] = useState([]);
 
@@ -51,6 +55,7 @@ const Teachers = () => {
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
+    setCurrentPage(1);
   };
 
   // Apply filters to teacher data
@@ -60,10 +65,17 @@ const Teachers = () => {
       (!filters.year || teacher.year === filters.year)
     );
   });
+  const indexOfLastTeacher = currentPage * teachersPerPage;
+  const indexOfFirstTeacher = indexOfLastTeacher - teachersPerPage;
+  const currentTeachers = filteredTeachers.slice(
+    indexOfFirstTeacher,
+    indexOfLastTeacher
+  );
 
   const getInitials = (firstName, lastName) => {
     const initials =
-      (firstName?.[0]?.toUpperCase() || "") + (lastName?.[0]?.toUpperCase() || "");
+      (firstName?.[0]?.toUpperCase() || "") +
+      (lastName?.[0]?.toUpperCase() || "");
     return initials || "N/A";
   };
 
@@ -122,8 +134,10 @@ const Teachers = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredTeachers.length > 0 ? (
-                filteredTeachers.map((teacher) => (
+              {/* {filteredTeachers.length > 0 ? (
+                filteredTeachers.map((teacher) => ( */}
+              {currentTeachers.length > 0 ? (
+                currentTeachers.map((teacher) => (
                   <tr key={teacher._id}>
                     <td>
                       <Link
@@ -168,7 +182,9 @@ const Teachers = () => {
                         </OverlayTrigger>
                       </Link>
                     </td>
-                    <td>{teacher.firstName + " " + teacher.lastName || "N/A"}</td>
+                    <td>
+                      {teacher.firstName + " " + teacher.lastName || "N/A"}
+                    </td>
                     <td>{teacher.email || "N/A"}</td>
                     <td>{teacher.phone || "N/A"}</td>
                     <td>{teacher.experience || "N/A"}</td>
@@ -182,6 +198,21 @@ const Teachers = () => {
               )}
             </tbody>
           </table>
+        </div>
+        <div
+          style={{
+            marginTop: "20px",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <Pagination
+            current={currentPage}
+            pageSize={teachersPerPage}
+            total={filteredTeachers.length}
+            onChange={(page) => setCurrentPage(page)}
+            showSizeChanger={false}
+          />
         </div>
       </div>
     </div>

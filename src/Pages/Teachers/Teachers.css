@@ -155,3 +155,29 @@
   margin: 0;
   cursor: pointer;
 }
+
+
+/* Pagination button hover fix */
+.ant-pagination-item a {
+  color: white; /* or any light color */
+}
+
+.ant-pagination-item:hover,
+.ant-pagination-item:focus {
+  border-color: #1890ff; /* optional highlight */
+}
+
+.ant-pagination-item:hover a,
+.ant-pagination-item:focus a {
+  color: #1890ff !important; /* or white */
+}
+
+/* Optional: fix the active (current) page button color */
+.ant-pagination-item-active {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+.ant-pagination-item-active a {
+  color: white;
+}

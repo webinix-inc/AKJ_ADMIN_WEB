@@ -8,6 +8,7 @@ import {
   FaPlay,
   FaDownload,
 } from "react-icons/fa";
+import { BiSolidFilePdf } from "react-icons/bi";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import HOC from "../../Component/HOC/HOC";
 import { Checkbox, Input, Modal, Spin, Switch, Upload, message } from "antd";
@@ -785,14 +786,24 @@ const FolderContents = () => {
                           >
                             <td className="px-4 py-2">
                               {file.url && file.url.endsWith(".pdf") ? (
+                                // <div
+                                //   className="relative cursor-pointer"
+                                //   onClick={() => handlePreview(file)}
+                                // >
+                                //   <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                                //     {/* <FaPlay className="text-white text-lg" /> */}
+                                //     {/* <FilePdfOutlined className="text-white text-lg" /> */}
+                                //     <BiSolidFilePdf />
+                                //   </div>
+                                //   {/* <span className="block">PDF File</span> */}
+                                // </div>
                                 <div
-                                  className="relative cursor-pointer"
+                                  className="relative  w-[5rem] h-[5rem] cursor-pointer group"
                                   onClick={() => handlePreview(file)}
                                 >
-                                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                                    <FaPlay className="text-white text-lg" />
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-md">
+                                    <BiSolidFilePdf className="text-[2rem] text-white" />
                                   </div>
-                                  <span className="block">PDF File</span>
                                 </div>
                               ) : file.url && file.url.endsWith(".mp4") ? (
                                 <div

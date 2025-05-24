@@ -15,6 +15,7 @@ const StudentProfile = () => {
     const fetchStudentDetails = async () => {
       try {
         const response = await api.get(`/admin/getProfile/${id}`);
+        console.log("this is the response for student/:id page :", response);
         if (response.status === 200) {
           setStudentDetails(response.data.data);
         } else {
@@ -51,10 +52,10 @@ const StudentProfile = () => {
     lastName,
     email,
     phone,
-    image
+    image,
+    createdAt,
+    purchasedCourses,
   } = studentDetails;
-
-  console.log("Show all user profile details:", studentDetails);
 
   return (
     <div className="students">
@@ -83,22 +84,29 @@ const StudentProfile = () => {
                   backgroundColor: "#ddd",
                   color: "#555",
                   fontWeight: "bold",
-                }}>
+                }}
+              >
                 {getInitials(firstName + lastName)}
               </div>
             )}
           </div>
           <div className="studentprofile3 text-white">
-            <h6 className=" text-white">{`${firstName} ${lastName}`}</h6>
-            <h5 className=" text-white">{email}</h5>
+            <h6 className="text-white">{`${firstName} ${lastName}`}</h6>
+            <h5 className="text-white">{email}</h5>
           </div>
         </div>
         <div className="studentprofile4">
-          <FaArrowLeft size={30} onClick={() => navigate("/students")} />
+          <FaArrowLeft
+            size={30}
+            color="white"
+            onClick={() => navigate("/students")}
+          />
         </div>
       </div>
 
+      {/* Student Details */}
       <div className="studentprofile5">
+        <h5>Basic Info</h5>
         <div className="studentprofile6">
           <label>First Name</label>
           <input type="text" value={firstName || ""} readOnly />
@@ -109,12 +117,48 @@ const StudentProfile = () => {
         </div>
         <div className="studentprofile6">
           <label>Email</label>
-          <input type="text" value={email || ""} readOnly />
+          <input type="text" value={email || "Not Provided Yet"} readOnly />
         </div>
         <div className="studentprofile6">
           <label>Phone Number</label>
           <input type="text" value={phone || ""} readOnly />
         </div>
+        <div className="studentprofile6">
+          <label>Registration Date</label>
+          <input
+            type="text"
+            value={createdAt ? new Date(createdAt).toLocaleDateString() : "N/A"}
+            readOnly
+          />
+        </div>
+      </div>
+
+      {/* Purchased Courses */}
+      <div className="studentprofile5 text-white" style={{ marginTop: "2rem" }}>
+        <h5>Purchased Courses</h5>
+        {purchasedCourses && purchasedCourses.length > 0 ? (
+          purchasedCourses.map((course, index) => (
+            <div
+              key={index}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                borderBottom: "1px solid #ccc",
+                padding: "10px 0",
+              }}
+            >
+              <span>
+                <strong>{course?.course?.title || "Untitled Course"}</strong>
+              </span>
+              <span>
+                Enrollment Date:{" "}
+                {new Date(course.purchaseDate).toLocaleDateString()}
+              </span>
+            </div>
+          ))
+        ) : (
+          <p>No purchased courses</p>
+        )}
       </div>
     </div>
   );
