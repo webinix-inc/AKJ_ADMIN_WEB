@@ -105,31 +105,35 @@ const StudentProfile = () => {
       </div>
 
       {/* Student Details */}
-      <div className="studentprofile5">
-        <h5>Basic Info</h5>
-        <div className="studentprofile6">
-          <label>First Name</label>
-          <input type="text" value={firstName || ""} readOnly />
-        </div>
-        <div className="studentprofile6">
-          <label>Last Name</label>
-          <input type="text" value={lastName || ""} readOnly />
-        </div>
-        <div className="studentprofile6">
-          <label>Email</label>
-          <input type="text" value={email || "Not Provided Yet"} readOnly />
-        </div>
-        <div className="studentprofile6">
-          <label>Phone Number</label>
-          <input type="text" value={phone || ""} readOnly />
-        </div>
-        <div className="studentprofile6">
-          <label>Registration Date</label>
-          <input
-            type="text"
-            value={createdAt ? new Date(createdAt).toLocaleDateString() : "N/A"}
-            readOnly
-          />
+      <div style={{ marginTop: "130px" }}>
+        <h5 className="text-white text-3xl">Basic Details</h5>
+        <div className="studentprofile5" style={{ marginTop: "20px" }}>
+          <div className="studentprofile6">
+            <label>First Name</label>
+            <input type="text" value={firstName || ""} readOnly />
+          </div>
+          <div className="studentprofile6">
+            <label>Last Name</label>
+            <input type="text" value={lastName || ""} readOnly />
+          </div>
+          <div className="studentprofile6">
+            <label>Email</label>
+            <input type="text" value={email || "Not Provided Yet"} readOnly />
+          </div>
+          <div className="studentprofile6">
+            <label>Phone Number</label>
+            <input type="text" value={phone || ""} readOnly />
+          </div>
+          <div className="studentprofile6">
+            <label>Registration Date</label>
+            <input
+              type="text"
+              value={
+                createdAt ? new Date(createdAt).toLocaleDateString() : "N/A"
+              }
+              readOnly
+            />
+          </div>
         </div>
       </div>
 

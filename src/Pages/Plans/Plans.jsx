@@ -255,9 +255,14 @@ const Plans = () => {
     setFeatures(newFeatures);
   };
   const handleGetInstallments = async (courseId) => {
+    console.log("here is the couseID we got :", courseId);
     setLoadingInstallments(true);
     try {
       const response = await api.get(`/admin/installments/${courseId}`);
+      console.log(
+        "here is the data response we get for installments :",
+        response
+      );
       if (response.status === 200) {
         setInstallments(response.data.data);
       } else {
@@ -398,9 +403,6 @@ const Plans = () => {
             Close
           </Button>,
         ]}
-        // width={500}
-        // placement="right"
-        // push={true}
       >
         {selectedPlan && (
           <>
@@ -676,10 +678,15 @@ const Plans = () => {
       </Modal>
 
       {/* Edit Subscription Modal */}
-      <Modal
+      <Drawer
         title="Edit Plan"
         visible={isEditModalVisible}
-        onCancel={() => {
+        // onCancel={() => {
+        //   handleCancel();
+        //   setIsEditPlanSaved(false); // Reset save state when modal is closed
+        //   setIsEditingAllowed(false); // Re-enable editing when modal is closed
+        // }}
+        onClose={() => {
           handleCancel();
           setIsEditPlanSaved(false); // Reset save state when modal is closed
           setIsEditingAllowed(false); // Re-enable editing when modal is closed
@@ -817,16 +824,16 @@ const Plans = () => {
           </Form.Item>
 
           {/* Button to enable re-editing */}
-          <Button
+          {/* <Button
             type="primary"
             onClick={() => setIsEditingAllowed(true)}
             disabled={isEditPlanSaved && !isEditingAllowed}
           >
             Edit Again
-          </Button>
+          </Button> */}
 
           {/* Save and Create Installment Button */}
-          <Form.Item>
+          {/* <Form.Item>
             <Button
               type="primary"
               htmlType="submit"
@@ -835,7 +842,37 @@ const Plans = () => {
             >
               Update Plan
             </Button>
+          </Form.Item> */}
+
+          {/* Buttons side by side */}
+          <Form.Item>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: "10px",
+              }}
+            >
+              <Button
+                type="default"
+                onClick={() => setIsEditingAllowed(true)}
+                disabled={isEditPlanSaved && !isEditingAllowed}
+                style={{ flex: 1 }}
+              >
+                Edit Again
+              </Button>
+
+              <Button
+                type="primary"
+                htmlType="submit"
+                disabled={isEditPlanSaved}
+                style={{ flex: 1 }}
+              >
+                Update Plan
+              </Button>
+            </div>
           </Form.Item>
+
           <Form.Item>
             <CreateInstallmentButton
               courseId={selectedCourseId}
@@ -846,7 +883,7 @@ const Plans = () => {
             />
           </Form.Item>
         </Form>
-      </Modal>
+      </Drawer>
     </div>
   );
 };
