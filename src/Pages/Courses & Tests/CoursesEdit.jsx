@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchCourseById,
@@ -16,6 +16,10 @@ import { Button, message, Upload, Select, Modal } from "antd";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import img from "../../Image/img9.png";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { Editor } from "@tinymce/tinymce-react";
+
 import {
   DeleteOutlined,
   PlayCircleOutlined,
@@ -41,11 +45,7 @@ const CoursesEdit = () => {
     enrolledStudents: "",
   });
 
-  // const [description, setDescription] = useState("");
-  // const [description, setDescription] = useState(null);
-  // const [editorReady, setEditorReady] = useState(false);
-  const [description, setDescription] = useState(""); // ✅ important
-  const [editorReady, setEditorReady] = useState(false);
+  const [description, setDescription] = useState("");
   const [courseImage, setCourseImage] = useState(null);
   const [subCategories, setSubCategories] = useState([]);
   const [files, setFiles] = useState({ courseImage: [] });
@@ -65,7 +65,19 @@ const CoursesEdit = () => {
   }, [dispatch, id]);
 
   useEffect(() => {
-    if (course && categories.length > 0 && course.description !== undefined) {
+    if (course && categories.length > 0) {
+      // Convert course.description into HTML <p> blocks for ReactQuill
+      const descRaw = course.description;
+      const descHtml = Array.isArray(descRaw)
+        ? descRaw.map((line) => `<p>${line}</p>`).join("")
+        : typeof descRaw === "string"
+        ? descRaw
+        : "";
+
+      console.log("Converted description for Quill:", descHtml);
+
+      setDescription(descHtml); // 👈 This will now render in ReactQuill
+
       setFormData({
         title: course.title || "",
         price: course.price || "",
@@ -75,47 +87,6 @@ const CoursesEdit = () => {
         courseDuration: course.duration || "",
         enrolledStudents: course.enrolledStudents || "",
       });
-      // const currentDescription = course.description;
-      // setDescription(course.description || "");
-
-      // const currentDescription = Array.isArray(course.description)
-      //   ? course.description[0]
-      //   : course.description;
-      // setDescription(currentDescription || "");
-
-      // let currentDescription = "";
-
-      // if (Array.isArray(course.description)) {
-      //   currentDescription = course.description[0];
-      // } else if (
-      //   typeof course.description === "object" &&
-      //   course.description !== null
-      // ) {
-      //   currentDescription = course.description?.text || "";
-      // } else {
-      //   currentDescription = course.description || "";
-      // }
-
-      // setDescription(currentDescription);
-      // setEditorReady(true);
-
-      let currentDescription = "";
-
-      if (Array.isArray(course.description)) {
-        currentDescription = course.description[0] || "";
-      } else if (
-        typeof course.description === "object" &&
-        course.description !== null
-      ) {
-        currentDescription = course.description.text || "";
-      } else if (typeof course.description === "string") {
-        currentDescription = course.description;
-      }
-
-      setDescription(currentDescription);
-      setEditorReady(true);
-
-      // setDescription(course.description.join("\n") || "");
 
       setCourseImage(course.courseImage?.[0] || img);
       setVideos(course.courseVideo || []);
@@ -128,6 +99,16 @@ const CoursesEdit = () => {
   }, [course, categories]);
 
   const handleEditModeToggle = () => setIsEditMode((prev) => !prev); // Toggle edit mode
+
+  const TiptapEditor = ({ value, onChange }) => {
+    const editor = useEditor({
+      extensions: [StarterKit],
+      content: value,
+      onUpdate: ({ editor }) => onChange(editor.getHTML()),
+    });
+
+    return <EditorContent editor={editor} />;
+  };
 
   const handleCategoryChange = (value) => {
     setFormData((prevData) => ({
@@ -212,148 +193,6 @@ const CoursesEdit = () => {
     setCurrentVideoUrl(url);
     // Optionally, manage the state to show/hide the video player modal
   };
-
-  // console.log(
-  //   "We are getting this description into react-quill : ",
-  //   description
-  // );
-
-  // const quillRef = useRef(null);
-  // useEffect(() => {
-  //   if (course) {
-  //     const htmlContent = course.description?.join("<br/>") || "";
-  //     setDescription(htmlContent);
-  //   }
-  // }, [course]);
-
-  // if (!description) return <div>Loading editor...</div>;
-
-  useEffect(() => {
-    console.log("description =>", description);
-    console.log("type of description =>", typeof description);
-  }, [description]);
-
-  const quillRef = useRef();
-  // useEffect(() => {
-  //   if (quillRef.current && description) {
-  //     const editor = quillRef.current.getEditor();
-  //     const currentContent = editor.root.innerHTML;
-  //     if (currentContent !== description) {
-  //       editor.clipboard.dangerouslyPasteHTML(description);
-  //     }
-  //   }
-  // }, [description]);
-  // useEffect(() => {
-  //   if (quillRef.current && description) {
-  //     const editor = quillRef.current.getEditor();
-  //     const currentContent = editor.root.innerHTML;
-  //     if (currentContent !== description) {
-  //       editor.clipboard.dangerouslyPasteHTML(description);
-  //     }
-  //   }
-  // }, [description]);
-  // console.log("current editor is", quillRef.current.getEditor());
-
-  // useEffect(() => {
-  //   if (quillRef.current && description && typeof description === "string") {
-  //     const editor = quillRef.current.getEditor();
-  //     const currentContent = editor.root.innerHTML;
-
-  //     if (currentContent !== description) {
-  //       try {
-  //         editor.clipboard.dangerouslyPasteHTML(description);
-  //       } catch (error) {
-  //         console.error("Failed to paste HTML into Quill:", error);
-  //       }
-  //     }
-  //   }
-  // }, [description]);
-
-  // useEffect(() => {
-  //   if (quillRef.current && typeof description === "string") {
-  //     const editor = quillRef.current.getEditor();
-  //     const currentContent = editor.root.innerHTML;
-
-  //     if (currentContent !== description) {
-  //       try {
-  //         editor.setContents([]); // clear
-  //         editor.clipboard.dangerouslyPasteHTML(0, description); // paste at index 0
-  //       } catch (err) {
-  //         console.error("Quill paste error:", err);
-  //       }
-  //     }
-  //   }
-  // }, [description]);
-  // useEffect(() => {
-  //   if (quillRef.current && typeof description === "string") {
-  //     setTimeout(() => {
-  //       const editor = quillRef.current.getEditor();
-  //       editor.setContents([]); // clear
-  //       editor.clipboard.dangerouslyPasteHTML(0, description);
-  //     }, 100); // wait 100ms
-  //   }
-  // }, [description]);
-  // useEffect(() => {
-  //   if (quillRef.current) {
-  //     const editor = quillRef.current.getEditor();
-  //     editor.clipboard.dangerouslyPasteHTML(
-  //       "<p><strong>Test</strong> paste</p>"
-  //     );
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   if (quillRef.current && description) {
-  //     const editor = quillRef.current.getEditor();
-  //     editor.clipboard.dangerouslyPasteHTML(description);
-  //   }
-  // }, [description]); // Trigger whenever description changes
-
-  // useEffect(() => {
-  //   if (quillRef.current && description) {
-  //     const editor = quillRef.current.getEditor();
-
-  //     const htmlContent = Array.isArray(description)
-  //       ? description[0]
-  //       : description;
-
-  //     if (typeof htmlContent === "string") {
-  //       editor.setContents([]); // optional: clear previous content
-  //       editor.clipboard.dangerouslyPasteHTML(htmlContent);
-  //     } else {
-  //       console.error("Invalid description format for Quill:", htmlContent);
-  //     }
-  //   }
-  // }, [description]);
-
-  useEffect(() => {
-    if (!quillRef.current || !description) return;
-
-    const editor = quillRef.current.getEditor();
-
-    // Normalize description to a string
-    let htmlContent = "";
-
-    if (Array.isArray(description)) {
-      htmlContent = description[0]; // if it's an array with HTML string
-    } else if (typeof description === "object" && description !== null) {
-      htmlContent = description?.text || ""; // or whatever key holds the HTML
-    } else if (typeof description === "string") {
-      htmlContent = description;
-    }
-
-    if (typeof htmlContent === "string" && htmlContent.trim() !== "") {
-      editor.setContents([]); // Optional: clear editor before pasting
-      editor.clipboard.dangerouslyPasteHTML(htmlContent);
-    }
-  }, [description]);
-
-  useEffect(() => {
-    if (id) {
-      setEditorReady(false); // <== Reset here
-      dispatch(fetchCourseById(id));
-    }
-  }, [id]);
 
   return (
     <div className="">
@@ -492,73 +331,34 @@ const CoursesEdit = () => {
                   ))}
                 </Select>
               ) : (
-                +(
-                  <p>
-                    {subCategories.find(
-                      (sub) => sub._id === formData.subCategory
-                    )?.name || "N/A"}
-                  </p>
-                )
+                <p>
+                  {subCategories.find((sub) => sub._id === formData.subCategory)
+                    ?.name || "N/A"}
+                </p>
               )}
             </div>
           </div>
         </div>
         <div className="coursesEdit6">
           <h6 className="text-white">Course Description</h6>
-          {/* {isEditMode ? (
-            <ReactQuill
-              // // key={description}
-              // ref={quillRef}
-              // defaultValue={description}
-              // // value="Hello Hiamanshu"
-              // onChange={handleDescriptionChange}
-              // theme="snow"
-              // // placeholder="Edit the course description..."
-              // style={{
-              //   minHeight: "150px",
-              //   backgroundColor: "black",
-              //   color: "white",
-              // }}
-
-              ref={quillRef}
-              // defaultValue={description}
-              value={description}
-              onChange={handleDescriptionChange}
-              theme="snow"
-              style={{
-                minHeight: "150px",
-                backgroundColor: "black",
-                color: "white",
-              }}
-            />
-          ) : (
-            <div
-              className="text-white"
-              style={{
-                background: "#333",
-                padding: "10px",
-                borderRadius: "5px",
-              }}
-              dangerouslySetInnerHTML={{ __html: description }}
-            />
-          )} */}
-
           {isEditMode ? (
-            editorReady && description !== "" ? (
-              <ReactQuill
-                ref={quillRef}
-                value={description}
-                onChange={handleDescriptionChange}
-                theme="snow"
-                style={{
-                  minHeight: "150px",
-                  backgroundColor: "black",
-                  color: "white",
-                }}
-              />
-            ) : (
-              <div className="text-white">Loading editor...</div>
-            )
+            <Editor
+              apiKey="twwx4pwak114eiqavytggyqmzzo0oohnd2lac1haaz597b3a" // or your actual API key
+              value={description}
+              init={{
+                height: 300,
+                menubar: false,
+                plugins: ["link", "lists", "code", "paste"],
+                toolbar:
+                  "undo redo | bold italic underline | bullist numlist | link | code",
+                content_style:
+                  "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
+              }}
+              onEditorChange={(content) => {
+                console.log("TinyMCE updated HTML:", content);
+                setDescription(content);
+              }}
+            />
           ) : (
             <div
               className="text-white"

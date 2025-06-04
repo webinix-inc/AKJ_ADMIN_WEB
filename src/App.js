@@ -49,6 +49,7 @@ import EditCoupon from "./Pages/Self Service/EditCoupon.jsx";
 
 // import 'antd/dist/antd.css';
 import "antd/dist/reset.css"; // ✅ Correct for AntD v5
+import BookOrders from "./Pages/Orders/BookOrders.jsx";
 // import "antd/dist/antd.css";
 
 function App() {
@@ -87,6 +88,7 @@ function App() {
           }
         >
           <Route path="/orders" element={<Orders />} />
+          <Route path="/books/orders" element={<BookOrders />} />
         </Route>
         <Route
           element={<AdminRoute requiredPermissions={["planPermission"]} />}
