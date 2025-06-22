@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom";
 // const socket = io("http://13.233.215.250:8889/", {
 //   transports: ["websocket", "polling"],
 // });
-const socket = io("http://localhost:8889/", {
+const socket = io("http://13.201.132.140:8889/", {
   transports: ["websocket", "polling"],
 });
 
@@ -53,6 +53,18 @@ const Messages = () => {
   const handleToggleExpand = () => {
     setIsExpanded(!isExpanded);
   };
+
+  const normalizeMessages = (msgs = []) =>
+    msgs.map((msg) => ({
+      ...msg,
+      createdAt: msg.createdAt || msg.timestamp || new Date().toISOString(),
+    }));
+
+  const sortMessages = (msgs) =>
+    [...msgs].sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
 
   useEffect(() => {
     fetchUsers();
@@ -90,9 +102,7 @@ const Messages = () => {
     socket.on("message", (messageData) => {
       if (messageData && messageData.sender !== currentUserId) {
         setMessages((prevMessages) =>
-          [...prevMessages, messageData].sort(
-            (a, b) => a.timestamp - b.timestamp
-          )
+          sortMessages([...prevMessages, ...normalizeMessages([messageData])])
         );
       }
     });
@@ -117,16 +127,16 @@ const Messages = () => {
       const response = await api.get(`/chat/${receiverId}`, {
         params: { cursor, limit: 10 },
       });
+
       const {
         data: { data: fetchedMessages, nextCursor },
       } = response;
 
-      setMessages((prevMessages) =>
-        cursor
-          ? [...prevMessages, ...fetchedMessages.reverse()]
-          : fetchedMessages.reverse()
-      );
+      const normalized = normalizeMessages(fetchedMessages).reverse(); // reverse because backend sends latest first
 
+      setMessages((prevMessages) =>
+        sortMessages(cursor ? [...prevMessages, ...normalized] : normalized)
+      );
       setCursor(nextCursor);
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -148,13 +158,14 @@ const Messages = () => {
       content: newMessage,
       sender: currentUserId,
       receiverId: selectedUser._id,
-      timestamp: Date.now(),
+      createdAt: new Date().toISOString(),
       read: false,
     };
 
     setMessages((prevMessages) =>
-      [...prevMessages, messageToSend].sort((a, b) => a.timestamp - b.timestamp)
+      sortMessages([...prevMessages, messageToSend])
     );
+
     socket.emit("message", messageToSend);
 
     try {
@@ -274,6 +285,32 @@ const Messages = () => {
   console.log("Message all content show here:", messages);
 
   console.log("Selected user print:", selectedUser);
+
+  const handleFileChange = async (e) => {
+    const files = e.target.files;
+    if (!files.length || !selectedUser) return;
+
+    const formData = new FormData();
+    for (let file of files) {
+      formData.append("attachments", file);
+    }
+    formData.append("receiverId", selectedUser._id);
+
+    try {
+      const res = await api.post("/chat/send", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      const { data: sentMessage } = res.data;
+
+      setMessages((prev) => [...prev, sentMessage]);
+      socket.emit("message", sentMessage);
+    } catch (err) {
+      console.error("Attachment upload failed:", err);
+    } finally {
+      e.target.value = ""; // reset input so user can reselect same file again
+    }
+  };
 
   return (
     <div className="flex h-[85vh] bg-[#141414] text-gray-100">
@@ -449,7 +486,42 @@ const Messages = () => {
                           : "bg-gray-700 text-gray-100"
                       } max-w-[70%] p-3 rounded-lg`}
                     >
-                      <p>{msg.content}</p>
+                      {msg.attachments && msg.attachments.length > 0 ? (
+                        <div className="space-y-2">
+                          {msg.attachments.map((file, i) => {
+                            const isImage = file.mimeType?.startsWith("image/");
+                            const isVideo = file.mimeType?.startsWith("video/");
+                            return (
+                              <div key={i}>
+                                {isImage ? (
+                                  <img
+                                    src={file.url}
+                                    alt={file.filename}
+                                    className="w-40 rounded"
+                                  />
+                                ) : isVideo ? (
+                                  <video
+                                    src={file.url}
+                                    controls
+                                    className="w-48 rounded"
+                                  />
+                                ) : (
+                                  <a
+                                    href={file.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-400 underline"
+                                  >
+                                    📎 {file.filename}
+                                  </a>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p>{msg.content}</p>
+                      )}
                       <div className="text-xs text-gray-400 flex justify-between items-center mt-2">
                         <span>{formatTimestamp(msg.createdAt)}</span>
                         {msg.sender === currentUserId && (
@@ -479,6 +551,21 @@ const Messages = () => {
                     className="text-gray-500 cursor-pointer"
                     size={20}
                   /> */}
+                  <input
+                    type="file"
+                    id="fileUpload"
+                    multiple
+                    hidden
+                    onChange={handleFileChange}
+                  />
+
+                  <label htmlFor="fileUpload" className="cursor-pointer">
+                    <IoLinkOutline
+                      className="text-gray-500 cursor-pointer"
+                      size={20}
+                      title="Attach file"
+                    />
+                  </label>
                   <BsEmojiSmile
                     className="text-gray-500 cursor-pointer"
                     size={20}
