@@ -608,6 +608,7 @@ const FolderContents = () => {
       >
         <Input
           placeholder="Folder Name"
+          type="text"
           value={newFolderName}
           onChange={(e) => setNewFolderName(e.target.value)}
         />
@@ -623,6 +624,7 @@ const FolderContents = () => {
       >
         <Input
           placeholder="Video Title"
+          type="text"
           value={videoTitle}
           onChange={(e) => setVideoTitle(e.target.value)}
           style={{ marginBottom: "8px" }}
@@ -661,6 +663,7 @@ const FolderContents = () => {
       >
         <Input
           placeholder="Notes Title"
+          type="text"
           value={notesTitle}
           onChange={(e) => setNotesTitle(e.target.value)}
           style={{ marginBottom: "8px" }}

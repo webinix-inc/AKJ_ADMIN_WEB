@@ -271,6 +271,7 @@ const TestPanel = () => {
           </label>
           <Input
             id="folderName"
+            type="text"
             placeholder="Enter folder name"
             value={newFolderName}
             onChange={(e) => setNewFolderName(e.target.value)}

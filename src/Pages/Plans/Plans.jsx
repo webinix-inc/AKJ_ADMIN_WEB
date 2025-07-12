@@ -222,10 +222,12 @@ const Plans = () => {
     });
   };
 
-  const handleValidityChange = (index, field, value) => {
-    const newValidities = [...validities];
-    newValidities[index][field] = value; // Update specific field in validity object
-    setValidities(newValidities);
+  const handleValidityChange = (index, key, value) => {
+    setValidities((prevValidities) =>
+      prevValidities.map((item, idx) =>
+        idx === index ? { ...item, [key]: value } : item
+      )
+    );
   };
 
   const addValidityField = () => {
@@ -511,7 +513,7 @@ const Plans = () => {
             name="name"
             rules={[{ required: true, message: "Please input the plan name!" }]}
           >
-            <Input disabled={isPlanSaved} />
+            <Input type="text" disabled={isPlanSaved} />
           </Form.Item>
 
           {/* Dynamic Validities */}
@@ -520,15 +522,29 @@ const Plans = () => {
               <div key={index} className="flex mb-2">
                 <InputNumber
                   value={validity.validity}
-                  onChange={(value) =>
-                    handleValidityChange(index, "validity", value)
-                  }
+                  min={1}
+                  max={12}
                   placeholder="Validity (months)"
                   style={{ marginLeft: 8, width: 200 }}
                   disabled={isPlanSaved} // Disable input if plan is saved
+                  formatter={(value) => {
+                    const num = Number(value);
+                    if (isNaN(num)) return "";
+                    return Math.min(Math.max(num, 1), 12).toString();
+                  }}
+                  parser={(value) => {
+                    const num = Number(value);
+                    if (isNaN(num)) return 1; // default to min value
+                    return Math.min(Math.max(num, 1), 12);
+                  }}
+                  onChange={(value) =>
+                    handleValidityChange(index, "validity", value)
+                  }
                 />
+
                 <InputNumber
                   value={validity.price}
+                  type="number"
                   onChange={(value) =>
                     handleValidityChange(index, "price", value)
                   }
@@ -538,13 +554,27 @@ const Plans = () => {
                 />
                 <InputNumber
                   value={validity.discount}
-                  onChange={(value) =>
-                    handleValidityChange(index, "discount", value)
-                  }
+                  min={0}
+                  max={100}
                   placeholder="% Discount"
                   style={{ marginLeft: 8, width: 200 }}
-                  disabled={isPlanSaved} // Disable input if plan is saved
+                  disabled={isPlanSaved}
+                  formatter={(value) => {
+                    // remove anything except numbers
+                    const num = Number(value);
+                    if (isNaN(num)) return "";
+                    return Math.min(Math.max(num, 0), 100).toString();
+                  }}
+                  parser={(value) => {
+                    const num = Number(value);
+                    if (isNaN(num)) return 0;
+                    return Math.min(Math.max(num, 0), 100);
+                  }}
+                  onChange={(value) => {
+                    handleValidityChange(index, "discount", value);
+                  }}
                 />
+
                 <Button
                   type="danger"
                   onClick={() => removeValidityField(index)}
@@ -570,6 +600,7 @@ const Plans = () => {
               <div key={index} className="flex mb-2">
                 <Input
                   value={feature.name}
+                  type="text"
                   onChange={(e) =>
                     handleFeatureChange(index, "name", e.target.value)
                   }
@@ -618,6 +649,16 @@ const Plans = () => {
               placeholder="GST (%)"
               style={{ width: "100%" }}
               disabled={isPlanSaved}
+              formatter={(value) => {
+                const num = Number(value);
+                if (isNaN(num)) return "";
+                return Math.min(Math.max(num, 0), 100).toString();
+              }}
+              parser={(value) => {
+                const num = Number(value);
+                if (isNaN(num)) return 0; // default to min value
+                return Math.min(Math.max(num, 0), 100);
+              }}
             />
           </Form.Item>
 
@@ -638,6 +679,16 @@ const Plans = () => {
               placeholder="Internet Handling Charges (%)"
               style={{ width: "100%" }}
               disabled={isPlanSaved}
+              formatter={(value) => {
+                const num = Number(value);
+                if (isNaN(num)) return "";
+                return Math.min(Math.max(num, 0), 100).toString();
+              }}
+              parser={(value) => {
+                const num = Number(value);
+                if (isNaN(num)) return 0; // default to min
+                return Math.min(Math.max(num, 0), 100);
+              }}
             />
           </Form.Item>
 

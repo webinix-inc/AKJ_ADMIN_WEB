@@ -240,7 +240,7 @@ const AddCourse = ({ modalShow, onHide }) => {
             rules={[
               { required: true, message: "Please enter a course title" },
             ]}>
-            <Input placeholder="Course Title" />
+            <Input placeholder="Course Title" type="text" />
           </Form.Item>
 
           <Form.Item
@@ -262,6 +262,7 @@ const AddCourse = ({ modalShow, onHide }) => {
               <Space key={index} align="start" style={{ marginBottom: 10 }}>
                 <Input
                   placeholder="Question"
+                  type="text"
                   value={faq.question}
                   onChange={(e) =>
                     handleFaqChange(index, "question", e.target.value)
@@ -269,6 +270,7 @@ const AddCourse = ({ modalShow, onHide }) => {
                 />
                 <Input
                   placeholder="Answer"
+                  type="text"
                   value={faq.answer}
                   onChange={(e) =>
                     handleFaqChange(index, "answer", e.target.value)
@@ -357,6 +359,7 @@ const AddCourse = ({ modalShow, onHide }) => {
               <Form.Item label="Category Name">
                 <Input
                   value={newCategoryName}
+                  type="text"
                   onChange={(e) => setNewCategoryName(e.target.value)}
                   placeholder="Enter category name"
                 />
