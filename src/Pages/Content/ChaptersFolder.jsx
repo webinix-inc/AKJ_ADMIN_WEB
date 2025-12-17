@@ -1,12 +1,12 @@
+import { ArrowLeftOutlined, FolderOutlined, MoreOutlined, PlusOutlined } from '@ant-design/icons';
+import { Button, Card, Dropdown, Form, Input, Menu, Modal, Spin, Typography } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useParams, useNavigate } from 'react-router-dom';
-import HOC from '../../Component/HOC/HOC';
-import { createChapter, getSubjectById, updateChapterById, deleteChapterById } from '../../redux/slices/courseSlice';
-import { Button, Card, Typography, Spin, Modal, Form, Input, Dropdown, Menu } from 'antd';
-import { ArrowLeftOutlined, PlusOutlined, FolderOutlined, MoreOutlined } from '@ant-design/icons';
 import { FaSave } from 'react-icons/fa';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import HOC from '../../Component/HOC/HOC';
+import { createChapter, deleteChapterById, getSubjectById, updateChapterById } from '../../redux/slices/courseSlice';
 
 const { Title, Paragraph } = Typography;
 
@@ -46,7 +46,9 @@ const ChaptersFolder = () => {
   };
 
   const handleSaveEdit = async (e, chapter) => {
-    e.stopPropagation(); // Prevent navigation when save icon is clicked
+    if (e && typeof e.stopPropagation === 'function') {
+      e.stopPropagation(); // Prevent navigation when save icon is clicked
+    }
     try {
       const updatedData = { name: editingChapterName };
       await dispatch(
@@ -108,13 +110,17 @@ const ChaptersFolder = () => {
               style={{ cursor: 'pointer', textAlign: 'center' }}
               onClick={() => navigate(`/content/subjects/${id}/chapters/${chapter._id}`)}
             >
-              <FolderOutlined style={{ fontSize: '64px', color: '#1890ff' }} />
+              <FolderOutlined style={{ fontSize: '64px', color: '#000000' }} />
               {editingChapterId === chapter._id ? (
                 <div className="flex flex-col items-center">
                   <Input
                     value={editingChapterName}
                     onChange={(e) => setEditingChapterName(e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      if (e && typeof e.stopPropagation === 'function') {
+                        e.stopPropagation();
+                      }
+                    }}
                     placeholder="Chapter Name"
                     style={{ marginBottom: '8px' }}
                   />
@@ -124,7 +130,11 @@ const ChaptersFolder = () => {
                   />
                 </div>
               ) : (
-                <div onClick={(e)=>e.stopPropagation()} className="flex items-center justify-between w-full">
+                <div onClick={(e) => {
+                  if (e && typeof e.stopPropagation === 'function') {
+                    e.stopPropagation();
+                  }
+                }} className="flex items-center justify-between w-full">
                   <Title level={4} style={{ margin: 0 }}>{chapter.name}</Title>
                   <Dropdown
                   className='absolute right-0 top-0 p-2'
@@ -148,7 +158,11 @@ const ChaptersFolder = () => {
                   >
                     <MoreOutlined
                       style={{ fontSize: "24px", cursor: "pointer" }}
-                      onClick={(e) => e.stopPropagation()} // Prevent card navigation on dropdown click
+                      onClick={(e) => {
+                      if (e && typeof e.stopPropagation === 'function') {
+                        e.stopPropagation();
+                      }
+                    }} // Prevent card navigation on dropdown click
                     />
                   </Dropdown>
                 </div>

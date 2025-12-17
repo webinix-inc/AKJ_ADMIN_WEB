@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import HOC from "../../Component/HOC/HOC";
 import api from "../../api/axios";
+import { getOptimizedBookImage, handleImageError } from "../../utils/imageUtils";
 
 // Modal Component
 const Modal = ({ isOpen, onClose, children }) => {
@@ -167,9 +168,10 @@ const BookList = ({ books, onEdit, onDelete, isLoading }) => {
             className="bg-white rounded-lg overflow-hidden flex flex-col h-full"
           >
             <img
-              src={book.imageUrl}
+              src={getOptimizedBookImage(book)}
               alt={book.name}
               className="w-full h-48 object-cover"
+              onError={handleImageError}
             />
             <div className="p-4 flex flex-col flex-grow">
               <div className="flex-grow flex flex-col justify-between">

@@ -1,31 +1,35 @@
-import React, { useState, useEffect } from "react";
 import {
-  Button,
-  Form,
-  Input,
-  Modal,
-  Select,
-  Table,
-  Space,
-  Popconfirm,
-  message,
-  Spin,
-  Row,
-  Col,
-  Switch,
-} from "antd";
-import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  BookOutlined,
-  ArrowLeftOutlined,
-  ClockCircleOutlined,
-  SettingOutlined,
+    ArrowLeftOutlined,
+    BookOutlined,
+    ClockCircleOutlined,
+    DeleteOutlined,
+    EditOutlined,
+    ExclamationCircleOutlined,
+    PlusOutlined,
+    ReloadOutlined,
+    SettingOutlined,
 } from "@ant-design/icons";
+import {
+    Button,
+    Col,
+    Form,
+    Input,
+    message,
+    Modal,
+    Popconfirm,
+    Result,
+    Row,
+    Select,
+    Space,
+    Spin,
+    Switch,
+    Table,
+} from "antd";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import HOC from "../../Component/HOC/HOC";
 import api from "../../api/axios";
+import HOC from "../../Component/HOC/HOC";
+import LoadingSpinner from "../../Components/Common/LoadingSpinner";
 
 const { Option } = Select;
 
@@ -38,6 +42,7 @@ const TestCreationPage = () => {
   const [showOnlyActive, setShowOnlyActive] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [quizForm] = Form.useForm();
   const [editingQuiz, setEditingQuiz] = useState(null);
   const [quizAvailability, setQuizAvailability] = useState({});
@@ -51,21 +56,51 @@ const TestCreationPage = () => {
   const fetchQuizzes = async () => {
     try {
       setLoading(true);
+      console.log("Fetching quizzes for folder:", id);
+      
       const response = await api.get(`/admin/folder/${id}`);
+      console.log("Quiz fetch response:", response.data);
+      
+      if (response.data.success === false) {
+        throw new Error(response.data.message || "Failed to fetch quizzes");
+      }
+      
       const quizzesData = response.data.quizzes || [];
+      console.log("Quizzes data:", quizzesData);
+      
       setQuizzes(quizzesData);
       setFilteredQuizzes(quizzesData);
+      
+      if (quizzesData.length === 0) {
+        console.log("No quizzes found in this folder");
+      }
+      
     } catch (error) {
       console.error("Error fetching quizzes:", error);
-      message.error("Failed to fetch quizzes.");
+      const errorMsg = error.response?.data?.message || 
+                      error.response?.data?.error || 
+                      error.message || 
+                      "Failed to fetch quizzes";
+      setError(errorMsg);
+      message.error(errorMsg);
+      setQuizzes([]);
+      setFilteredQuizzes([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchQuizzes();
-  }, []);
+    // Only fetch if we have a valid folder ID
+    if (id && id !== 'undefined' && id !== 'null') {
+      console.log("Component mounted, fetching quizzes for folder:", id);
+      fetchQuizzes();
+    } else {
+      console.error("Invalid folder ID:", id);
+      message.error("Invalid folder ID. Please navigate from the test panel.");
+      navigate(-1);
+    }
+  }, [id, navigate]);
 
   // Fetch quiz availability for a specific quiz
   const fetchQuizAvailability = async (quizId) => {
@@ -149,31 +184,66 @@ const TestCreationPage = () => {
   const handleQuizSubmit = async (values) => {
     try {
       setLoading(true);
+      console.log("Submitting quiz form:", values);
 
+      const durationInMinutes = values.duration || 0;
       const requestBody = {
         quizName: values.quizName,
         duration: {
-          hours: Math.floor(values.duration / 60),
-          minutes: values.duration % 60,
+          hours: Math.floor(durationInMinutes / 60),
+          minutes: durationInMinutes % 60,
         },
         category: values.category,
+        isFreeTest: values.isFreeTest || false,
       };
 
+      console.log("Request body:", requestBody);
+
+      let response;
       if (editingQuiz) {
-        await api.put(`/admin/quizzes/${editingQuiz._id}`, requestBody);
+        console.log("Updating existing quiz:", editingQuiz._id);
+        response = await api.put(`/admin/quizzes/${editingQuiz._id}`, requestBody);
+        
+        if (response.data.success === false) {
+          throw new Error(response.data.message || "Failed to update quiz");
+        }
+        
         message.success("Quiz updated successfully.");
       } else {
-        await api.post(`/admin/quizzes/${id}`, requestBody);
+        console.log("Creating new quiz in folder:", id);
+        response = await api.post(`/admin/quizzes/${id}`, requestBody);
+        
+        console.log("Quiz creation response:", response.data);
+        
+        if (response.data.success === false) {
+          throw new Error(response.data.message || "Failed to create quiz");
+        }
+        
         message.success("Quiz created successfully.");
       }
 
-      fetchQuizzes();
+      // Close modal and reset form immediately
       setIsModalVisible(false);
       quizForm.resetFields();
       setEditingQuiz(null);
+      
+      // Refresh quiz list with a small delay to ensure backend has processed
+      console.log("Refreshing quiz list...");
+      setTimeout(() => {
+        fetchQuizzes();
+      }, 500);
+      
     } catch (error) {
       console.error("Error creating/updating quiz:", error);
-      message.error("Failed to save quiz.");
+      
+      const errorMsg = error.response?.data?.message || 
+                      error.response?.data?.error || 
+                      error.message || 
+                      "Failed to save quiz";
+                      
+      message.error(errorMsg);
+      
+      // Don't close modal on error, let user retry
     } finally {
       setLoading(false);
     }
@@ -278,7 +348,7 @@ const TestCreationPage = () => {
       align: "center", // Center title and content
       render: (duration) => {
         const { hours = 0, minutes = 0 } = duration || {};
-        return `${hours / 10}h ${minutes}m`;
+        return `${hours}h ${minutes}m`;
       },
     },
     {
@@ -342,6 +412,46 @@ const TestCreationPage = () => {
     },
   ];
 
+  if (loading && quizzes.length === 0) {
+    return (
+      <LoadingSpinner 
+        size="large" 
+        tip="Loading quizzes..." 
+        style={{ minHeight: '400px' }}
+      />
+    );
+  }
+
+  if (error && quizzes.length === 0) {
+    return (
+      <Result
+        icon={<ExclamationCircleOutlined />}
+        title="Failed to Load Quizzes"
+        subTitle={error}
+        extra={[
+          <Button 
+            type="primary" 
+            icon={<ReloadOutlined />}
+            key="retry" 
+            onClick={() => {
+              setError(null);
+              fetchQuizzes();
+            }}
+          >
+            Retry
+          </Button>,
+          <Button 
+            key="back" 
+            icon={<ArrowLeftOutlined />}
+            onClick={() => navigate(-1)}
+          >
+            Go Back
+          </Button>
+        ]}
+      />
+    );
+  }
+
   return (
     <div className="mt-10">
       {/* Header, Filters, and Table */}
@@ -372,15 +482,15 @@ const TestCreationPage = () => {
         </Button>
       </Row>
 
-      <Row gutter={16} style={{ marginBottom: 16, alignItems: "center" }}>
-        <Col span={6}>
+      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+        <Col xs={24} sm={12} md={8} lg={6}>
           <Input
             placeholder="Search by Quiz Name"
             onChange={(e) => setSearchText(e.target.value)}
             allowClear
           />
         </Col>
-        <Col span={6}>
+        <Col xs={24} sm={12} md={8} lg={6}>
           <Select
             placeholder="Filter by Category"
             onChange={(value) => setSelectedCategory(value)}
@@ -396,13 +506,15 @@ const TestCreationPage = () => {
             )}
           </Select>
         </Col>
-        <Col span={6}>
-          <Switch
-            checked={showOnlyActive}
-            onChange={(checked) => setShowOnlyActive(checked)}
-            checkedChildren="Active Only"
-            unCheckedChildren="All"
-          />
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <div className="flex items-center">
+            <Switch
+              checked={showOnlyActive}
+              onChange={(checked) => setShowOnlyActive(checked)}
+              checkedChildren="Active Only"
+              unCheckedChildren="All"
+            />
+          </div>
         </Col>
       </Row>
 
@@ -412,13 +524,15 @@ const TestCreationPage = () => {
           columns={columns}
           rowKey="_id"
           pagination={{ pageSize: 7 }}
+          scroll={{ x: 800 }}
+          responsive={true}
         />
       </Spin>
 
       {/* Modal for Adding/Editing Quiz */}
       <Modal
         title={editingQuiz ? "Edit Quiz" : "Create Quiz"}
-        visible={isModalVisible}
+        open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
       >
@@ -428,13 +542,20 @@ const TestCreationPage = () => {
           onFinish={(values) => {
             const durationInMinutes =
               (values.durationHours || 0) * 60 + (values.durationMinutes || 0);
-            handleQuizSubmit({ ...values, duration: durationInMinutes });
+            handleQuizSubmit({ 
+              ...values, 
+              duration: durationInMinutes,
+              isFreeTest: values.isFreeTest || false
+            });
           }}
           initialValues={{
             durationHours: editingQuiz
-              ? Math.floor(editingQuiz.duration / 60)
+              ? Math.floor((editingQuiz.duration?.hours || 0) * 60 + (editingQuiz.duration?.minutes || 0)) / 60
               : 0,
-            durationMinutes: editingQuiz ? editingQuiz.duration % 60 : 0,
+            durationMinutes: editingQuiz 
+              ? ((editingQuiz.duration?.hours || 0) * 60 + (editingQuiz.duration?.minutes || 0)) % 60
+              : 0,
+            isFreeTest: editingQuiz ? editingQuiz.isFreeTest || false : false,
           }}
         >
           <Form.Item
@@ -481,6 +602,14 @@ const TestCreationPage = () => {
               </Form.Item>
             </Space>
           </Form.Item>
+          <Form.Item
+            name="isFreeTest"
+            valuePropName="checked"
+            label="Free Test"
+            tooltip="Mark this quiz as a free test that will be visible to all users"
+          >
+            <Switch />
+          </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit">
               {editingQuiz ? "Update" : "Create"}
@@ -491,7 +620,7 @@ const TestCreationPage = () => {
 
       {/* Modal for Setting Attempts */}
       <Modal
-        visible={attemptModalVisible}
+        open={attemptModalVisible}
         onCancel={() => setAttemptModalVisible(false)}
         footer={null}
         title="Set Quiz Attempts"
@@ -512,13 +641,13 @@ const TestCreationPage = () => {
 
       {/* Modal for Quiz Availability */}
       <Modal
-        visible={availabilityModalVisible}
+        open={availabilityModalVisible}
         onCancel={() => {
           setAvailabilityModalVisible(false);
           setSelectedQuiz(null);
         }}
         footer={null}
-        // title="Update Quiz Availability"
+        title="Update Quiz Availability"
       >
         {selectedQuiz && quizAvailability[selectedQuiz] ? (
           <>

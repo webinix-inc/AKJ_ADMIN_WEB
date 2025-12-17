@@ -1,25 +1,30 @@
-import React, { useEffect, useState, useRef } from "react";
+import dayjs from "dayjs";
+import EmojiPicker from "emoji-picker-react";
+import React, { useEffect, useRef, useState } from "react";
+import { BsEmojiSmile } from "react-icons/bs";
+import { FaSearch } from "react-icons/fa";
+import { FaMinus, FaPlus } from "react-icons/fa6";
+import { IoIosArrowForward, IoMdCheckbox, IoMdDoneAll } from "react-icons/io";
+import { IoLinkOutline } from "react-icons/io5";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import api from "../../api/axios";
 import HOC from "../../Component/HOC/HOC";
 import img2 from "../../Image/img3.png";
-import { IoLinkOutline } from "react-icons/io5";
-import { BsEmojiSmile } from "react-icons/bs";
-import { HiOutlineMicrophone } from "react-icons/hi";
-import { IoIosArrowForward, IoMdCheckbox, IoMdDoneAll } from "react-icons/io";
-import EmojiPicker from "emoji-picker-react";
-import { useSelector } from "react-redux";
 import "./Messages.css";
-import dayjs from "dayjs";
-import { FaSearch } from "react-icons/fa";
-import { FaMinus, FaPlus } from "react-icons/fa6";
-import { useNavigate } from "react-router-dom";
 
-// const socket = io("http://13.233.215.250:8889/", {
-//   transports: ["websocket", "polling"],
-// });
-const socket = io("http://13.201.132.140:8889/", {
+// Centralized socket configuration
+const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || "http://localhost:8890/";
+
+const socket = io(SOCKET_URL, {
   transports: ["websocket", "polling"],
+  reconnection: true,
+  reconnectionDelay: 1000,
+  reconnectionAttempts: 5,
+  timeout: 20000,
+  forceNew: false,
+  multiplex: true,
 });
 
 const Messages = () => {
@@ -38,6 +43,7 @@ const Messages = () => {
   const messagesEndRef = useRef(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [data, setData] = useState([]);
+  const [socketConnected, setSocketConnected] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(() => {
     const storedNotifications = localStorage.getItem("unreadNotifications");
     return storedNotifications ? JSON.parse(storedNotifications) : {};
@@ -89,8 +95,6 @@ const Messages = () => {
     }
   };
 
-  console.log("User data print from admin panel show here:", users);
-
   useEffect(() => {
     if (selectedUser) {
       socket.emit("join", selectedUser._id);
@@ -99,11 +103,53 @@ const Messages = () => {
       fetchMessages(selectedUser._id);
     }
 
+    // Socket connection monitoring
+    const handleConnect = () => {
+      console.log('Admin socket connected');
+      setSocketConnected(true);
+    };
+
+    const handleDisconnect = () => {
+      console.log('Admin socket disconnected');
+      setSocketConnected(false);
+    };
+
+    const handleConnectError = (error) => {
+      console.error('Admin socket connection error:', error);
+      setSocketConnected(false);
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
+    socket.on("connect_error", handleConnectError);
+
     socket.on("message", (messageData) => {
-      if (messageData && messageData.sender !== currentUserId) {
-        setMessages((prevMessages) =>
-          sortMessages([...prevMessages, ...normalizeMessages([messageData])])
-        );
+      console.log("📨 [ADMIN] Received socket message:", messageData);
+      console.log("👤 [ADMIN] Current user ID:", currentUserId);
+      
+      if (!messageData || !selectedUser) return;
+
+      // For admin viewing student chat:
+      // - Show messages from any admin to the selected student (outgoing from admin perspective)
+      // - Show messages from the selected student to any admin (incoming from admin perspective)
+      const isOutgoing = messageData.receiver === selectedUser._id && messageData.sender !== selectedUser._id;
+      const isIncoming = messageData.sender === selectedUser._id && messageData.receiver !== selectedUser._id;
+
+      if (isOutgoing || isIncoming) {
+        console.log("✅ [ADMIN] Adding message to current thread", { isOutgoing, isIncoming });
+        setMessages((prevMessages) => {
+          // Check if message already exists to avoid duplicates
+          const exists = prevMessages.some(msg => msg._id === messageData._id);
+          if (exists) {
+            console.log("⚠️ [ADMIN] Message already exists, skipping");
+            return prevMessages;
+          }
+          const newMessages = sortMessages([...prevMessages, ...normalizeMessages([messageData])]);
+          console.log("📝 [ADMIN] Updated messages count:", newMessages.length);
+          return newMessages;
+        });
+      } else {
+        console.log("ℹ️ [ADMIN] Message not for current thread, ignoring");
       }
     });
 
@@ -115,7 +161,13 @@ const Messages = () => {
       );
     });
 
+    // Set initial connection status
+    setSocketConnected(socket.connected);
+
     return () => {
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
+      socket.off("connect_error", handleConnectError);
       socket.off("message");
       socket.off("readReceipt");
     };
@@ -127,7 +179,7 @@ const Messages = () => {
       const response = await api.get(`/chat/${receiverId}`, {
         params: { cursor, limit: 10 },
       });
-
+console.log("Response of fetch messages:", response);
       const {
         data: { data: fetchedMessages, nextCursor },
       } = response;
@@ -137,7 +189,9 @@ const Messages = () => {
       setMessages((prevMessages) =>
         sortMessages(cursor ? [...prevMessages, ...normalized] : normalized)
       );
+      console.log("Normalized messages:", messages);
       setCursor(nextCursor);
+      console.log("Fetched messages:", fetchedMessages);
     } catch (error) {
       console.error("Error fetching messages:", error);
     } finally {
@@ -145,9 +199,24 @@ const Messages = () => {
     }
   };
 
-  const handleUserClick = (index, user) => {
+  const handleUserClick = async (index, user) => {
     setActiveIndex(index);
     setSelectedUser(user);
+    
+    // Mark messages as read when opening chat
+    try {
+      await api.get(`/chat/markAsRead/${user._id}`);
+      // Update local state to remove unread count
+      setData(prevData => 
+        prevData.map(u => 
+          u._id === user._id 
+            ? { ...u, unreadCount: 0 }
+            : u
+        )
+      );
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+    }
   };
 
   const handleSendMessage = async () => {
@@ -179,6 +248,14 @@ const Messages = () => {
       setMessages((prevMessages) =>
         prevMessages.filter((msg) => msg._id !== messageToSend._id)
       );
+    }
+  };
+
+  // Handle Enter key press to send message
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
@@ -216,10 +293,6 @@ const Messages = () => {
       document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, []);
-
-  // console.log("User data print from admin", users);
-
-  console.log("Filter data print:", filteredUsers);
 
   // Fetch users on mount
   useEffect(() => {
@@ -270,8 +343,6 @@ const Messages = () => {
     return "Just now";
   };
 
-  console.log("Selected User from message panel:", selectedUser);
-
   // Helper function to truncate text
   function truncateText(text, wordLimit) {
     if (!text) return "";
@@ -281,10 +352,6 @@ const Messages = () => {
     }
     return text;
   }
-
-  console.log("Message all content show here:", messages);
-
-  console.log("Selected user print:", selectedUser);
 
   const handleFileChange = async (e) => {
     const files = e.target.files;
@@ -317,7 +384,12 @@ const Messages = () => {
       <div className="w-1/3 border-r border-gray-700">
         {/* Header Section */}
         <div className="p-[30px] text-lg font-semibold bg-gray-800 flex justify-between shadow text-white relative">
-          Messages
+          <div className="flex items-center">
+            Messages
+            {/* Connection Status Indicator */}
+            <div className={`ml-3 w-2 h-2 rounded-full ${socketConnected ? 'bg-green-400' : 'bg-red-400'}`} 
+                 title={socketConnected ? 'Connected' : 'Disconnected'}></div>
+          </div>
           <div className="flex items-center">
             <FaSearch
               className="text-gray-500 cursor-pointer"
@@ -367,7 +439,10 @@ const Messages = () => {
                   />
                   <div>
                     <p className="font-semibold">
-                      {user.firstName || user.userType}
+                      {user.firstName ? 
+                        (user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName) : 
+                        (user.userType === 'ADMIN' ? 'AKJ Classes Admin' : user.userType)
+                      }
                     </p>
                     <p className="text-sm text-gray-400">{user.phone}</p>
                   </div>
@@ -394,7 +469,10 @@ const Messages = () => {
                   <div>
                     <div className="flex justify-between">
                       <p className="font-semibold">
-                        {user.firstName || user.userType}
+                        {user.firstName ? 
+                          (user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName) : 
+                          (user.userType === 'ADMIN' ? 'AKJ Classes Admin' : user.userType)
+                        }
                       </p>
 
                       <p className="font-md ml-9">
@@ -402,24 +480,32 @@ const Messages = () => {
                       </p>
                     </div>
 
-                    <p className="text-sm text-gray-500 flex items-center">
-                      <span className="ml-2 mr-2">
-                        {isRead ? (
-                          <IoMdCheckbox
-                            className="text-blue-500"
-                            title="Read"
-                            size={18}
-                          />
-                        ) : (
-                          <IoMdDoneAll
-                            className="text-gray-400"
-                            title="Unread"
-                            size={18}
-                          />
-                        )}
-                      </span>
-                      {truncateText(user.lastMessage, 10)}
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-gray-500 flex items-center">
+                        <span className="ml-2 mr-2">
+                          {user.unreadCount > 0 ? (
+                            <IoMdDoneAll
+                              className="text-gray-400"
+                              title="Unread"
+                              size={18}
+                            />
+                          ) : (
+                            <IoMdCheckbox
+                              className="text-blue-500"
+                              title="Read"
+                              size={18}
+                            />
+                          )}
+                        </span>
+                        {truncateText(user.lastMessage, 8)}
+                      </p>
+                      {/* Unread Count Badge */}
+                      {user.unreadCount > 0 && (
+                        <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                          {user.unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -470,18 +556,25 @@ const Messages = () => {
                   );
                 }
 
+                // For admin viewing student chat:
+                // - Messages from any admin to student = outgoing (right side, blue)
+                // - Messages from student to any admin = incoming (left side, gray)
+                const isOutgoingMessage = selectedUser && 
+                  msg.receiver === selectedUser._id && 
+                  msg.sender !== selectedUser._id;
+                
                 acc.push(
                   <div
                     key={msg._id}
                     className={`flex mb-2 ${
-                      msg.sender === currentUserId
+                      isOutgoingMessage
                         ? "justify-end"
                         : "justify-start"
                     }`}
                   >
                     <div
                       className={`${
-                        msg.sender === currentUserId
+                        isOutgoingMessage
                           ? "bg-blue-600 text-white"
                           : "bg-gray-700 text-gray-100"
                       } max-w-[70%] p-3 rounded-lg`}
@@ -491,41 +584,92 @@ const Messages = () => {
                           {msg.attachments.map((file, i) => {
                             const isImage = file.mimeType?.startsWith("image/");
                             const isVideo = file.mimeType?.startsWith("video/");
+                            const isPDF = file.mimeType === "application/pdf";
+                            const isDocument = file.mimeType?.includes("document") || 
+                                             file.mimeType?.includes("word") ||
+                                             file.mimeType?.includes("excel") ||
+                                             file.mimeType?.includes("powerpoint");
+                            
                             return (
-                              <div key={i}>
+                              <div key={i} className="border border-gray-600 rounded-lg p-2">
                                 {isImage ? (
-                                  <img
-                                    src={file.url}
-                                    alt={file.filename}
-                                    className="w-40 rounded"
-                                  />
+                                  <div>
+                                    <img
+                                      src={file.url}
+                                      alt={file.filename}
+                                      className="w-40 rounded cursor-pointer hover:opacity-80"
+                                      onClick={() => window.open(file.url, '_blank')}
+                                      onError={(e) => {
+                                        console.error('Image failed to load:', file.url);
+                                        e.target.style.display = 'none';
+                                        e.target.nextElementSibling.style.color = 'red';
+                                        e.target.nextElementSibling.innerHTML = `❌ Failed to load: ${file.filename}`;
+                                      }}
+                                      onLoad={() => console.log('Image loaded successfully:', file.url)}
+                                    />
+                                    <p className="text-xs text-gray-400 mt-1">{file.filename}</p>
+                                  </div>
                                 ) : isVideo ? (
-                                  <video
-                                    src={file.url}
-                                    controls
-                                    className="w-48 rounded"
-                                  />
+                                  <div>
+                                    <video
+                                      src={file.url}
+                                      controls
+                                      className="w-48 rounded"
+                                    />
+                                    <p className="text-xs text-gray-400 mt-1">{file.filename}</p>
+                                  </div>
+                                ) : isPDF ? (
+                                  <a
+                                    href={file.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center space-x-2 text-red-400 hover:text-red-300 p-2 bg-gray-800 rounded"
+                                  >
+                                    <span className="text-2xl">📄</span>
+                                    <div>
+                                      <p className="font-medium">{file.filename}</p>
+                                      <p className="text-xs text-gray-400">PDF Document • {(file.size / 1024).toFixed(1)} KB</p>
+                                    </div>
+                                  </a>
+                                ) : isDocument ? (
+                                  <a
+                                    href={file.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 p-2 bg-gray-800 rounded"
+                                  >
+                                    <span className="text-2xl">📋</span>
+                                    <div>
+                                      <p className="font-medium">{file.filename}</p>
+                                      <p className="text-xs text-gray-400">Document • {(file.size / 1024).toFixed(1)} KB</p>
+                                    </div>
+                                  </a>
                                 ) : (
                                   <a
                                     href={file.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-blue-400 underline"
+                                    className="flex items-center space-x-2 text-green-400 hover:text-green-300 p-2 bg-gray-800 rounded"
                                   >
-                                    📎 {file.filename}
+                                    <span className="text-2xl">📎</span>
+                                    <div>
+                                      <p className="font-medium">{file.filename}</p>
+                                      <p className="text-xs text-gray-400">File • {(file.size / 1024).toFixed(1)} KB</p>
+                                    </div>
                                   </a>
                                 )}
                               </div>
                             );
                           })}
                         </div>
-                      ) : (
+                      ) : msg.content ? (
                         <p>{msg.content}</p>
-                      )}
+                      ) : null}
                       <div className="text-xs text-gray-400 flex justify-between items-center mt-2">
                         <span>{formatTimestamp(msg.createdAt)}</span>
-                        {msg.sender === currentUserId && (
-                          <span className="ml-2">{msg.read ? "✓✓" : "✓"}</span>
+                        {/* Show read receipt for messages from any admin to student */}
+                        {isOutgoingMessage && (
+                          <span className="ml-2">{msg.isRead || msg.read ? "✓✓" : "✓"}</span>
                         )}
                       </div>
                     </div>
@@ -541,9 +685,10 @@ const Messages = () => {
               <div className="relative flex items-center flex-grow">
                 <input
                   type="text"
-                  placeholder="Type a message..."
+                  placeholder="Type a message... (Press Enter to send)"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
                   className="w-full py-2 px-4 rounded-full border border-gray-700 bg-gray-900 text-gray-100 focus:outline-none"
                 />
                 <div className="absolute right-2 flex items-center space-x-2">

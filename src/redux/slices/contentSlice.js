@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import api from "../../api/axios"; // Your axios instance configured for the API
 
 // Async Thunks
@@ -192,32 +192,86 @@ export const updateFileOrder = createAsyncThunk(
 );
 
 // Content Slice
+const initialState = {
+  folders: {}, // Stores folders by their IDs for efficient access and manipulation
+  loadingByFolder: {},
+  operationLoading: {},
+  error: null,
+};
+
+// Ensure state properties are initialized (works with Immer draft state)
+const ensureStateInitialized = (state) => {
+  if (!state) return;
+  if (!state.folders || typeof state.folders !== 'object') {
+    state.folders = {};
+  }
+  if (!state.loadingByFolder || typeof state.loadingByFolder !== 'object') {
+    state.loadingByFolder = {};
+  }
+  if (!state.operationLoading || typeof state.operationLoading !== 'object') {
+    state.operationLoading = {};
+  }
+  if (state.error === undefined) {
+    state.error = null;
+  }
+};
+
+const setOperationLoading = (state, typePrefix, isLoading) => {
+  if (!typePrefix) return;
+  ensureStateInitialized(state);
+  state.operationLoading[typePrefix] = isLoading;
+};
+
+const syncChildReferences = (state, updatedFolder) => {
+  if (!updatedFolder?._id) return;
+  ensureStateInitialized(state);
+  if (!state.folders || typeof state.folders !== 'object') return;
+  Object.values(state.folders).forEach((folder) => {
+    if (!folder?.folders?.length) return;
+    folder.folders = folder.folders.map((child) => {
+      const childId = typeof child === "string" ? child : child?._id;
+      if (childId === updatedFolder._id) {
+        return updatedFolder;
+      }
+      return child;
+    });
+  });
+};
+
 const contentSlice = createSlice({
   name: "content",
-  initialState: {
-    folders: {}, // Stores folders by their IDs for efficient access and manipulation
-    loading: false,
-    error: null,
+  initialState,
+  reducers: {
+    // Reset state to initial if needed (for debugging/recovery)
+    resetContentState: (state) => {
+      return initialState;
+    },
   },
-  reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(createFolder.pending, (state) => {
-        state.loading = true;
+        setOperationLoading(state, createFolder.typePrefix, true);
       })
       .addCase(createFolder.fulfilled, (state, action) => {
-        state.loading = false;
-        state.folders[action.payload._id] = action.payload;
+        setOperationLoading(state, createFolder.typePrefix, false);
+        ensureStateInitialized(state);
+        if (action.payload?._id) {
+          if (!state.folders) {
+            state.folders = {};
+          }
+          state.folders[action.payload._id] = action.payload;
+        }
       })
       .addCase(createFolder.rejected, (state, action) => {
-        state.loading = false;
+        setOperationLoading(state, createFolder.typePrefix, false);
         state.error = action.payload;
       })
       .addCase(addSubfolder.pending, (state) => {
-        state.loading = true;
+        setOperationLoading(state, addSubfolder.typePrefix, true);
       })
       .addCase(addSubfolder.fulfilled, (state, action) => {
-        state.loading = false;
+        setOperationLoading(state, addSubfolder.typePrefix, false);
+        ensureStateInitialized(state);
         const { subfolder, parentFolderId } = action.payload;
         const parentFolder = state.folders[parentFolderId];
         if (parentFolder) {
@@ -227,59 +281,81 @@ const contentSlice = createSlice({
           parentFolder.folders.push(subfolder);
         }
       })
-
       .addCase(addSubfolder.rejected, (state, action) => {
-        state.loading = false;
+        setOperationLoading(state, addSubfolder.typePrefix, false);
         state.error = action.payload;
       })
       .addCase(addFileToFolder.pending, (state) => {
-        state.loading = true;
+        setOperationLoading(state, addFileToFolder.typePrefix, true);
       })
       .addCase(addFileToFolder.fulfilled, (state, action) => {
-        state.loading = false;
+        setOperationLoading(state, addFileToFolder.typePrefix, false);
+        ensureStateInitialized(state);
         const { file, folderId } = action.payload;
         if (state.folders[folderId]) {
           state.folders[folderId].files.push(file);
         }
       })
       .addCase(addFileToFolder.rejected, (state, action) => {
-        state.loading = false;
+        setOperationLoading(state, addFileToFolder.typePrefix, false);
         state.error = action.payload;
       })
-      .addCase(getFolderContents.pending, (state) => {
-        state.loading = true;
+      .addCase(getFolderContents.pending, (state, action) => {
+        ensureStateInitialized(state);
+        const folderId = action.meta.arg;
+        if (folderId) {
+          state.loadingByFolder[folderId] = true;
+        }
         state.error = null; // Reset error on new request
       })
       .addCase(getFolderContents.fulfilled, (state, action) => {
-        state.loading = false;
+        ensureStateInitialized(state);
         const { folderId, folder } = action.payload;
-        if (
-          !state.folders[folderId] ||
-          JSON.stringify(state.folders[folderId]) !== JSON.stringify(folder)
-        ) {
+        if (folderId && folder) {
+          if (!state.folders) {
+            state.folders = {};
+          }
+          state.loadingByFolder[folderId] = false;
           state.folders[folderId] = folder;
         }
       })
       .addCase(getFolderContents.rejected, (state, action) => {
-        state.loading = false;
+        ensureStateInitialized(state);
+        const folderId = action.meta.arg;
+        if (folderId) {
+          state.loadingByFolder[folderId] = false;
+        }
         state.error = action.payload;
       })
       .addCase(deleteFolder.pending, (state) => {
-        state.loading = true;
+        setOperationLoading(state, deleteFolder.typePrefix, true);
       })
       .addCase(deleteFolder.fulfilled, (state, action) => {
-        state.loading = false;
-        delete state.folders[action.payload];
+        setOperationLoading(state, deleteFolder.typePrefix, false);
+        ensureStateInitialized(state);
+        const { folderId, sourceFolderId } = action.payload;
+        if (folderId) {
+          delete state.folders[folderId];
+        }
+        if (sourceFolderId && state.folders[sourceFolderId]) {
+          state.folders[sourceFolderId].folders = state.folders[
+            sourceFolderId
+          ].folders?.filter((child) => {
+            const childId = typeof child === "string" ? child : child?._id;
+            return childId !== folderId;
+          });
+        }
       })
       .addCase(deleteFolder.rejected, (state, action) => {
-        state.loading = false;
+        setOperationLoading(state, deleteFolder.typePrefix, false);
         state.error = action.payload;
       })
       .addCase(deleteFileFromFolder.pending, (state) => {
-        state.loading = true;
+        setOperationLoading(state, deleteFileFromFolder.typePrefix, true);
       })
       .addCase(deleteFileFromFolder.fulfilled, (state, action) => {
-        state.loading = false;
+        setOperationLoading(state, deleteFileFromFolder.typePrefix, false);
+        ensureStateInitialized(state);
         const { folderId, fileId } = action.payload;
         if (state.folders[folderId]) {
           state.folders[folderId].files = state.folders[folderId].files.filter(
@@ -288,26 +364,34 @@ const contentSlice = createSlice({
         }
       })
       .addCase(deleteFileFromFolder.rejected, (state, action) => {
-        state.loading = false;
+        setOperationLoading(state, deleteFileFromFolder.typePrefix, false);
         state.error = action.payload;
       })
       .addCase(updateFolder.pending, (state) => {
-        state.loading = true;
+        setOperationLoading(state, updateFolder.typePrefix, true);
       })
       .addCase(updateFolder.fulfilled, (state, action) => {
-        state.loading = false;
-        state.folders[action.payload._id] = action.payload;
+        setOperationLoading(state, updateFolder.typePrefix, false);
+        ensureStateInitialized(state);
+        if (action.payload?._id) {
+          if (!state.folders) {
+            state.folders = {};
+          }
+          state.folders[action.payload._id] = action.payload;
+          syncChildReferences(state, action.payload);
+        }
       })
       .addCase(updateFolder.rejected, (state, action) => {
-        state.loading = false;
+        setOperationLoading(state, updateFolder.typePrefix, false);
         state.error = action.payload;
       })
       // Handle updating a file within a folder
       .addCase(updateFileInFolder.pending, (state) => {
-        state.loading = true;
+        setOperationLoading(state, updateFileInFolder.typePrefix, true);
       })
       .addCase(updateFileInFolder.fulfilled, (state, action) => {
-        state.loading = false;
+        setOperationLoading(state, updateFileInFolder.typePrefix, false);
+        ensureStateInitialized(state);
         const { file, folderId, fileId } = action.payload;
         if (state.folders[folderId]) {
           const fileIndex = state.folders[folderId].files.findIndex(
@@ -319,45 +403,55 @@ const contentSlice = createSlice({
         }
       })
       .addCase(updateFileInFolder.rejected, (state, action) => {
-        state.loading = false;
+        setOperationLoading(state, updateFileInFolder.typePrefix, false);
         state.error = action.payload;
       })
       .addCase(moveFileToFolder.pending, (state) => {
-        state.loading = true;
+        setOperationLoading(state, moveFileToFolder.typePrefix, true);
       })
-      .addCase(moveFileToFolder.fulfilled, (state, action) => {
-        state.loading = false;
-        // Handle state update if necessary
+      .addCase(moveFileToFolder.fulfilled, (state) => {
+        setOperationLoading(state, moveFileToFolder.typePrefix, false);
       })
       .addCase(moveFileToFolder.rejected, (state, action) => {
-        state.loading = false;
+        setOperationLoading(state, moveFileToFolder.typePrefix, false);
         state.error = action.payload;
       })
       .addCase(moveFolderToFolder.pending, (state) => {
-        state.loading = true;
+        setOperationLoading(state, moveFolderToFolder.typePrefix, true);
       })
-      .addCase(moveFolderToFolder.fulfilled, (state, action) => {
-        state.loading = false;
-        // Handle state update if necessary
+      .addCase(moveFolderToFolder.fulfilled, (state) => {
+        setOperationLoading(state, moveFolderToFolder.typePrefix, false);
       })
       .addCase(moveFolderToFolder.rejected, (state, action) => {
-        state.loading = false;
+        setOperationLoading(state, moveFolderToFolder.typePrefix, false);
         state.error = action.payload;
-      });
-    builder
-      .addCase(updateFileOrder.pending, (state) => {
-        state.loading = true;
+      })
+      .addCase(updateFileOrder.pending, (state, action) => {
+        ensureStateInitialized(state);
+        const folderId = action.meta.arg?.folderId;
+        if (folderId) {
+          state.loadingByFolder[folderId] = true;
+        }
         state.error = null; // Reset errors on new request
       })
       .addCase(updateFileOrder.fulfilled, (state, action) => {
-        state.loading = false;
+        ensureStateInitialized(state);
         const { folderId, updatedFolder } = action.payload;
-        if (state.folders[folderId]) {
-          state.folders[folderId] = updatedFolder; // Update the folder with the new order
+        if (folderId && updatedFolder) {
+          if (!state.folders) {
+            state.folders = {};
+          }
+          state.loadingByFolder[folderId] = false;
+          state.folders[folderId] = updatedFolder;
+          syncChildReferences(state, updatedFolder);
         }
       })
       .addCase(updateFileOrder.rejected, (state, action) => {
-        state.loading = false;
+        ensureStateInitialized(state);
+        const folderId = action.meta.arg?.folderId;
+        if (folderId) {
+          state.loadingByFolder[folderId] = false;
+        }
         state.error = action.payload;
       });
   },

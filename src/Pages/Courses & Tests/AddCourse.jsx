@@ -1,28 +1,28 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import {
-  createCourse,
-  fetchAllCategories,
-  createCategory,
-  fetchSubCategories,
-  createSubCategory,
-} from "../../redux/slices/courseSlice";
-import {
-  Modal,
+  Button,
+  DatePicker,
   Form,
   Input,
-  DatePicker,
-  Upload,
-  Button,
+  Modal,
   Select,
-  Radio,
   Space,
+  Upload
 } from "antd";
-import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import React, { useEffect, useState } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import {
+  createCategory,
+  createCourse,
+  createSubCategory,
+  fetchAllCategories,
+  fetchCourses,
+  fetchSubCategories,
+} from "../../redux/slices/courseSlice";
 
 const { Option } = Select;
 
@@ -31,8 +31,6 @@ const AddCourse = ({ modalShow, onHide }) => {
   const [form] = Form.useForm();
   const [courseImage, setCourseImage] = useState([]);
   const [courseNotes, setCourseNotes] = useState([]);
-  const [courseVideos, setCourseVideos] = useState([]);
-  const [videoTypes, setVideoTypes] = useState({});
   const [loading, setLoading] = useState(false);
   const [faqs, setFaqs] = useState([{ question: "", answer: "" }]); // FAQ state
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -66,13 +64,13 @@ const AddCourse = ({ modalShow, onHide }) => {
 
   // Fetch subcategories when a category is selected
   const handleCategoryChange = (categoryId) => {
-    console.log(categoryId);
     setSelectedCategory(categoryId);
+    setSelectedSubCategory(null);
+    form.setFieldsValue({ category: categoryId, subCategory: undefined });
     dispatch(fetchSubCategories(categoryId))
       .unwrap()
       .then((data) => {
         setSubCategories(data); // Set subcategories for selected category
-        setSelectedSubCategory(null); // Reset selected subcategory when category changes
       })
       .catch((error) => toast.error(`Error fetching subcategories: ${error}`));
   };
@@ -85,17 +83,6 @@ const AddCourse = ({ modalShow, onHide }) => {
     setCourseNotes(fileList);
   };
 
-  const handleVideoChange = ({ fileList }) => {
-    setCourseVideos(fileList);
-  };
-
-  const handleVideoTypeChange = (file, type) => {
-    setVideoTypes({
-      ...videoTypes,
-      [file.uid]: type,
-    });
-  };
-
   const handleSubmit = async () => {
     console.log("Selected SubCategory:", selectedSubCategory);
     const formData = new FormData();
@@ -105,40 +92,60 @@ const AddCourse = ({ modalShow, onHide }) => {
       .validateFields()
       .then((values) => {
         // Append the rest of the form values
-        Object.keys(values).forEach((key) => {
-          formData.append(key, values[key]);
-        });
-
-        // Append FAQs
-        formData.append("faqs", JSON.stringify(faqs));
-
-        // Append images, notes, and videos
-        courseImage.forEach((file) => {
-          if (file.originFileObj) {
-            formData.append("courseImage", file.originFileObj);
+        Object.entries(values).forEach(([key, value]) => {
+          if (["courseImage", "courseNotes"].includes(key)) {
+            return;
           }
+          if (value === undefined || value === null || value === "") {
+            return;
+          }
+          if (key === "startDate" && value?.toISOString) {
+            formData.append(key, value.toISOString());
+            return;
+          }
+          formData.append(key, value);
         });
+
+        // Append FAQs - filter out empty FAQs and ensure proper format
+        const validFaqs = faqs.filter(faq => faq.question && faq.answer && faq.question.trim() !== "" && faq.answer.trim() !== "");
+        if (validFaqs.length > 0) {
+          formData.append("faqs", JSON.stringify(validFaqs));
+          console.log("📝 FAQs being sent:", validFaqs);
+        } else {
+          formData.append("faqs", JSON.stringify([]));
+          console.log("📝 No valid FAQs to send");
+        }
+
+        // Append images (only one image allowed)
+        if (courseImage.length > 0 && courseImage[0].originFileObj) {
+          formData.append("courseImage", courseImage[0].originFileObj);
+        }
         courseNotes.forEach((file) => {
           if (file.originFileObj) {
             formData.append("courseNotes", file.originFileObj);
           }
         });
-        courseVideos.forEach((file) => {
-          if (file.originFileObj) {
-            formData.append("courseVideo", file.originFileObj);
-            formData.append("videoType", videoTypes[file.uid]);
-          }
-        });
-
         // Dispatch the action to create the course
         dispatch(createCourse(formData))
           .unwrap()
           .then(() => {
             toast.success("Course added successfully");
+            // Reset form and state
+            form.resetFields();
+            setCourseImage([]);
+            setCourseNotes([]);
+            setFaqs([{ question: "", answer: "" }]);
+            setSelectedCategory(null);
+            setSelectedSubCategory(null);
+            setSubCategories([]);
+            // Refetch courses to update the list
+            dispatch(fetchCourses());
             onHide();
           })
           .catch((error) => {
-            toast.error(`Failed to add the course: ${error}`);
+            // Show the specific error message from the backend
+            const errorMessage = error || "An unexpected error occurred";
+            toast.error(errorMessage);
           })
           .finally(() => {
             setLoading(false);
@@ -208,9 +215,15 @@ const AddCourse = ({ modalShow, onHide }) => {
       .unwrap()
       .then(() => {
         toast.success("Subcategory added successfully");
-        dispatch(fetchSubCategories(selectedCategory)).then((data) => {
-          setSubCategories(data); // Refresh subcategories
-        });
+        // Refresh subcategories list and update the UI immediately
+        dispatch(fetchSubCategories(selectedCategory))
+          .unwrap()
+          .then((data) => {
+            setSubCategories(data); // Refresh subcategories
+          })
+          .catch((error) => {
+            toast.error(`Error refreshing subcategories: ${error}`);
+          });
         handleSubcategoryModalClose();
       })
       .catch((error) => {
@@ -303,22 +316,45 @@ const AddCourse = ({ modalShow, onHide }) => {
             </Select>
           </Form.Item>
 
-          {subCategories.length > 0 && (
+          {selectedCategory && (
             <Form.Item
               name="subCategory"
               label="Subcategory"
               rules={[
                 { required: true, message: "Please select a subcategory" },
               ]}>
-              <Select
-                placeholder="Select a subcategory"
-                onChange={(value) => setSelectedSubCategory(value)}>
-                {subCategories.map((subCategory) => (
-                  <Option key={subCategory._id} value={subCategory._id}>
-                    {subCategory.name}
-                  </Option>
-                ))}
-              </Select>
+              {subCategories.length > 0 ? (
+                <Select
+                  placeholder="Select a subcategory"
+                  onChange={(value) => {
+                    setSelectedSubCategory(value);
+                    form.setFieldsValue({ subCategory: value });
+                  }}>
+                  {subCategories.map((subCategory) => (
+                    <Option key={subCategory._id} value={subCategory._id}>
+                      {subCategory.name}
+                    </Option>
+                  ))}
+                </Select>
+              ) : (
+                <div style={{ 
+                  padding: '12px', 
+                  border: '1px dashed #d9d9d9', 
+                  borderRadius: '6px',
+                  textAlign: 'center',
+                  color: '#8c8c8c'
+                }}>
+                  No subcategories found for this category.
+                  <br />
+                  <Button 
+                    type="link" 
+                    onClick={handleSubcategoryModalOpen}
+                    style={{ padding: '4px 0', height: 'auto' }}
+                  >
+                    Click here to add a subcategory
+                  </Button>
+                </div>
+              )}
             </Form.Item>
           )}
 
@@ -413,10 +449,19 @@ const AddCourse = ({ modalShow, onHide }) => {
             </p>
             <Upload
               listType="picture-card"
-              multiple
-              beforeUpload={() => false}
+              multiple={false}
+              accept="image/*"
+              beforeUpload={(file) => {
+                // Validate file type
+                const isImage = file.type.startsWith('image/');
+                if (!isImage) {
+                  toast.error('Only image files are allowed for course image!');
+                  return Upload.LIST_IGNORE;
+                }
+                return false; // Prevent auto upload
+              }}
               onChange={handleImageChange}>
-              {courseImage.length >= 10 ? null : (
+              {courseImage.length >= 1 ? null : (
                 <div>
                   <PlusOutlined />
                   <div style={{ marginTop: 8 }}>Upload</div>
@@ -436,7 +481,18 @@ const AddCourse = ({ modalShow, onHide }) => {
 
             <Upload
               multiple
-              beforeUpload={() => false}
+              beforeUpload={(file) => {
+                const allowedTypes = [
+                  "application/pdf",
+                  "application/msword",
+                  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                ];
+                if (!allowedTypes.includes(file.type)) {
+                  toast.error("Course notes must be in PDF or Word format!");
+                  return Upload.LIST_IGNORE;
+                }
+                return false;
+              }}
               onChange={handleNotesChange}
               accept=".pdf,.doc,.docx">
               {courseNotes.length >= 10 ? null : (

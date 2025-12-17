@@ -1,18 +1,18 @@
-import React, { useState, useRef } from "react";
-import "./Sidebar.css";
-import { NavLink } from "react-router-dom";
+import React, { useRef, useState } from "react";
 import { useSelector } from "react-redux";
+import { NavLink } from "react-router-dom";
+import "./Sidebar.css";
 
+import { FaChalkboardTeacher, FaUser, FaUserGraduate } from "react-icons/fa";
 import { GoHomeFill } from "react-icons/go";
-import { TiDocumentText } from "react-icons/ti";
-import { MdOutlineContentCopy, MdStore } from "react-icons/md";
-import { LuBookmarkMinus } from "react-icons/lu";
 import {
   IoAnalyticsOutline,
   IoChatbubbleEllipsesOutline,
 } from "react-icons/io5";
+import { LuBookmarkMinus } from "react-icons/lu";
+import { MdOutlineContentCopy, MdStore } from "react-icons/md";
+import { TiDocumentText } from "react-icons/ti";
 import { VscTools } from "react-icons/vsc";
-import { FaUser, FaChalkboardTeacher, FaUserGraduate } from "react-icons/fa";
 
 const Sidebar = () => {
   const adminData = useSelector((state) => state.admin.adminData);
@@ -137,7 +137,7 @@ const Sidebar = () => {
     <div className="sidebar">
       <div className="sidebar1">
         <div className="sidebar2">
-          <h6>AKJ Academy</h6>
+          <h6>AKJ Classes</h6>
         </div>
         <div className="sidebar5">
           {sidebarItems

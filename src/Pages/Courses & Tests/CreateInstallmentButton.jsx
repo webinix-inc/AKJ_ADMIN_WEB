@@ -1,6 +1,7 @@
 import { Button, Modal, Form, InputNumber, message, Select } from "antd";
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import api from "../../api/axios";
 
 const CreateInstallmentButton = ({
   courseId,
@@ -23,18 +24,53 @@ const CreateInstallmentButton = ({
     (subscription) => subscription?.course?._id === courseId
   );
 
-  const showModal = () => setVisible(true);
+  const fetchExistingInstallments = useCallback(async () => {
+    if (!courseId) {
+      setInstallmentPlans([{ planType: "", numberOfInstallments: 1 }]);
+      return;
+    }
+    try {
+      const response = await api.get(`/admin/installments/${courseId}`);
+      const existing = response?.data?.data || [];
+      if (existing.length > 0) {
+        setInstallmentPlans(
+          existing.map((plan) => ({
+            planType: plan.planType || "",
+            numberOfInstallments: plan.numberOfInstallments || 1,
+          }))
+        );
+      } else {
+        setInstallmentPlans([{ planType: "", numberOfInstallments: 1 }]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch installments", error);
+      message.error(
+        error?.response?.data?.message ||
+          "Failed to load existing installment plans"
+      );
+    }
+  }, [courseId]);
+
+  const showModal = () => {
+    setVisible(true);
+    fetchExistingInstallments();
+  };
   const hideModal = () => setVisible(false);
 
   const handleAddPlanField = () => {
-    setInstallmentPlans([
-      ...installmentPlans,
+    setInstallmentPlans((prev) => [
+      ...prev,
       { planType: "", numberOfInstallments: 1 },
     ]);
   };
 
   const handleRemovePlanField = (index) => {
-    setInstallmentPlans(installmentPlans.filter((_, i) => i !== index));
+    setInstallmentPlans((prev) => {
+      const updated = prev.filter((_, i) => i !== index);
+      return updated.length > 0
+        ? updated
+        : [{ planType: "", numberOfInstallments: 1 }];
+    });
   };
 
   const handleChange = (index, field, value) => {
@@ -71,6 +107,7 @@ const CreateInstallmentButton = ({
       hideModal();
       handleCancel();
       message.success("All installment plans added successfully!");
+      await fetchExistingInstallments();
     } catch (error) {
       message.error("Failed to set installment plans");
     } finally {
@@ -166,7 +203,6 @@ const CreateInstallmentButton = ({
                   type="danger"
                   onClick={() => handleRemovePlanField(index)}
                   style={{ marginTop: "8px" }}
-                  disabled={installmentPlans.length === 1}
                 >
                   Remove Plan
                 </Button>

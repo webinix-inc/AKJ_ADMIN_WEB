@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from "react";
-import "./Home.css";
-import HOC from "../../Component/HOC/HOC";
-import "react-circular-progressbar/dist/styles.css";
+import React, { useEffect, useState } from "react";
 import Offcanvas from "react-bootstrap/Offcanvas";
+import "react-circular-progressbar/dist/styles.css";
+import HOC from "../../Component/HOC/HOC";
+import "./Home.css";
 
 import img from "../../Image/img4.png";
 import img1 from "../../Image/img5.png";
 
-import AllClasses from "./AllClasses";
-import CreateLiveClass from "./CreateLiveClass";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
+import AllClasses from "./AllClasses";
+import CreateLiveClass from "./CreateLiveClass";
 import UpcomingLiveClasses from "./UpcomingLiveClasses";
 
 const Home = () => {
@@ -60,100 +60,88 @@ const Home = () => {
   return (
     <>
       <div className="home">
-        <div className="home1">
-          <div className="home2">
+        <div className="home1 flex-col lg:flex-row">
+          <div className="home2 flex-1">
+            {/* Welcome Banner */}
             <div className="home3">
               <div className="home4">
                 <div className="home5 mt-6">
-                  <h1>Welcome back to AKJ Platform</h1>
-                  <img src={img} alt="" />
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl">Welcome back to AKJ Classes</h1>
+                  <img src={img} alt="Welcome" className="w-16 h-16 sm:w-20 sm:h-20" />
                 </div>
               </div>
-              <div className="home7">
-                <img src={img1} alt="" />
+              <div className="home7 hidden sm:block">
+                <img src={img1} alt="Banner" className="w-24 h-24 sm:w-32 sm:h-32" />
               </div>
             </div>
 
             {/* Messages Section */}
             <div className="home8 mt-5">
               <div className="home18">
-                <div
-                  className="home19"
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "10px",
-                  }}
-                >
-                  <p style={{ fontSize: "18px", fontWeight: "600", margin: 0 }}>
-                    Messages
+                <div className="home19 flex justify-between items-center mb-4">
+                  <p className="text-lg font-semibold text-white m-0">
+                    Recent Messages
                   </p>
                   <span
-                    style={{
-                      cursor: "pointer",
-                      color: "#1A85FF",
-                      fontSize: "14px",
-                    }}
+                    className="text-blue-400 text-sm cursor-pointer hover:text-blue-300 transition-colors"
                     onClick={() => navigate("/messages")}
                   >
                     View All
                   </span>
                 </div>
 
-                <div
-                  className="home20"
-                  style={{ maxHeight: "360px", overflowY: "auto" }}
-                >
-                  {recentMessages.map((msgUser) => (
-                    <div
-                      key={msgUser._id}
-                      className="home21 cursor-pointer"
-                      onClick={() => navigate("/messages")}
-                    >
-                      <div className="home222">
-                        <div
-                          className="home22"
-                          style={{ backgroundColor: "#1A85FF" }}
-                        >
-                          <p>{msgUser.firstName?.slice(0, 2).toUpperCase()}</p>
+                <div className="home20 max-h-80 overflow-y-auto">
+                  {recentMessages.length > 0 ? (
+                    recentMessages.map((msgUser) => (
+                      <div
+                        key={msgUser._id}
+                        className="home21 cursor-pointer hover:bg-gray-800 transition-colors rounded-lg p-2 -mx-2"
+                        onClick={() => navigate("/messages")}
+                      >
+                        <div className="home222">
+                          <div className="home22 bg-blue-500">
+                            <p>{msgUser.firstName?.slice(0, 2).toUpperCase()}</p>
+                          </div>
+                          <div className="home23">
+                            <h6 className="text-white">{msgUser.firstName}</h6>
+                            <p className="text-gray-300 text-sm">
+                              {msgUser.lastMessage?.length > 40
+                                ? msgUser.lastMessage.slice(0, 40) + "..."
+                                : msgUser.lastMessage || "No message"}
+                            </p>
+                          </div>
                         </div>
-                        <div className="home23">
-                          <h6>{msgUser.firstName}</h6>
-                          <p>
-                            {msgUser.lastMessage?.length > 40
-                              ? msgUser.lastMessage.slice(0, 40) + "..."
-                              : msgUser.lastMessage}
+                        <div className="home25">
+                          <p className="text-xs text-gray-400">
+                            {msgUser.lastMessageTime ? new Date(msgUser.lastMessageTime).toLocaleTimeString(
+                              [],
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            ) : "--:--"}
                           </p>
                         </div>
                       </div>
-                      <div className="home25">
-                        <p>
-                          {new Date(msgUser.lastMessageTime).toLocaleTimeString(
-                            [],
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            }
-                          )}
-                        </p>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center text-gray-400 py-8">
+                      <p>No recent messages</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             </div>
-            {/* End Messages Section */}
           </div>
 
           {/* Upcoming Live Classes Section */}
-          <div className="home32">
-            <div className="bg-[#141414] p-6 rounded-lg shadow-md max-w-4xl mx-auto">
+          <div className="home32 w-full lg:w-auto">
+            <div className="bg-[#0d0d0d] p-6 rounded-lg shadow-md h-fit">
               <div className="flex text-white justify-between items-center mb-4">
                 <p className="text-xl font-bold">Upcoming Classes</p>
                 <span
                   onClick={handleShow1}
-                  className="text-blue-600 cursor-pointer hover:underline"
+                  className="text-blue-400 cursor-pointer hover:text-blue-300 transition-colors text-sm"
                 >
                   Create +
                 </span>

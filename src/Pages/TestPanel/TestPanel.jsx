@@ -194,23 +194,23 @@ const TestPanel = () => {
       style={{ backgroundColor: "#141414", color: "#fff" }}>
       <div className="w-full max-w-5xl">
         {/* Header Section */}
-        <div className="flex justify-between items-center border-b border-gray-700 pb-4 mb-4">
-          <h1 className="text-lg font-semibold">Test Content</h1>
-          <div className="flex space-x-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-700 pb-4 mb-6 gap-4">
+          <h1 className="text-xl font-semibold text-white">Test Content</h1>
+          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
             <Input
               placeholder="Search folders..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-60"
+              className="w-full sm:w-60"
             />
-            <Button type="primary" onClick={() => handleOpenModal()}>
+            <Button type="primary" onClick={() => handleOpenModal()} className="w-full sm:w-auto">
               + New Folder
             </Button>
           </div>
         </div>
 
         {/* Folders Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
           {filteredFolders.map((folder) => (
             <div
               key={folder._id}
@@ -253,7 +253,7 @@ const TestPanel = () => {
       {/* Modal for Creating/Editing Folder */}
       <Modal
         title={editingFolder ? "Edit Folder" : "Create New Folder"}
-        visible={isModalOpen}
+        open={isModalOpen}
         onCancel={handleCloseModal}
         footer={[
           <Button key="cancel" onClick={handleCloseModal}>

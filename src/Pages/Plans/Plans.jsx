@@ -30,6 +30,9 @@ import CreateInstallmentButton from "../Courses & Tests/CreateInstallmentButton"
 import api from "../../api/axios";
 import CreateInstallmentForm from "../Courses & Tests/CreateInstallmentForm";
 
+const GST_OPTIONS = [0, 5, 12, 18];
+const INTERNET_HANDLING_OPTIONS = [0, 1, 1.5, 2, 2.5];
+
 const Plans = () => {
   const dispatch = useDispatch();
   const { subscriptions, loading: loadingSubscriptions } = useSelector(
@@ -332,7 +335,9 @@ const Plans = () => {
               type="link"
               className="absolute top-2 right-2 text-blue-500"
               onClick={(e) => {
-                e.stopPropagation();
+                if (e && typeof e.stopPropagation === 'function') {
+                  e.stopPropagation();
+                }
                 showViewPlanModal(plan);
               }}
             >
@@ -374,7 +379,9 @@ const Plans = () => {
               <Button
                 type="primary"
                 onClick={(e) => {
-                  e.stopPropagation();
+                  if (e && typeof e.stopPropagation === 'function') {
+                    e.stopPropagation();
+                  }
                   showEditModal(plan);
                 }}
               >
@@ -383,7 +390,9 @@ const Plans = () => {
               <Button
                 danger
                 onClick={(e) => {
-                  e.stopPropagation();
+                  if (e && typeof e.stopPropagation === 'function') {
+                    e.stopPropagation();
+                  }
                   handleDeletePlan(plan._id);
                 }}
               >
@@ -523,19 +532,19 @@ const Plans = () => {
                 <InputNumber
                   value={validity.validity}
                   min={1}
-                  max={12}
+                  max={99}
                   placeholder="Validity (months)"
                   style={{ marginLeft: 8, width: 200 }}
                   disabled={isPlanSaved} // Disable input if plan is saved
                   formatter={(value) => {
                     const num = Number(value);
                     if (isNaN(num)) return "";
-                    return Math.min(Math.max(num, 1), 12).toString();
+                    return Math.min(Math.max(num, 1), 99).toString();
                   }}
                   parser={(value) => {
                     const num = Number(value);
                     if (isNaN(num)) return 1; // default to min value
-                    return Math.min(Math.max(num, 1), 12);
+                    return Math.min(Math.max(num, 1), 99);
                   }}
                   onChange={(value) =>
                     handleValidityChange(index, "validity", value)
@@ -643,23 +652,17 @@ const Plans = () => {
               { required: true, message: "Please enter GST percentage!" },
             ]}
           >
-            <InputNumber
-              min={0}
-              max={100}
-              placeholder="GST (%)"
-              style={{ width: "100%" }}
+            <Select
+              placeholder="Select GST (%)"
               disabled={isPlanSaved}
-              formatter={(value) => {
-                const num = Number(value);
-                if (isNaN(num)) return "";
-                return Math.min(Math.max(num, 0), 100).toString();
-              }}
-              parser={(value) => {
-                const num = Number(value);
-                if (isNaN(num)) return 0; // default to min value
-                return Math.min(Math.max(num, 0), 100);
-              }}
-            />
+              allowClear
+            >
+              {GST_OPTIONS.map((option) => (
+                <Select.Option key={option} value={option}>
+                  {option}%
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
 
           {/* Internet Handling Charges Percentage */}
@@ -673,23 +676,17 @@ const Plans = () => {
               },
             ]}
           >
-            <InputNumber
-              min={0}
-              max={100}
-              placeholder="Internet Handling Charges (%)"
-              style={{ width: "100%" }}
+            <Select
+              placeholder="Select Internet Handling (%)"
               disabled={isPlanSaved}
-              formatter={(value) => {
-                const num = Number(value);
-                if (isNaN(num)) return "";
-                return Math.min(Math.max(num, 0), 100).toString();
-              }}
-              parser={(value) => {
-                const num = Number(value);
-                if (isNaN(num)) return 0; // default to min
-                return Math.min(Math.max(num, 0), 100);
-              }}
-            />
+              allowClear
+            >
+              {INTERNET_HANDLING_OPTIONS.map((option) => (
+                <Select.Option key={option} value={option}>
+                  {option}%
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
 
           {/* Save Button */}
@@ -790,12 +787,24 @@ const Plans = () => {
                 /> */}
                 <InputNumber
                   value={validity.validity}
+                  min={1}
+                  max={99}
+                  placeholder="Validity (months)"
+                  style={{ marginLeft: 8, width: 200 }}
+                  disabled={!isEditingAllowed}
+                  formatter={(value) => {
+                    const num = Number(value);
+                    if (isNaN(num)) return "";
+                    return Math.min(Math.max(num, 1), 99).toString();
+                  }}
+                  parser={(value) => {
+                    const num = Number(value);
+                    if (isNaN(num)) return 1; // default to min value
+                    return Math.min(Math.max(num, 1), 99);
+                  }}
                   onChange={(value) =>
                     handleValidityChange(index, "validity", value)
                   }
-                  placeholder="Validity (months)"
-                  style={{ marginLeft: 8 }}
-                  disabled={!isEditingAllowed}
                 />
                 <InputNumber
                   value={validity.price}
@@ -872,6 +881,49 @@ const Plans = () => {
             >
               Add Feature
             </Button>
+          </Form.Item>
+
+          {/* GST Percentage */}
+          <Form.Item
+            label="GST (%)"
+            name="gst"
+            rules={[{ required: true, message: "Please select GST percentage!" }]}
+          >
+            <Select
+              placeholder="Select GST (%)"
+              disabled={!isEditingAllowed}
+              allowClear
+            >
+              {GST_OPTIONS.map((option) => (
+                <Select.Option key={option} value={option}>
+                  {option}%
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          {/* Internet Handling Charges Percentage */}
+          <Form.Item
+            label="Internet Handling Charges (%)"
+            name="internetHandling"
+            rules={[
+              {
+                required: true,
+                message: "Please select Internet Handling Charges percentage!",
+              },
+            ]}
+          >
+            <Select
+              placeholder="Select Internet Handling (%)"
+              disabled={!isEditingAllowed}
+              allowClear
+            >
+              {INTERNET_HANDLING_OPTIONS.map((option) => (
+                <Select.Option key={option} value={option}>
+                  {option}%
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
 
           {/* Button to enable re-editing */}

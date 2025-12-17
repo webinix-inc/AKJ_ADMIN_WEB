@@ -81,6 +81,23 @@ export const deleteCourse = createAsyncThunk(
   }
 );
 
+// Toggle course publish status
+export const togglePublishCourse = createAsyncThunk(
+  "courses/togglePublishCourse",
+  async ({ courseId, isPublished }, { rejectWithValue }) => {
+    try {
+      const response = await api.patch(`/admin/courses/${courseId}/toggle-publish`, {
+        isPublished: isPublished
+      });
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error toggling course publish status"
+      );
+    }
+  }
+);
+
 // Fetch all course categories by main course ID
 export const fetchCategoriesByCourseId = createAsyncThunk(
   "categories/fetchCategoriesByCourseId",
@@ -397,6 +414,86 @@ export const fetchEnrollmentCount = createAsyncThunk(
     }
   }
 );
+
+// ============================================================================
+// 📚 BATCH COURSE ASYNC THUNKS
+// ============================================================================
+
+// Create a new batch course
+export const createBatchCourse = createAsyncThunk(
+  "batchCourses/createBatchCourse",
+  async (batchCourseData, { rejectWithValue }) => {
+    try {
+      const response = await api.post("/admin/batch-courses/create", batchCourseData);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to create batch course"
+      );
+    }
+  }
+);
+
+// Fetch all batch courses
+export const fetchBatchCourses = createAsyncThunk(
+  "batchCourses/fetchBatchCourses",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/admin/batch-courses");
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch batch courses"
+      );
+    }
+  }
+);
+
+// Fetch batch course by ID
+export const fetchBatchCourseById = createAsyncThunk(
+  "batchCourses/fetchBatchCourseById",
+  async (courseId, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/admin/batch-courses/${courseId}`);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch batch course details"
+      );
+    }
+  }
+);
+
+// Add user to batch course
+export const addUserToBatch = createAsyncThunk(
+  "batchCourses/addUserToBatch",
+  async ({ courseId, userId }, { rejectWithValue }) => {
+    try {
+      const response = await api.post(`/admin/batch-courses/${courseId}/add-user`, { userId });
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to add user to batch course"
+      );
+    }
+  }
+);
+
+// Remove user from batch course
+export const removeUserFromBatch = createAsyncThunk(
+  "batchCourses/removeUserFromBatch",
+  async ({ courseId, userId }, { rejectWithValue }) => {
+    try {
+      const response = await api.delete(`/admin/batch-courses/${courseId}/remove-user/${userId}`);
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to remove user from batch course"
+      );
+    }
+  }
+);
+
 // Course slice
 const courseSlice = createSlice({
   name: "courses",
@@ -412,6 +509,9 @@ const courseSlice = createSlice({
     loading: false,
     error: null,
     enrollmentCount: null, // New state to store the enrollment count
+    // Batch course state
+    batchCourses: [],
+    selectedBatchCourse: null,
   },
   reducers: {
     clearCourse: (state) => {
@@ -472,11 +572,23 @@ const courseSlice = createSlice({
       })
       .addCase(updateCourse.fulfilled, (state, action) => {
         state.loading = false;
+        const updatedCourse = action.payload;
+        
+        // Update course in the courses list
         const index = state.courses.findIndex(
-          (course) => course._id === action.payload._id
+          (course) => course._id === updatedCourse._id || course._id?.toString() === updatedCourse._id?.toString()
         );
         if (index !== -1) {
-          state.courses[index] = action.payload;
+          state.courses[index] = updatedCourse;
+        }
+        
+        // 🔥 CRITICAL: Also update the single course state if it matches
+        // This ensures the UI reflects the update immediately
+        if (state.course && (
+          state.course._id === updatedCourse._id || 
+          state.course._id?.toString() === updatedCourse._id?.toString()
+        )) {
+          state.course = updatedCourse;
         }
       })
       .addCase(updateCourse.rejected, (state, action) => {
@@ -748,6 +860,24 @@ const courseSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      // Toggle Course Publish Status
+      .addCase(togglePublishCourse.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(togglePublishCourse.fulfilled, (state, action) => {
+        state.loading = false;
+        const index = state.courses.findIndex(
+          (course) => course._id === action.payload.courseId
+        );
+        if (index !== -1) {
+          state.courses[index].isPublished = action.payload.isPublished;
+        }
+      })
+      .addCase(togglePublishCourse.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
       // Fetch Enrollment Count
       .addCase(fetchEnrollmentCount.pending, (state) => {
         state.loading = true;
@@ -760,6 +890,94 @@ const courseSlice = createSlice({
       .addCase(fetchEnrollmentCount.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload; // Handle errors
+      })
+      // ============================================================================
+      // 📚 BATCH COURSE REDUCERS
+      // ============================================================================
+      // Create Batch Course
+      .addCase(createBatchCourse.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createBatchCourse.fulfilled, (state, action) => {
+        state.loading = false;
+        state.batchCourses.push(action.payload);
+      })
+      .addCase(createBatchCourse.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Fetch Batch Courses
+      .addCase(fetchBatchCourses.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchBatchCourses.fulfilled, (state, action) => {
+        state.loading = false;
+        state.batchCourses = action.payload;
+      })
+      .addCase(fetchBatchCourses.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Fetch Batch Course By ID
+      .addCase(fetchBatchCourseById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchBatchCourseById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.selectedBatchCourse = action.payload;
+      })
+      .addCase(fetchBatchCourseById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Add User to Batch
+      .addCase(addUserToBatch.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(addUserToBatch.fulfilled, (state, action) => {
+        state.loading = false;
+        // Update the batch course in the list
+        const index = state.batchCourses.findIndex(
+          (course) => course._id === action.payload._id
+        );
+        if (index !== -1) {
+          state.batchCourses[index] = action.payload;
+        }
+        // Update selected batch course if it matches
+        if (state.selectedBatchCourse && state.selectedBatchCourse._id === action.payload._id) {
+          state.selectedBatchCourse = action.payload;
+        }
+      })
+      .addCase(addUserToBatch.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Remove User from Batch
+      .addCase(removeUserFromBatch.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(removeUserFromBatch.fulfilled, (state, action) => {
+        state.loading = false;
+        // Update the batch course in the list
+        const index = state.batchCourses.findIndex(
+          (course) => course._id === action.payload._id
+        );
+        if (index !== -1) {
+          state.batchCourses[index] = action.payload;
+        }
+        // Update selected batch course if it matches
+        if (state.selectedBatchCourse && state.selectedBatchCourse._id === action.payload._id) {
+          state.selectedBatchCourse = action.payload;
+        }
+      })
+      .addCase(removeUserFromBatch.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

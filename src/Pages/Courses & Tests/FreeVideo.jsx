@@ -142,7 +142,7 @@ function AdminPanel() {
             </button>
 
             <h2 className="text-xl font-semibold mb-4">
-              {isEditing ? "Edit Batch" : "Add Batch"}
+              {isEditing ? "Edit Batch" : "Add Video"}
             </h2>
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
@@ -189,7 +189,7 @@ function AdminPanel() {
                 <button
                   type="submit"
                   className="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200">
-                  {isEditing ? "Update Batch" : "Add Batch"}
+                  {isEditing ? "Update Batch" : "Add Video"}
                 </button>
               </div>
             </form>

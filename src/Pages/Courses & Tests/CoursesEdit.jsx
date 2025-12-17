@@ -1,30 +1,33 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  fetchCourseById,
-  updateCourse,
-  deleteCourse,
-  fetchAllCategories,
-  fetchEnrollmentCount,
-} from "../../redux/slices/courseSlice";
-import { getSubscriptionsByCourseId } from "../../redux/slices/subscriptionSlice"; // Import the thunk for fetching subscriptions
-import HOC from "../../Component/HOC/HOC";
+import { Editor } from "@tinymce/tinymce-react";
+import { EditorContent, useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import { Button, message, Modal, Select, Upload } from "antd";
+import React, { useCallback, useEffect, useState } from "react";
 import { FaArrowLeft } from "react-icons/fa";
+import "react-quill/dist/quill.snow.css";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Button, message, Upload, Select, Modal } from "antd";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
+import HOC from "../../Component/HOC/HOC";
 import img from "../../Image/img9.png";
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import { Editor } from "@tinymce/tinymce-react";
+import {
+    deleteCourse,
+    fetchAllCategories,
+    fetchCourseById,
+    fetchEnrollmentCount,
+    updateCourse,
+} from "../../redux/slices/courseSlice";
+import { getSubscriptionsByCourseId } from "../../redux/slices/subscriptionSlice"; // Import the thunk for fetching subscriptions
+import { getOptimizedCourseImage, handleImageError } from "../../utils/imageUtils";
 
 import {
-  DeleteOutlined,
-  PlayCircleOutlined,
-  UploadOutlined,
+    MinusCircleOutlined,
+    PlayCircleOutlined,
+    PlusOutlined,
+    UploadOutlined
 } from "@ant-design/icons";
+import { Input, Space } from "antd";
+import api from "../../api/axios";
 
 const CoursesEdit = () => {
   const dispatch = useDispatch();
@@ -54,15 +57,41 @@ const CoursesEdit = () => {
   const [videos, setVideos] = useState([]); // Holds the list of existing videos
   const [newVideos, setNewVideos] = useState([]); // Holds newly uploaded videos
   const [currentVideoUrl, setCurrentVideoUrl] = useState("");
+  const [faqs, setFaqs] = useState([{ question: "", answer: "" }]); // FAQ state
+  const [faqLoading, setFaqLoading] = useState(false);
+
+  // Fetch FAQs for the course - defined before useEffect to avoid hoisting issues
+  const fetchFAQs = useCallback(async (courseId) => {
+    setFaqLoading(true);
+    try {
+      const response = await api.get(`/admin/faqs/${courseId}`);
+      const faqData = response.data?.data || response.data || [];
+      if (Array.isArray(faqData) && faqData.length > 0) {
+        setFaqs(faqData.map(faq => ({ 
+          question: faq.question || "", 
+          answer: faq.answer || "",
+          _id: faq._id // Keep ID for existing FAQs
+        })));
+      } else {
+        setFaqs([{ question: "", answer: "" }]);
+      }
+    } catch (error) {
+      console.error("Error fetching FAQs:", error);
+      setFaqs([{ question: "", answer: "" }]);
+    } finally {
+      setFaqLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (id) {
       dispatch(fetchCourseById(id));
       dispatch(fetchEnrollmentCount(id));
       dispatch(getSubscriptionsByCourseId(id)); // Fetch subscriptions for the course
+      fetchFAQs(id); // Fetch FAQs for the course
     }
     dispatch(fetchAllCategories());
-  }, [dispatch, id]);
+  }, [dispatch, id, fetchFAQs]);
 
   useEffect(() => {
     if (course && categories.length > 0) {
@@ -88,7 +117,8 @@ const CoursesEdit = () => {
         enrolledStudents: course.enrolledStudents || "",
       });
 
-      setCourseImage(course.courseImage?.[0] || img);
+      // Use streaming endpoint for course image instead of direct S3 URL
+      setCourseImage(getOptimizedCourseImage(course));
       setVideos(course.courseVideo || []);
 
       const selectedCategory = categories.find(
@@ -122,6 +152,16 @@ const CoursesEdit = () => {
 
   const handleDescriptionChange = (value) => setDescription(value);
 
+  // Handle FAQ addition/removal
+  const addFaq = () => setFaqs([...faqs, { question: "", answer: "" }]);
+  const removeFaq = (index) => setFaqs(faqs.filter((_, i) => i !== index));
+
+  const handleFaqChange = (index, key, value) => {
+    const updatedFaqs = [...faqs];
+    updatedFaqs[index][key] = value;
+    setFaqs(updatedFaqs);
+  };
+
   const handleSubmit = async () => {
     const updatedData = new FormData();
     updatedData.append("title", formData.title);
@@ -140,11 +180,58 @@ const CoursesEdit = () => {
     }
 
     try {
-      await dispatch(updateCourse({ id, updatedData }));
+      const result = await dispatch(updateCourse({ id, updatedData })).unwrap();
+      
+      // Handle FAQs: Delete existing and create new ones
+      try {
+        // Get existing FAQ IDs to delete
+        const existingFaqIds = faqs.filter(faq => faq._id).map(faq => faq._id);
+        
+        // Delete all existing FAQs
+        if (existingFaqIds.length > 0) {
+          await Promise.all(
+            existingFaqIds.map(faqId => 
+              api.delete(`/admin/faqs/${faqId}`)
+            )
+          );
+        }
+        
+        // Filter out empty FAQs and create new ones
+        const validFaqs = faqs.filter(
+          faq => faq.question && faq.answer && 
+          faq.question.trim() !== "" && faq.answer.trim() !== ""
+        );
+        
+        if (validFaqs.length > 0) {
+          // Create new FAQs
+          const faqsToCreate = validFaqs.map(faq => ({
+            course: id,
+            question: faq.question.trim(),
+            answer: faq.answer.trim(),
+            category: faq.category || "General"
+          }));
+          
+          await api.post("/admin/faqs", {
+            faqs: faqsToCreate,
+            courseId: id
+          });
+        }
+      } catch (faqError) {
+        console.error("Error updating FAQs:", faqError);
+        toast.warning("Course updated but there was an error updating FAQs. Please try editing FAQs again.");
+      }
+      
       toast.success("Course updated successfully!");
+      
+      // The Redux reducer should have updated state.course, but refresh to ensure UI is updated
+      // This is especially important for images and other fields that might need re-fetching
+      await dispatch(fetchCourseById(id));
+      await fetchFAQs(id); // Refresh FAQs
+      
       setIsEditMode(false); // Exit edit mode after saving
     } catch (error) {
-      toast.error("Error updating course!");
+      console.error("Error updating course:", error);
+      toast.error(error || "Error updating course!");
     }
   };
 
@@ -246,6 +333,7 @@ const CoursesEdit = () => {
               className="course-test8"
               src={courseImage || img}
               alt="Course"
+              onError={handleImageError}
               style={{ width: "100%", height: "auto", marginBottom: "10px" }}
             />
             {isEditMode && (
@@ -369,6 +457,74 @@ const CoursesEdit = () => {
               }}
               dangerouslySetInnerHTML={{ __html: description }}
             />
+          )}
+        </div>
+        <div className="coursesEdit6">
+          <h6 className="text-white">FAQs</h6>
+          {faqLoading ? (
+            <p className="text-white">Loading FAQs...</p>
+          ) : (
+            <>
+              {isEditMode ? (
+                <>
+                  {faqs.map((faq, index) => (
+                    <Space key={index} align="start" style={{ marginBottom: 10, width: "100%" }}>
+                      <Input
+                        placeholder="Question"
+                        type="text"
+                        value={faq.question}
+                        onChange={(e) =>
+                          handleFaqChange(index, "question", e.target.value)
+                        }
+                        style={{ flex: 1 }}
+                      />
+                      <Input
+                        placeholder="Answer"
+                        type="text"
+                        value={faq.answer}
+                        onChange={(e) =>
+                          handleFaqChange(index, "answer", e.target.value)
+                        }
+                        style={{ flex: 1 }}
+                      />
+                      <MinusCircleOutlined
+                        onClick={() => removeFaq(index)}
+                        style={{ color: "red", cursor: "pointer", fontSize: "20px" }}
+                      />
+                    </Space>
+                  ))}
+                  <Button 
+                    type="dashed" 
+                    icon={<PlusOutlined />} 
+                    onClick={addFaq}
+                    style={{ marginTop: 10 }}
+                  >
+                    Add FAQ
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {faqs.length > 0 && faqs.some(faq => faq.question && faq.question.trim() !== "") ? (
+                    <div style={{ marginTop: 10 }}>
+                      {faqs
+                        .filter(faq => faq.question && faq.question.trim() !== "")
+                        .map((faq, index) => (
+                          <div key={index} style={{ marginBottom: 15, padding: "10px", background: "#333", borderRadius: "5px" }}>
+                            <p className="text-white" style={{ fontWeight: "bold", marginBottom: 5 }}>
+                              Q: {faq.question}
+                            </p>
+                            <p className="text-white" style={{ marginLeft: 20 }}>
+                              A: {faq.answer}
+                            </p>
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <p className="text-white">No FAQs available for this course.</p>
+                  )}
+                </>
+              )}
+            </>
           )}
         </div>
         <div className="coursesEdit6">

@@ -1,35 +1,35 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useParams, useNavigate } from "react-router-dom";
-import HOC from "../../Component/HOC/HOC";
 import {
-  fetchCourseById,
-  fetchCourses,
-  createSubject,
-  updateSubjectById,
-  deleteSubjectById,
-} from "../../redux/slices/courseSlice";
+  ArrowLeftOutlined,
+  DeleteOutlined,
+  FolderOutlined,
+  MoreOutlined,
+  PlusOutlined,
+  SaveOutlined,
+} from "@ant-design/icons";
 import {
   Button,
   Card,
-  Typography,
-  Spin,
-  Modal,
+  Dropdown,
   Form,
   Input,
-  Select,
-  Dropdown,
   Menu,
+  Modal,
+  Select,
+  Spin,
+  Typography,
 } from "antd";
-import {
-  ArrowLeftOutlined,
-  PlusOutlined,
-  FolderOutlined,
-  MoreOutlined,
-  SaveOutlined,
-  DeleteOutlined,
-} from "@ant-design/icons";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import HOC from "../../Component/HOC/HOC";
+import {
+  createSubject,
+  deleteSubjectById,
+  fetchCourseById,
+  fetchCourses,
+  updateSubjectById,
+} from "../../redux/slices/courseSlice";
 
 const { Title, Paragraph } = Typography;
 const { Option } = Select;
@@ -73,7 +73,9 @@ const SubjectsFolder = () => {
   };
 
   const handleCardClick = (e, id) => {
-    e.stopPropagation();
+    if (e && typeof e.stopPropagation === 'function') {
+      e.stopPropagation();
+    }
     navigate(`/content/subjects/${id}/chapters`);
   };
 
@@ -149,14 +151,22 @@ const SubjectsFolder = () => {
               onClick={(e) => handleCardClick(e, subject._id)}
               style={{ cursor: "pointer", textAlign: "center" }}
             >
-              <FolderOutlined style={{ fontSize: "64px", color: "#1890ff" }} />
+              <FolderOutlined style={{ fontSize: "64px", color: "#000000" }} />
 
               {editingSubject === subject._id ? (
-                <div onClick={(e)=>e.stopPropagation()} className="flex items-center">
+                <div onClick={(e) => {
+                  if (e && typeof e.stopPropagation === 'function') {
+                    e.stopPropagation();
+                  }
+                }} className="flex items-center">
                   <Input
                     value={newSubjectName}
                     onChange={(e) => setNewSubjectName(e.target.value)}
-                    onClick={(e) => e.stopPropagation()} // Stops card click during edit
+                    onClick={(e) => {
+                      if (e && typeof e.stopPropagation === 'function') {
+                        e.stopPropagation();
+                      }
+                    }} // Stops card click during edit
                     style={{ marginRight: "8px", width: "70%" }}
                   />
                   <Button
@@ -165,7 +175,11 @@ const SubjectsFolder = () => {
                   />
                 </div>
               ) : (
-                <div onClick={(e)=>e.stopPropagation()} className="flex items-center justify-between w-full">
+                <div onClick={(e) => {
+                  if (e && typeof e.stopPropagation === 'function') {
+                    e.stopPropagation();
+                  }
+                }} className="flex items-center justify-between w-full">
                   <Title level={4}>{subject.name}</Title>
                   <Dropdown
                   className="absolute right-0 top-0 p-2"
@@ -188,11 +202,19 @@ const SubjectsFolder = () => {
                       </Menu>
                     }
                     trigger={["click"]}
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      if (e && typeof e.stopPropagation === 'function') {
+                        e.stopPropagation();
+                      }
+                    }}
                   >
                     <MoreOutlined
                       style={{ fontSize: "24px", cursor: "pointer" }}
-                      onClick={(e) => e.stopPropagation()} // Prevent card navigation on dropdown icon click
+                      onClick={(e) => {
+                        if (e && typeof e.stopPropagation === 'function') {
+                          e.stopPropagation();
+                        }
+                      }} // Prevent card navigation on dropdown icon click
                     />
                   </Dropdown>
                 </div>

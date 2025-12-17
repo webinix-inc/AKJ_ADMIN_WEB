@@ -1,12 +1,11 @@
-import React, { useState } from "react";
-import "./Login.css";
+import React, { useEffect, useState } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import img1 from "../../Image/img1.png";
 import img2 from "../../Image/img2.png";
-import { FaEyeSlash, FaEye } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { loginAdmin } from "../../redux/slices/adminSlice"; // Import the loginAdmin action
-import { setAuthToken } from "../../api/axios";
+import { loginAdmin, resetLoginState } from "../../redux/slices/adminSlice"; // Import the loginAdmin action
+import "./Login.css";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -17,20 +16,29 @@ const Login = () => {
   const navigate = useNavigate();
 
   // Access Redux state
-  const { loading, error, adminData } = useSelector((state) => state.admin);
+  const { loading, error } = useSelector((state) => state.admin);
 
-  const handleSubmit = (e) => {
+  // Reset loading state when component mounts to clear any persisted loading state
+  useEffect(() => {
+    dispatch(resetLoginState());
+  }, [dispatch]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const loginData = {
       email,
       password,
     };
-    dispatch(loginAdmin(loginData)).then((res) => {
-      if (res.type === "admin/loginAdmin/fulfilled") {
+    try {
+      const res = await dispatch(loginAdmin(loginData)).unwrap();
+      if (res && res.accessToken) {
         navigate("/home");
-        localStorage.setItem("accessToken", res?.payload.accessToken); // Redirect to home page on success
+        localStorage.setItem("accessToken", res.accessToken);
       }
-    });
+    } catch (error) {
+      // Error is already handled by Redux and will be displayed
+      console.error("Login error:", error);
+    }
   };
   return (
     <>

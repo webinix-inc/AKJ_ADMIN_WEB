@@ -123,9 +123,14 @@ const liveClassSlice = createSlice({
       })
       .addCase(editLiveClass.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.liveClasses.findIndex(c => c.id === action.payload.id);
-        if (index !== -1) {
-          state.liveClasses[index] = action.payload;
+        // Update in both liveClasses and upcomingClasses arrays
+        const liveClassIndex = state.liveClasses.findIndex(c => c.classId === action.payload.liveClass?.classId);
+        if (liveClassIndex !== -1) {
+          state.liveClasses[liveClassIndex] = action.payload.liveClass;
+        }
+        const upcomingIndex = state.upcomingClasses.findIndex(c => c.classId === action.payload.liveClass?.classId);
+        if (upcomingIndex !== -1) {
+          state.upcomingClasses[upcomingIndex] = action.payload.liveClass;
         }
       })
       .addCase(editLiveClass.rejected, (state, action) => {
@@ -139,9 +144,12 @@ const liveClassSlice = createSlice({
       })
       .addCase(deleteLiveClass.fulfilled, (state, action) => {
         state.loading = false;
-        // Remove the deleted class from the state
+        // Remove the deleted class from both arrays
         state.liveClasses = state.liveClasses.filter(
-          liveClass => liveClass.id !== action.payload.classId
+          liveClass => liveClass.classId !== action.payload.classId
+        );
+        state.upcomingClasses = state.upcomingClasses.filter(
+          liveClass => liveClass.classId !== action.payload.classId
         );
       })
       .addCase(deleteLiveClass.rejected, (state, action) => {

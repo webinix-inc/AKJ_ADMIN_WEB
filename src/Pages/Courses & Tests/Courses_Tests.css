@@ -7,8 +7,8 @@
 
 .course-test2 {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  width: 100%;
 }
 
 .course-test3 {
@@ -92,6 +92,163 @@
   justify-content: center;
   align-items: center;
   color: white;
+}
+
+/* Line clamp utility for text truncation */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Improved responsive grid */
+@media (max-width: 640px) {
+  .course-test7 {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .coursesEdit3 {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .course-test px-4 py-6 {
+    padding: 1rem;
+  }
+  
+  .course-test6 button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Better card hover effects */
+.ant-card:hover {
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+.ant-card-cover img {
+  transition: transform 0.3s ease;
+}
+
+.ant-card:hover .ant-card-cover img {
+  transform: scale(1.05);
+}
+
+/* Custom Tab Button Styling */
+.tab-buttons {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tab-button {
+  padding: 12px 24px;
+  font-weight: 500;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.tab-button:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+.tab-button:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+.tab-button.active {
+  background: #3b82f6;
+  color: white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.tab-button:hover:not(.active) {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* Action buttons styling */
+.action-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.action-button {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.action-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Tab content styling */
+.tab-content {
+  width: 100%;
+  clear: both;
+}
+
+.courses-content,
+.batches-content,
+.freevideo-content {
+  width: 100%;
+  margin-top: 0;
+}
+
+/* Ensure proper layout flow */
+.course-test2 {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* Responsive adjustments for tab layout */
+@media (max-width: 768px) {
+  .tab-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  
+  .tab-buttons {
+    width: 100%;
+  }
+  
+  .action-buttons {
+    width: 100%;
+    justify-content: stretch;
+  }
+  
+  .action-button {
+    flex: 1;
+    justify-content: center;
+  }
+  
+  .tab-content {
+    margin-top: 20px;
+  }
 }
 
 .course-test8 {
