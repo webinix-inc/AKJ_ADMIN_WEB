@@ -73,8 +73,6 @@
     ]
   },
   "devDependencies": {
-     "@craco/craco": "^7.0.0",
-    "craco-less": "^1.9.0",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.45",
     "tailwindcss": "^3.4.17"
