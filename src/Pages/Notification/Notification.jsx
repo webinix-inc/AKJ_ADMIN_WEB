@@ -122,157 +122,172 @@ const NotificationPanel = () => {
   );
 
   return (
-    <div className="bg-[#141414] text-white p-6 min-h-screen">
-      <div className="flex gap-6">
-        <div className="bg-[#0d0d0d] w-2/3 shadow-md rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">Compose Notification</h3>
-          <div className="flex flex-wrap gap-2 mb-4">
+    <div className="notification-compose-page">
+      <div className="compose-layout">
+        {/* Compose Section */}
+        <div className="compose-card">
+          <h3 className="section-title">Compose Notification</h3>
+
+          {/* Recipients Chips */}
+          <div className="recipients-container">
             {recipients.map((recipient, index) => (
-              <span
-                key={index}
-                className="px-3 py-1 bg-blue-500 text-white text-sm rounded-full flex items-center gap-2">
+              <span key={index} className="recipient-chip">
                 {recipient.title}
                 <IoIosCloseCircle
-                  className="cursor-pointer"
+                  className="chip-remove"
                   onClick={() => removeRecipient(index)}
                 />
               </span>
             ))}
           </div>
 
-          <div className="flex items-center gap-4 mb-4">
-            <button
-              onClick={toggleModal}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center gap-2">
+          {/* Action Buttons */}
+          <div className="action-buttons-row">
+            <button onClick={toggleModal} className="action-btn secondary">
               <FaPlus />
               Add Recipients
             </button>
             <button
               onClick={toggleBroadcast}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-                isBroadcast ? "bg-green-500" : "bg-blue-500"
-              } text-white`}>
+              className={`action-btn ${isBroadcast ? "success" : "secondary"}`}
+            >
               <input
                 type="checkbox"
                 checked={isBroadcast}
                 onChange={toggleBroadcast}
-                className="form-checkbox text-blue-500 border-white focus:ring-white"
+                className="broadcast-checkbox"
               />
               Broadcast
             </button>
           </div>
 
-          <label className="block text-sm font-medium mb-2">Title*</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter notification title here"
-            className="w-full border border-gray-700 bg-gray-700 text-white rounded-lg px-3 py-2 mb-4"
-          />
+          {/* Inputs */}
+          <div className="form-group">
+            <label className="form-label">Title*</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter notification title"
+              className="form-input"
+            />
+          </div>
 
-          <label className="block text-sm font-medium mb-2">Text*</label>
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Enter notification text here"
-            className="w-full border border-gray-700 bg-gray-700 text-white rounded-lg px-3 py-2 mb-4"
-            rows="4"
-          />
+          <div className="form-group">
+            <label className="form-label">Text*</label>
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Enter notification text"
+              className="form-textarea"
+              rows="4"
+            />
+          </div>
 
-          <label className="cursor-pointer px-4 py-2 rounded-lg bg-blue-500 text-white flex items-center gap-2 mb-4">
-            <AiOutlinePicture /> Add Image
+          {/* Image Upload */}
+          <label className="image-upload-btn">
+            <AiOutlinePicture size={20} />
+            Add Image
             <input
               type="file"
               accept="image/*"
               onChange={handleImageUpload}
-              className="hidden"
+              style={{ display: "none" }}
             />
           </label>
 
+          {/* Submit */}
           <button
             onClick={handleSubmit}
-            className="mt-6 w-full bg-blue-500 text-white py-2 rounded-lg"
-            disabled={loading}>
+            className="submit-btn"
+            disabled={loading}
+          >
             {loading ? "Sending..." : "Send Notification"}
           </button>
-          {error && <p className="text-red-500 mt-2">{error}</p>}
+
+          {error && <p className="error-text">{error}</p>}
         </div>
 
-        <div className="bg-[#0d0d0d] w-1/3 shadow-md rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">Device Preview</h3>
-          <div className="border border-gray-700 rounded-lg p-4">
-            <div className="flex justify-between text-sm mb-4">
-              <span>Organisation Name</span>
-              <span>{new Date().toLocaleDateString()}</span>
+        {/* Device Preview Section */}
+        <div className="preview-card-wrapper">
+          <h3 className="section-title">Device Preview</h3>
+          <div className="device-preview-box">
+            <div className="preview-header-row">
+              <span className="org-name">Organisation Name</span>
+              <span className="preview-date">{new Date().toLocaleDateString()}</span>
             </div>
-            <h4 className="text-lg font-semibold mb-2">
-              {title || "Notification title"}
+
+            <h4 className="preview-title">
+              {title || "Notification Title"}
             </h4>
-            <p className="text-gray-400">{text || "Notification text"}</p>
+            <p className="preview-message">
+              {text || "Notification text content will appear here..."}
+            </p>
+
             {image && (
               <img
                 src={image}
                 alt="Preview"
-                className="w-full h-24 object-cover rounded-lg mt-4"
+                className="preview-image"
               />
             )}
           </div>
         </div>
       </div>
 
+      {/* Add Recipients Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-[#0d0d0d] w-[695px] h-[494px] shadow-lg rounded-lg relative">
-            <button
-              className="absolute top-4 right-4 text-white text-xl font-bold"
-              onClick={toggleModal}>
+        <div className="modal-overlay">
+          <div className="recipient-modal">
+            <button className="modal-close-icon" onClick={toggleModal}>
               &times;
             </button>
 
-            <div className="flex h-full">
-              <div className="w-48 flex flex-col py-4">
+            <div className="modal-content-flex">
+              {/* Sidebar Tabs */}
+              <div className="modal-sidebar">
                 {menuItems.map((item) => (
                   <div
                     key={item}
-                    className={`px-4 py-2 text-white cursor-pointer hover:bg-blue-100 hover:text-black ${
-                      activeTab === item ? "bg-gray-700" : ""
-                    }`}
-                    onClick={() => setActiveTab(item)}>
+                    className={`modal-tab ${activeTab === item ? "active" : ""}`}
+                    onClick={() => setActiveTab(item)}
+                  >
                     {item}
                   </div>
                 ))}
               </div>
 
-              <div className="flex-1 p-6 overflow-y-auto">
-                <h3 className="text-xl font-semibold mb-4">
-                  Select Recipients
-                </h3>
+              {/* Selection Area */}
+              <div className="modal-main-area">
+                <h3 className="modal-heading">Select Recipients</h3>
+
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search"
-                  className="w-full border border-gray-700 bg-gray-700 text-white rounded-lg px-3 py-2 mb-4"
+                  placeholder="Search courses..."
+                  className="modal-search-input"
                 />
-                <div className="max-h-60 overflow-y-auto">
+
+                <div className="modal-list-container">
                   {filteredCourses.map((course) => (
                     <div
                       key={course.id}
-                      className="px-3 py-2 bg-gray-700 rounded-lg mb-2 flex justify-between items-center cursor-pointer"
-                      onClick={() => addRecipient(course)}>
-                      <span>{course.title}</span>
+                      className="modal-list-item"
+                      onClick={() => addRecipient(course)}
+                    >
+                      <span className="item-name">{course.title}</span>
                       <input
                         type="checkbox"
                         checked={recipients.includes(course)}
                         readOnly
+                        className="item-checkbox"
                       />
                     </div>
                   ))}
                 </div>
-                <button
-                  onClick={toggleModal}
-                  className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg">
+
+                <button onClick={toggleModal} className="modal-done-btn">
                   Done
                 </button>
               </div>

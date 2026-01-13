@@ -1,17 +1,37 @@
 import React, { useState } from 'react';
 import HOC from '../../Component/HOC/HOC';
 import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft } from 'react-icons/fa'; // Importing correctly from react-icons
+import { ArrowLeftOutlined, PlusOutlined } from '@ant-design/icons';
+import { Button } from 'antd';
+import './SelfService.css';
 
-const EntranceExam = () => {  // Component name should be capitalized
+const EntranceExam = () => {
   const navigate = useNavigate();
   const [addBannerModalShow, setAddBannerModalShow] = useState(false);
 
   return (
-    <div className='coursesEdit1'>
-      <FaArrowLeft color='#FFFFFF' size={20} onClick={() => navigate('/selfservice')} />
-      <h6>Entrance Exam</h6>
-      <button onClick={() => setAddBannerModalShow(true)}>Add Banner</button>
+    <div className="self-service-container">
+      <div className="page-header">
+        <div>
+          <Button
+            type="text"
+            icon={<ArrowLeftOutlined />}
+            className="text-white hover:text-blue-400 p-0 mr-2"
+            onClick={() => navigate("/selfservice")}
+          >
+            Back
+          </Button>
+          <span className="page-title align-middle">📝 Entrance Exam</span>
+          <p className="page-subtitle ml-8">Manage entrance exams and banners.</p>
+        </div>
+        <button className="primary-btn flex items-center gap-2" onClick={() => setAddBannerModalShow(true)}>
+          <PlusOutlined /> Add Banner
+        </button>
+      </div>
+
+      <div className="glass-card p-6 flex justify-center items-center h-64">
+        <div className="text-gray-400 text-lg">Under Construction</div>
+      </div>
     </div>
   );
 };

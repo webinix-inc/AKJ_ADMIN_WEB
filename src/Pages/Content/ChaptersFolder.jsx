@@ -1,18 +1,148 @@
-import { ArrowLeftOutlined, FolderOutlined, MoreOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Card, Dropdown, Form, Input, Menu, Modal, Spin, Typography } from 'antd';
-import React, { useEffect, useState } from 'react';
-import { FaSave } from 'react-icons/fa';
+import { ArrowLeftOutlined, FolderOutlined, MoreOutlined, PlusOutlined, SaveOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Button, Dropdown, Form, Input, Menu, Modal, Spin } from 'antd';
+import React, { useEffect, useState, memo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import HOC from '../../Component/HOC/HOC';
 import { createChapter, deleteChapterById, getSubjectById, updateChapterById } from '../../redux/slices/courseSlice';
 
-const { Title, Paragraph } = Typography;
+import "./Content.css";
+
+// Styles
+const styles = {
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '24px',
+    flexWrap: 'wrap',
+    gap: '16px',
+  },
+  title: {
+    margin: '0 0 24px',
+    fontSize: '24px',
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+    gap: '20px',
+  },
+  card: {
+    background: '#171717',
+    borderRadius: '16px',
+    border: '1px solid #262626',
+    padding: '24px',
+    textAlign: 'center',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    position: 'relative',
+  },
+  cardName: {
+    fontSize: '15px',
+    fontWeight: '600',
+    color: '#fff',
+    marginTop: '12px',
+  },
+  menuBtn: {
+    position: 'absolute',
+    top: '12px',
+    right: '12px',
+    color: '#888',
+    fontSize: '18px',
+    cursor: 'pointer',
+  },
+  loadingContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '300px',
+  },
+  emptyState: {
+    gridColumn: '1 / -1',
+    textAlign: 'center',
+    padding: '48px',
+    color: '#888',
+    fontSize: '14px',
+  },
+};
+
+// Chapter Card Component
+const ChapterCard = memo(({ chapter, isEditing, editName, onEditChange, onSaveEdit, onRename, onDelete, onClick }) => {
+  const [hovered, setHovered] = useState(false);
+
+  const menu = (
+    <Menu>
+      <Menu.Item key="1" icon={<SaveOutlined />} onClick={(e) => {
+        e.domEvent?.stopPropagation();
+        onRename(chapter);
+      }}>
+        Rename
+      </Menu.Item>
+      <Menu.Item key="2" icon={<DeleteOutlined />} danger onClick={(e) => {
+        e.domEvent?.stopPropagation();
+        onDelete(chapter._id);
+      }}>
+        Delete
+      </Menu.Item>
+    </Menu>
+  );
+
+  return (
+    <div
+      style={{
+        ...styles.card,
+        borderColor: hovered ? '#22c55e40' : '#262626',
+        transform: hovered ? 'translateY(-4px)' : 'none',
+        boxShadow: hovered ? '0 8px 24px rgba(0,0,0,0.4)' : 'none',
+      }}
+      onClick={() => onClick(chapter._id)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <FolderOutlined style={{ fontSize: '48px', color: '#22c55e' }} />
+
+      {isEditing ? (
+        <div
+          style={{ marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'center' }}
+          onClick={e => e.stopPropagation()}
+        >
+          <Input
+            value={editName}
+            onChange={(e) => onEditChange(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+            size="small"
+            style={{ width: '70%' }}
+          />
+          <Button
+            type="primary"
+            size="small"
+            icon={<SaveOutlined />}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSaveEdit(chapter._id);
+            }}
+          />
+        </div>
+      ) : (
+        <div style={styles.cardName}>{chapter.name}</div>
+      )}
+
+      <Dropdown overlay={menu} trigger={['click']} placement="bottomRight">
+        <MoreOutlined
+          style={styles.menuBtn}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </Dropdown>
+    </div>
+  );
+});
 
 const ChaptersFolder = () => {
   const dispatch = useDispatch();
-  const { id } = useParams(); // Get subjectId from URL params
+  const { id } = useParams();
   const { selectedSubject, loading } = useSelector((state) => state.courses);
   const navigate = useNavigate();
 
@@ -22,199 +152,131 @@ const ChaptersFolder = () => {
   const [form] = Form.useForm();
 
   useEffect(() => {
-    dispatch(getSubjectById(id)); // Fetch subject and its chapters
+    dispatch(getSubjectById(id));
   }, [dispatch, id]);
 
-  const handleAddChapter = (values) => {
+  const handleAddChapter = useCallback(async (values) => {
     const chapterData = { ...values, subjectId: id };
-    dispatch(createChapter(chapterData))
-      .then(() => {
-        toast.success('Chapter added successfully');
-        setIsModalVisible(false);
-        dispatch(getSubjectById(id)); // Refresh the subject data
-      })
-      .catch((error) => {
-        console.error('Failed to add chapter:', error);
-        toast.error('Failed to add chapter');
-      });
-  };
+    try {
+      await dispatch(createChapter(chapterData)).unwrap();
+      toast.success('Chapter added successfully');
+      setIsModalVisible(false);
+      form.resetFields();
+      dispatch(getSubjectById(id));
+    } catch (error) {
+      toast.error('Failed to add chapter');
+    }
+  }, [dispatch, id, form]);
 
-  const handleEditClick = (e, chapter) => {
-    // e.stopPropagation(); // Prevent navigation when edit icon is clicked
+  const handleRename = useCallback((chapter) => {
     setEditingChapterId(chapter._id);
     setEditingChapterName(chapter.name);
-  };
+  }, []);
 
-  const handleSaveEdit = async (e, chapter) => {
-    if (e && typeof e.stopPropagation === 'function') {
-      e.stopPropagation(); // Prevent navigation when save icon is clicked
-    }
+  const handleSaveEdit = useCallback(async (chapterId) => {
     try {
-      const updatedData = { name: editingChapterName };
       await dispatch(
         updateChapterById({
           subjectId: id,
-          chapterId: chapter._id, // Use chapter ID for updates
-          updatedData,
+          chapterId,
+          updatedData: { name: editingChapterName },
         })
       ).unwrap();
-      toast.success('Chapter name updated successfully');
-      setEditingChapterId(null); // Exit edit mode
-      dispatch(getSubjectById(id)); // Refresh chapters list
+      toast.success('Chapter updated');
+      setEditingChapterId(null);
+      dispatch(getSubjectById(id));
     } catch (error) {
-      toast.error('Failed to update chapter name');
-      console.error('Failed to update chapter:', error);
+      toast.error('Failed to update');
     }
-  };
+  }, [dispatch, id, editingChapterName]);
 
-  const handleDeleteChapter = async (e, chapterId) => {
-    // e.stopPropagation(); // Prevent navigation when delete icon is clicked
+  const handleDelete = useCallback(async (chapterId) => {
     try {
       await dispatch(deleteChapterById({ subjectId: id, chapterId })).unwrap();
-      toast.success('Chapter deleted successfully');
-      dispatch(getSubjectById(id)); // Refresh the chapters list
+      toast.success('Chapter deleted');
+      dispatch(getSubjectById(id));
     } catch (error) {
-      toast.error('Failed to delete chapter');
-      console.error('Failed to delete chapter:', error);
+      toast.error('Failed to delete');
     }
-  };
+  }, [dispatch, id]);
 
-  const showModal = () => {
-    setIsModalVisible(true);
-  };
-
-  const handleCancel = () => {
-    setIsModalVisible(false);
-  };
+  const handleCardClick = useCallback((chapterId) => {
+    if (!editingChapterId) {
+      navigate(`/content/subjects/${id}/chapters/${chapterId}`);
+    }
+  }, [navigate, id, editingChapterId]);
 
   if (loading) {
-    return <div className="flex justify-center items-center h-full"><Spin size="large" /></div>;
+    return (
+      <div style={styles.container}>
+        <div style={styles.loadingContainer}>
+          <Spin size="large" />
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <Button icon={<ArrowLeftOutlined />} onClick={() => window.history.back()}>Back</Button>
-        <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>Add Chapter</Button>
+    <div style={styles.container}>
+      {/* Header */}
+      <div style={styles.header}>
+        <Button icon={<ArrowLeftOutlined />} onClick={() => window.history.back()}>
+          Back
+        </Button>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>
+          Add Chapter
+        </Button>
       </div>
 
-      <Title className="text-white" level={2}>Chapters for {selectedSubject?.name}</Title>
+      <h1 style={styles.title}>📖 Chapters for {selectedSubject?.name}</h1>
 
-      <div className="grid grid-cols-3 gap-4">
+      {/* Chapter Grid */}
+      <div style={styles.grid}>
         {selectedSubject?.chapters?.length > 0 ? (
           selectedSubject.chapters.map((chapter) => (
-            <Card
+            <ChapterCard
               key={chapter._id}
-              className="flex flex-col items-center justify-center"
-              hoverable
-              style={{ cursor: 'pointer', textAlign: 'center' }}
-              onClick={() => navigate(`/content/subjects/${id}/chapters/${chapter._id}`)}
-            >
-              <FolderOutlined style={{ fontSize: '64px', color: '#000000' }} />
-              {editingChapterId === chapter._id ? (
-                <div className="flex flex-col items-center">
-                  <Input
-                    value={editingChapterName}
-                    onChange={(e) => setEditingChapterName(e.target.value)}
-                    onClick={(e) => {
-                      if (e && typeof e.stopPropagation === 'function') {
-                        e.stopPropagation();
-                      }
-                    }}
-                    placeholder="Chapter Name"
-                    style={{ marginBottom: '8px' }}
-                  />
-                  <FaSave
-                    className="text-green-500 cursor-pointer"
-                    onClick={(e) => handleSaveEdit(e, chapter)}
-                  />
-                </div>
-              ) : (
-                <div onClick={(e) => {
-                  if (e && typeof e.stopPropagation === 'function') {
-                    e.stopPropagation();
-                  }
-                }} className="flex items-center justify-between w-full">
-                  <Title level={4} style={{ margin: 0 }}>{chapter.name}</Title>
-                  <Dropdown
-                  className='absolute right-0 top-0 p-2'
-                    overlay={
-                      <Menu>
-                        <Menu.Item
-                          key="1"
-                          onClick={(e) => handleEditClick(e, chapter)}
-                        >
-                          Rename
-                        </Menu.Item>
-                        <Menu.Item
-                          key="2"
-                          onClick={(e) => handleDeleteChapter(e, chapter._id)}
-                        >
-                          Delete
-                        </Menu.Item>
-                      </Menu>
-                    }
-                    trigger={["click"]}
-                  >
-                    <MoreOutlined
-                      style={{ fontSize: "24px", cursor: "pointer" }}
-                      onClick={(e) => {
-                      if (e && typeof e.stopPropagation === 'function') {
-                        e.stopPropagation();
-                      }
-                    }} // Prevent card navigation on dropdown click
-                    />
-                  </Dropdown>
-                </div>
-              )}
-            </Card>
+              chapter={chapter}
+              isEditing={editingChapterId === chapter._id}
+              editName={editingChapterName}
+              onEditChange={setEditingChapterName}
+              onSaveEdit={handleSaveEdit}
+              onRename={handleRename}
+              onDelete={handleDelete}
+              onClick={handleCardClick}
+            />
           ))
         ) : (
-          <Paragraph>No chapters found for this subject.</Paragraph>
+          <div style={styles.emptyState}>No chapters found for this subject.</div>
         )}
       </div>
 
-      {/* Modal for adding a chapter */}
+      {/* Add Chapter Modal */}
       <Modal
-        title="Add Chapter"
-        visible={isModalVisible}
-        onCancel={handleCancel}
+        title={<span style={{ color: '#fff' }}>Add Chapter</span>}
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
         footer={null}
       >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleAddChapter}
-        >
+        <Form form={form} layout="vertical" onFinish={handleAddChapter}>
           <Form.Item
             name="name"
-            label="Chapter Name"
+            label={<span style={{ color: '#d4d4d4' }}>Chapter Name</span>}
             rules={[{ required: true, message: 'Please enter the chapter name' }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             name="description"
-            label="Description"
+            label={<span style={{ color: '#d4d4d4' }}>Description</span>}
             rules={[{ required: true, message: 'Please enter the description' }]}
           >
             <Input.TextArea rows={4} />
           </Form.Item>
-          {/* <Form.Item
-            name="url"
-            label="URL"
-            rules={[{ required: true, message: 'Please enter the chapter URL' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="duration"
-            label="Duration"
-          >
-            <Input />
-          </Form.Item> */}
           <Form.Item>
-            <Button type="primary" htmlType="submit">Add Chapter</Button>
+            <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
+              Add Chapter
+            </Button>
           </Form.Item>
         </Form>
       </Modal>

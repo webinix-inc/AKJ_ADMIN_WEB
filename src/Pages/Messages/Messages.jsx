@@ -1,8 +1,8 @@
 import dayjs from "dayjs";
 import EmojiPicker from "emoji-picker-react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo, memo, lazy, Suspense } from "react";
 import { BsEmojiSmile } from "react-icons/bs";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaBars, FaTimes, FaComments } from "react-icons/fa";
 import { FaMinus, FaPlus } from "react-icons/fa6";
 import { IoIosArrowForward, IoMdCheckbox, IoMdDoneAll } from "react-icons/io";
 import { IoLinkOutline } from "react-icons/io5";
@@ -27,14 +27,205 @@ const socket = io(SOCKET_URL, {
   multiplex: true,
 });
 
+// ===== Memoized Components =====
+
+// User List Item Component
+const UserListItem = memo(({ user, isActive, onClick, formatTimeAgo, truncateText }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  const displayName = useMemo(() => {
+    if (user.firstName) {
+      return user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName;
+    }
+    return user.userType === 'ADMIN' ? 'AKJ Classes Admin' : user.userType;
+  }, [user.firstName, user.lastName, user.userType]);
+
+  return (
+    <div
+      className={`user-item ${isActive ? 'active' : ''}`}
+      onClick={onClick}
+    >
+      <div className="user-avatar">
+        {!imageLoaded && <div className="avatar-skeleton" />}
+        <img
+          src={user.image || img2}
+          alt={displayName}
+          loading="lazy"
+          onLoad={() => setImageLoaded(true)}
+          style={{ display: imageLoaded ? 'block' : 'none' }}
+        />
+      </div>
+      <div className="user-info">
+        <div className="user-info-top">
+          <span className="user-name">{displayName}</span>
+          {user.lastMessageTime && (
+            <span className="message-time">{formatTimeAgo(user.lastMessageTime)}</span>
+          )}
+        </div>
+        <div className="user-info-bottom">
+          <span className="last-message">
+            {/* Only show tick indicator for messages YOU sent */}
+            {user.isLastMessageSentByMe && (
+              <span className={`read-indicator ${user.unreadCount > 0 ? 'unread' : 'read'}`}>
+                <IoMdDoneAll size={16} />
+              </span>
+            )}
+            {truncateText(user.lastMessage || user.phone, 6)}
+          </span>
+          {user.unreadCount > 0 && (
+            <span className="unread-badge">{user.unreadCount}</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+UserListItem.displayName = 'UserListItem';
+
+// Message Bubble Component
+const MessageBubble = memo(({ msg, isOutgoing, formatTimestamp }) => {
+  return (
+    <div className={`message-row ${isOutgoing ? 'outgoing' : 'incoming'}`}>
+      <div className={`message-bubble ${isOutgoing ? 'outgoing' : 'incoming'}`}>
+        {msg.attachments && msg.attachments.length > 0 ? (
+          <div className="attachment-container">
+            {msg.attachments.map((file, i) => {
+              const isImage = file.mimeType?.startsWith("image/");
+              const isVideo = file.mimeType?.startsWith("video/");
+              const isPDF = file.mimeType === "application/pdf";
+              const isDocument = file.mimeType?.includes("document") ||
+                file.mimeType?.includes("word") ||
+                file.mimeType?.includes("excel") ||
+                file.mimeType?.includes("powerpoint");
+
+              return (
+                <div key={i} className="attachment-item">
+                  {isImage ? (
+                    <div>
+                      <img
+                        src={file.url}
+                        alt={file.filename}
+                        className="attachment-image"
+                        loading="lazy"
+                        onClick={() => window.open(file.url, '_blank')}
+                        onError={(e) => {
+                          console.error('Image failed to load:', file.url);
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                      <p className="attachment-name">{file.filename}</p>
+                    </div>
+                  ) : isVideo ? (
+                    <div>
+                      <video
+                        src={file.url}
+                        controls
+                        className="attachment-video"
+                      />
+                      <p className="attachment-name">{file.filename}</p>
+                    </div>
+                  ) : isPDF ? (
+                    <a
+                      href={file.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="attachment-file"
+                    >
+                      <span className="attachment-icon">📄</span>
+                      <div className="attachment-info">
+                        <p className="attachment-name">{file.filename}</p>
+                        <p className="attachment-size">PDF • {(file.size / 1024).toFixed(1)} KB</p>
+                      </div>
+                    </a>
+                  ) : isDocument ? (
+                    <a
+                      href={file.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="attachment-file"
+                    >
+                      <span className="attachment-icon">📋</span>
+                      <div className="attachment-info">
+                        <p className="attachment-name">{file.filename}</p>
+                        <p className="attachment-size">Document • {(file.size / 1024).toFixed(1)} KB</p>
+                      </div>
+                    </a>
+                  ) : (
+                    <a
+                      href={file.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="attachment-file"
+                    >
+                      <span className="attachment-icon">📎</span>
+                      <div className="attachment-info">
+                        <p className="attachment-name">{file.filename}</p>
+                        <p className="attachment-size">File • {(file.size / 1024).toFixed(1)} KB</p>
+                      </div>
+                    </a>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : msg.content ? (
+          <p className="message-content">{msg.content}</p>
+        ) : null}
+        <div className="message-meta">
+          <span className="message-time-stamp">{formatTimestamp(msg.createdAt)}</span>
+          {isOutgoing && (
+            <span className="message-status">{msg.isRead || msg.read ? "✓✓" : "✓"}</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+MessageBubble.displayName = 'MessageBubble';
+
+// Chat Header Component
+const ChatHeader = memo(({ user, onAvatarClick, onBackClick, showBackButton }) => {
+  const displayName = useMemo(() => {
+    if (user.firstName) {
+      return user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName;
+    }
+    return user.userType === 'ADMIN' ? 'AKJ Classes Admin' : user.userType;
+  }, [user.firstName, user.lastName, user.userType]);
+
+  return (
+    <div className="chat-header">
+      {showBackButton && (
+        <button className="mobile-menu-btn" onClick={onBackClick}>
+          <FaBars size={20} />
+        </button>
+      )}
+      <img
+        onClick={onAvatarClick}
+        src={user.image || img2}
+        alt={displayName}
+        className="chat-header-avatar"
+      />
+      <div className="chat-header-info">
+        <p className="chat-header-name">{displayName}</p>
+        <p className="chat-header-phone">{user.phone}</p>
+      </div>
+    </div>
+  );
+});
+
+ChatHeader.displayName = 'ChatHeader';
+
+// ===== Main Component =====
 const Messages = () => {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const searchRef = useRef(null);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [activeIndex, setActiveIndex] = useState(null);
+  const [activeUserId, setActiveUserId] = useState(null); // Track by user ID instead of index
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [cursor, setCursor] = useState(null);
@@ -44,6 +235,11 @@ const Messages = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [data, setData] = useState([]);
   const [socketConnected, setSocketConnected] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isTyping, setIsTyping] = useState(false); // Typing indicator state
+  const [typingUser, setTypingUser] = useState(null); // Who is typing
+  const [sendingMessage, setSendingMessage] = useState(false); // Message sending state
+  const typingTimeoutRef = useRef(null);
   const [unreadNotifications, setUnreadNotifications] = useState(() => {
     const storedNotifications = localStorage.getItem("unreadNotifications");
     return storedNotifications ? JSON.parse(storedNotifications) : {};
@@ -56,32 +252,59 @@ const Messages = () => {
     (state) => state.admin.adminData.data.userId
   );
 
-  const handleToggleExpand = () => {
-    setIsExpanded(!isExpanded);
-  };
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-  const normalizeMessages = (msgs = []) =>
+  // Filter users based on debounced search
+  useEffect(() => {
+    const filtered = users?.filter((user) =>
+      user?.phone?.toLowerCase().includes(debouncedSearch?.toLowerCase()) ||
+      user?.firstName?.toLowerCase().includes(debouncedSearch?.toLowerCase()) ||
+      user?.lastName?.toLowerCase().includes(debouncedSearch?.toLowerCase())
+    );
+    setFilteredUsers(filtered);
+  }, [debouncedSearch, users]);
+
+  const handleToggleExpand = useCallback(() => {
+    setIsExpanded(prev => !prev);
+  }, []);
+
+  const normalizeMessages = useCallback((msgs = []) =>
     msgs.map((msg) => ({
       ...msg,
       createdAt: msg.createdAt || msg.timestamp || new Date().toISOString(),
-    }));
+    })), []);
 
-  const sortMessages = (msgs) =>
+  const sortMessages = useCallback((msgs) =>
     [...msgs].sort(
       (a, b) =>
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    );
+    ), []);
+
+  // Helper function to move user to top of the list when a message is sent/received
+  const moveUserToTop = useCallback((userId, lastMessage, lastMessageTime) => {
+    setData(prevData => {
+      const userIndex = prevData.findIndex(u => u._id === userId);
+      if (userIndex === -1) return prevData;
+
+      const user = {
+        ...prevData[userIndex],
+        lastMessage: lastMessage,
+        lastMessageTime: lastMessageTime || new Date().toISOString()
+      };
+      const newData = [user, ...prevData.filter(u => u._id !== userId)];
+      return newData;
+    });
+  }, []);
 
   useEffect(() => {
     fetchUsers();
   }, []);
-
-  useEffect(() => {
-    const filtered = users?.filter((user) =>
-      user?.phone?.toLowerCase().includes(searchQuery?.toLowerCase())
-    );
-    setFilteredUsers(filtered);
-  }, [searchQuery, users]);
 
   const fetchUsers = async () => {
     try {
@@ -95,9 +318,20 @@ const Messages = () => {
     }
   };
 
+  // Join the current user's room on mount to receive real-time messages
+  useEffect(() => {
+    if (currentUserId) {
+      socket.emit("join", currentUserId);
+      console.log("Admin joined socket room:", currentUserId);
+    }
+
+    return () => {
+      // Cleanup handled by socket disconnect
+    };
+  }, [currentUserId]);
+
   useEffect(() => {
     if (selectedUser) {
-      socket.emit("join", selectedUser._id);
       setMessages([]);
       setCursor(null);
       fetchMessages(selectedUser._id);
@@ -124,32 +358,77 @@ const Messages = () => {
     socket.on("connect_error", handleConnectError);
 
     socket.on("message", (messageData) => {
-      console.log("📨 [ADMIN] Received socket message:", messageData);
-      console.log("👤 [ADMIN] Current user ID:", currentUserId);
-      
       if (!messageData || !selectedUser) return;
 
-      // For admin viewing student chat:
-      // - Show messages from any admin to the selected student (outgoing from admin perspective)
-      // - Show messages from the selected student to any admin (incoming from admin perspective)
-      const isOutgoing = messageData.receiver === selectedUser._id && messageData.sender !== selectedUser._id;
-      const isIncoming = messageData.sender === selectedUser._id && messageData.receiver !== selectedUser._id;
-
-      if (isOutgoing || isIncoming) {
-        console.log("✅ [ADMIN] Adding message to current thread", { isOutgoing, isIncoming });
+      // Don't add messages that we sent ourselves (already added via optimistic update)
+      // Check if the sender is the current user - if so, the message was already added
+      if (messageData.sender === currentUserId || messageData.sender?.toString() === currentUserId?.toString()) {
+        // This is our own message coming back from the server
+        // Update the temp message with the real ID if needed
         setMessages((prevMessages) => {
-          // Check if message already exists to avoid duplicates
-          const exists = prevMessages.some(msg => msg._id === messageData._id);
-          if (exists) {
-            console.log("⚠️ [ADMIN] Message already exists, skipping");
-            return prevMessages;
+          // Find the temp message by content and approximate time
+          const existingIndex = prevMessages.findIndex(msg =>
+            msg._id?.toString().startsWith('temp-') &&
+            msg.content === messageData.content
+          );
+
+          if (existingIndex !== -1) {
+            // Replace temp message with real one
+            const updated = [...prevMessages];
+            updated[existingIndex] = {
+              ...normalizeMessages([messageData])[0],
+              status: 'sent'
+            };
+            return updated;
           }
-          const newMessages = sortMessages([...prevMessages, ...normalizeMessages([messageData])]);
-          console.log("📝 [ADMIN] Updated messages count:", newMessages.length);
-          return newMessages;
+          return prevMessages;
         });
+        return;
+      }
+
+      // Check if message is from the currently selected user
+      const isFromSelectedUser = selectedUser &&
+        (messageData.sender === selectedUser._id ||
+          messageData.sender?.toString() === selectedUser._id?.toString());
+
+      if (isFromSelectedUser) {
+        // Message from currently selected user - add to messages
+        setMessages((prevMessages) => {
+          const exists = prevMessages.some(msg =>
+            msg._id === messageData._id ||
+            msg._id?.toString() === messageData._id?.toString()
+          );
+          if (exists) return prevMessages;
+          return sortMessages([...prevMessages, ...normalizeMessages([messageData])]);
+        });
+
+        // Move user to top of list when receiving a message
+        moveUserToTop(selectedUser._id, messageData.content, messageData.createdAt);
       } else {
-        console.log("ℹ️ [ADMIN] Message not for current thread, ignoring");
+        // Message from a user that is NOT currently selected
+        // Increment their unread count
+        const senderId = messageData.sender?.toString() || messageData.sender;
+
+        setData((prevData) => {
+          const userIndex = prevData.findIndex(u =>
+            u._id === senderId || u._id?.toString() === senderId
+          );
+
+          if (userIndex !== -1) {
+            // User exists in the list - increment unread count and move to top
+            const user = {
+              ...prevData[userIndex],
+              unreadCount: (prevData[userIndex].unreadCount || 0) + 1,
+              lastMessage: messageData.content,
+              lastMessageTime: messageData.createdAt || new Date().toISOString()
+            };
+            return [user, ...prevData.filter(u => u._id !== senderId && u._id?.toString() !== senderId)];
+          }
+
+          // User not in list - could be a new conversation
+          // The user list will refresh on next fetchUsers call
+          return prevData;
+        });
       }
     });
 
@@ -161,7 +440,14 @@ const Messages = () => {
       );
     });
 
-    // Set initial connection status
+    // Typing indicator listener
+    socket.on("userTyping", ({ userId, isTyping: typing }) => {
+      if (selectedUser && userId === selectedUser._id) {
+        setIsTyping(typing);
+        setTypingUser(typing ? selectedUser : null);
+      }
+    });
+
     setSocketConnected(socket.connected);
 
     return () => {
@@ -170,8 +456,9 @@ const Messages = () => {
       socket.off("connect_error", handleConnectError);
       socket.off("message");
       socket.off("readReceipt");
+      socket.off("userTyping");
     };
-  }, [selectedUser, currentUserId]);
+  }, [selectedUser, currentUserId, normalizeMessages, sortMessages]);
 
   const fetchMessages = async (receiverId, cursor = null) => {
     setLoadingMessages(true);
@@ -179,19 +466,16 @@ const Messages = () => {
       const response = await api.get(`/chat/${receiverId}`, {
         params: { cursor, limit: 10 },
       });
-console.log("Response of fetch messages:", response);
       const {
         data: { data: fetchedMessages, nextCursor },
       } = response;
 
-      const normalized = normalizeMessages(fetchedMessages).reverse(); // reverse because backend sends latest first
+      const normalized = normalizeMessages(fetchedMessages).reverse();
 
       setMessages((prevMessages) =>
         sortMessages(cursor ? [...prevMessages, ...normalized] : normalized)
       );
-      console.log("Normalized messages:", messages);
       setCursor(nextCursor);
-      console.log("Fetched messages:", fetchedMessages);
     } catch (error) {
       console.error("Error fetching messages:", error);
     } finally {
@@ -199,17 +483,17 @@ console.log("Response of fetch messages:", response);
     }
   };
 
-  const handleUserClick = async (index, user) => {
-    setActiveIndex(index);
+  const handleUserClick = useCallback(async (user) => {
+    setActiveUserId(user._id);
     setSelectedUser(user);
-    
-    // Mark messages as read when opening chat
+    setIsTyping(false); // Reset typing indicator
+    setTypingUser(null);
+
     try {
       await api.get(`/chat/markAsRead/${user._id}`);
-      // Update local state to remove unread count
-      setData(prevData => 
-        prevData.map(u => 
-          u._id === user._id 
+      setData(prevData =>
+        prevData.map(u =>
+          u._id === user._id
             ? { ...u, unreadCount: 0 }
             : u
         )
@@ -217,86 +501,103 @@ console.log("Response of fetch messages:", response);
     } catch (error) {
       console.error("Error marking messages as read:", error);
     }
-  };
+  }, []);
 
-  const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
+  const handleSendMessage = useCallback(async () => {
+    if (!newMessage.trim() || sendingMessage) return;
+
+    setSendingMessage(true);
+
+    // Stop typing indicator
+    socket.emit("typing", { receiverId: selectedUser._id, isTyping: false });
 
     const messageToSend = {
-      _id: Date.now(),
+      _id: `temp-${Date.now()}`,
       content: newMessage,
       sender: currentUserId,
+      receiver: selectedUser._id,
       receiverId: selectedUser._id,
       createdAt: new Date().toISOString(),
       read: false,
+      status: 'sending'
     };
 
+    // Optimistic update
     setMessages((prevMessages) =>
       sortMessages([...prevMessages, messageToSend])
     );
 
+    // Emit via socket for real-time
     socket.emit("message", messageToSend);
 
     try {
-      await api.post("/chat/send", {
+      const response = await api.post("/chat/send", {
         receiverId: selectedUser._id,
         message: newMessage,
       });
+
+      // Update with real message ID from server
+      if (response.data?.data?._id) {
+        setMessages((prevMessages) =>
+          prevMessages.map(msg =>
+            msg._id === messageToSend._id
+              ? { ...msg, _id: response.data.data._id, status: 'sent' }
+              : msg
+          )
+        );
+      }
+
+      // Move user to top of list with updated last message
+      moveUserToTop(selectedUser._id, newMessage, new Date().toISOString());
+
       setNewMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
+      // Mark message as failed, don't remove it
       setMessages((prevMessages) =>
-        prevMessages.filter((msg) => msg._id !== messageToSend._id)
+        prevMessages.map(msg =>
+          msg._id === messageToSend._id
+            ? { ...msg, status: 'failed' }
+            : msg
+        )
       );
+    } finally {
+      setSendingMessage(false);
     }
-  };
+  }, [newMessage, currentUserId, selectedUser, sortMessages, sendingMessage, moveUserToTop]);
 
-  // Handle Enter key press to send message
-  const handleKeyPress = (e) => {
+  const handleKeyPress = useCallback((e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
-  };
+  }, [handleSendMessage]);
 
-  const handleLoadMoreMessages = () => {
+  const handleLoadMoreMessages = useCallback(() => {
     if (cursor && !loadingMessages) {
       fetchMessages(selectedUser._id, cursor);
     }
-  };
+  }, [cursor, loadingMessages, selectedUser]);
 
-  const handleEmojiClick = (emojiObject) => {
+  const handleEmojiClick = useCallback((emojiObject) => {
     setNewMessage((prevMessage) => prevMessage + emojiObject.emoji);
     setShowEmojiPicker(false);
-  };
+  }, []);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  }, []);
 
   useEffect(() => {
     if (selectedUser) scrollToBottom();
-  }, [messages, selectedUser]);
+  }, [messages, selectedUser, scrollToBottom]);
 
-  const formatTimestamp = (timestamp) => dayjs(timestamp).format("h:mm A");
-  const formatDate = (timestamp) => dayjs(timestamp).format("MMMM D, YYYY");
+  const formatTimestamp = useCallback((timestamp) => dayjs(timestamp).format("h:mm A"), []);
+  const formatDate = useCallback((timestamp) => dayjs(timestamp).format("MMMM D, YYYY"), []);
 
-  const handleOutsideClick = (e) => {
-    if (searchRef.current && !searchRef.current.contains(e.target)) {
-      setIsSearchOpen(false);
-    }
-  };
-
+  // Fetch users with messages on mount
   useEffect(() => {
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
-    };
-  }, []);
-
-  // Fetch users on mount
-  useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchUsersWithMessages = async () => {
       try {
         const response = await api.get("/chat/users/withMessages", {
           params: { page: 1, limit: 10 },
@@ -308,19 +609,15 @@ console.log("Response of fetch messages:", response);
         }, {});
 
         setData(response.data.users);
-
         setUnreadNotifications((prev) => ({ ...prev, ...usersWithUnread }));
       } catch (error) {
         console.error("Error fetching users:", error);
       }
     };
-    fetchUsers();
+    fetchUsersWithMessages();
   }, []);
 
-  console.log("Data is printed from here:", data);
-  const isRead = data.isRead;
-
-  const formatTimeAgo = (timestamp) => {
+  const formatTimeAgo = useCallback((timestamp) => {
     const now = new Date();
     const diffInSeconds = Math.floor((now - new Date(timestamp)) / 1000);
 
@@ -341,19 +638,18 @@ console.log("Response of fetch messages:", response);
     }
 
     return "Just now";
-  };
+  }, []);
 
-  // Helper function to truncate text
-  function truncateText(text, wordLimit) {
+  const truncateText = useCallback((text, wordLimit) => {
     if (!text) return "";
     const words = text.split(" ");
     if (words.length > wordLimit) {
       return words.slice(0, wordLimit).join(" ") + "...";
     }
     return text;
-  }
+  }, []);
 
-  const handleFileChange = async (e) => {
+  const handleFileChange = useCallback(async (e) => {
     const files = e.target.files;
     if (!files.length || !selectedUser) return;
 
@@ -375,369 +671,190 @@ console.log("Response of fetch messages:", response);
     } catch (err) {
       console.error("Attachment upload failed:", err);
     } finally {
-      e.target.value = ""; // reset input so user can reselect same file again
+      e.target.value = "";
     }
-  };
+  }, [selectedUser]);
+
+  // Memoized message rendering
+  const renderedMessages = useMemo(() => {
+    const elements = [];
+    let lastDate = null;
+
+    messages.forEach((msg) => {
+      const messageDate = formatDate(msg.createdAt);
+
+      if (messageDate !== lastDate) {
+        elements.push(
+          <div key={`date-${msg.createdAt}`} className="date-separator">
+            <span>{messageDate}</span>
+          </div>
+        );
+        lastDate = messageDate;
+      }
+
+      const isOutgoingMessage = selectedUser &&
+        msg.receiver === selectedUser._id &&
+        msg.sender !== selectedUser._id;
+
+      elements.push(
+        <MessageBubble
+          key={msg._id}
+          msg={msg}
+          isOutgoing={isOutgoingMessage}
+          formatTimestamp={formatTimestamp}
+        />
+      );
+    });
+
+    return elements;
+  }, [messages, selectedUser, formatDate, formatTimestamp]);
+
+  // Current user list based on expanded state AND search query
+  const currentUserList = useMemo(() => {
+    const sourceList = isExpanded ? users : data;
+    if (!debouncedSearch) return sourceList;
+
+    return sourceList.filter((user) =>
+      user?.phone?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      user?.firstName?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      user?.lastName?.toLowerCase().includes(debouncedSearch.toLowerCase())
+    );
+  }, [isExpanded, users, data, debouncedSearch]);
 
   return (
-    <div className="flex h-[85vh] bg-[#141414] text-gray-100">
-      <div className="w-1/3 border-r border-gray-700">
-        {/* Header Section */}
-        <div className="p-[30px] text-lg font-semibold bg-gray-800 flex justify-between shadow text-white relative">
-          <div className="flex items-center">
-            Messages
-            {/* Connection Status Indicator */}
-            <div className={`ml-3 w-2 h-2 rounded-full ${socketConnected ? 'bg-green-400' : 'bg-red-400'}`} 
-                 title={socketConnected ? 'Connected' : 'Disconnected'}></div>
-          </div>
-          <div className="flex items-center">
-            <FaSearch
-              className="text-gray-500 cursor-pointer"
-              onClick={() => setIsSearchOpen(!isSearchOpen)}
-            />
-
-            {/* Toggle Section */}
-            <div
-              className=" p-1 ml-2 flex items-center justify-between bg-gray-800 text-white cursor-pointer"
-              onClick={handleToggleExpand}
-            >
-              {isExpanded ? (
-                <FaMinus className="text-white" />
-              ) : (
-                <FaPlus className="text-white" />
-              )}
-            </div>
-
-            {isSearchOpen && (
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="absolute top-full -mt-7 left-0 w-full bg-gray-900 text-gray-100 border border-gray-700 rounded px-2 py-1 focus:outline-none"
+    <div className={`messages-page ${selectedUser ? 'chat-open' : ''}`}>
+      {/* Sidebar */}
+      <div className="messages-sidebar">
+        <div className="sidebar-header">
+          <div className="sidebar-header-top">
+            <h2 className="sidebar-title">
+              Messages
+              <span
+                className={`connection-indicator ${socketConnected ? 'connected' : 'disconnected'}`}
+                title={socketConnected ? 'Connected' : 'Disconnected'}
               />
-            )}
+            </h2>
+            <div className="sidebar-actions">
+              <button className="icon-btn" onClick={handleToggleExpand} title={isExpanded ? 'Show recent' : 'Show all'}>
+                {isExpanded ? <FaMinus size={14} /> : <FaPlus size={14} />}
+              </button>
+            </div>
+          </div>
+
+          <div className="search-container">
+            <FaSearch className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+            />
           </div>
         </div>
 
-        {/* Conditional Rendering of User List */}
-        {isExpanded ? (
-          <div className="overflow-y-scroll h-[68vh]" id="scrollbar-hid">
-            {filteredUsers.map((user, index) => (
-              <div
+        <div className="user-list">
+          {currentUserList.length > 0 ? (
+            currentUserList.map((user) => (
+              <UserListItem
                 key={user._id}
-                className={`p-4 cursor-pointer ${
-                  activeIndex === index ? "bg-gray-700" : "hover:bg-gray-800"
-                }`}
-                onClick={() => handleUserClick(index, user)}
-              >
-                <div className="flex items-center space-x-3">
-                  <img
-                    src={user.image || img2}
-                    alt={user.userName}
-                    className="w-10 h-10 rounded-full"
-                  />
-                  <div>
-                    <p className="font-semibold">
-                      {user.firstName ? 
-                        (user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName) : 
-                        (user.userType === 'ADMIN' ? 'AKJ Classes Admin' : user.userType)
-                      }
-                    </p>
-                    <p className="text-sm text-gray-400">{user.phone}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="overflow-y-scroll h-[68vh]" id="scrollbar-hid">
-            {data.map((user, index) => (
-              <div
-                key={user._id}
-                className={`p-4 cursor-pointer ${
-                  activeIndex === index ? "bg-gray-700" : "hover:bg-gray-800"
-                }`}
-                onClick={() => handleUserClick(index, user)}
-              >
-                <div className="flex items-center space-x-3">
-                  <img
-                    src={user.image || img2}
-                    alt={user.userName}
-                    className="w-10 h-10 rounded-full"
-                  />
-                  <div>
-                    <div className="flex justify-between">
-                      <p className="font-semibold">
-                        {user.firstName ? 
-                          (user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName) : 
-                          (user.userType === 'ADMIN' ? 'AKJ Classes Admin' : user.userType)
-                        }
-                      </p>
-
-                      <p className="font-md ml-9">
-                        {formatTimeAgo(user.lastMessageTime)}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-gray-500 flex items-center">
-                        <span className="ml-2 mr-2">
-                          {user.unreadCount > 0 ? (
-                            <IoMdDoneAll
-                              className="text-gray-400"
-                              title="Unread"
-                              size={18}
-                            />
-                          ) : (
-                            <IoMdCheckbox
-                              className="text-blue-500"
-                              title="Read"
-                              size={18}
-                            />
-                          )}
-                        </span>
-                        {truncateText(user.lastMessage, 8)}
-                      </p>
-                      {/* Unread Count Badge */}
-                      {user.unreadCount > 0 && (
-                        <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-                          {user.unreadCount}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+                user={user}
+                isActive={activeUserId === user._id}
+                onClick={() => handleUserClick(user)}
+                formatTimeAgo={formatTimeAgo}
+                truncateText={truncateText}
+              />
+            ))
+          ) : (
+            <div className="empty-users">
+              <FaComments className="empty-users-icon" />
+              <p>No conversations yet</p>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="flex flex-col w-2/3 h-full">
+      {/* Chat Area */}
+      <div className="chat-area">
         {selectedUser ? (
           <>
-            <div className="p-4 bg-gray-800 shadow flex items-center space-x-4">
-              <img
-                onClick={() =>
-                  navigate(`/students/studentprofile/${selectedUser._id}`)
-                }
-                src={selectedUser.image || img2}
-                alt={selectedUser.mobile}
-                className="w-10 h-10 rounded-full cursor-pointer"
-              />
-              <p className="text-lg font-semibold text-white">
-                {selectedUser.firstName}
-              </p>
-              <p className="text-lg font-semibold text-white">
-                {selectedUser.phone}
-              </p>
-            </div>
+            <ChatHeader
+              user={selectedUser}
+              onAvatarClick={() => navigate(`/students/studentprofile/${selectedUser._id}`)}
+              onBackClick={() => setSelectedUser(null)}
+              showBackButton={true}
+            />
 
-            <div
-              id="scrollbar-hid"
-              className="flex-1 p-4 overflow-y-auto scrollbar-hid bg-[#141414]"
-              onScroll={handleLoadMoreMessages}
-            >
-              {messages.reduce((acc, msg, index, arr) => {
-                const messageDate = formatDate(msg.createdAt);
-
-                const prevDate =
-                  index > 0 ? formatDate(arr[index - 1].createdAt) : null;
-
-                if (messageDate !== prevDate) {
-                  acc.push(
-                    <div
-                      key={`date-${msg.createdAt}`}
-                      className="text-center my-4 text-sm text-gray-400"
-                    >
-                      {messageDate}
-                    </div>
-                  );
-                }
-
-                // For admin viewing student chat:
-                // - Messages from any admin to student = outgoing (right side, blue)
-                // - Messages from student to any admin = incoming (left side, gray)
-                const isOutgoingMessage = selectedUser && 
-                  msg.receiver === selectedUser._id && 
-                  msg.sender !== selectedUser._id;
-                
-                acc.push(
-                  <div
-                    key={msg._id}
-                    className={`flex mb-2 ${
-                      isOutgoingMessage
-                        ? "justify-end"
-                        : "justify-start"
-                    }`}
-                  >
-                    <div
-                      className={`${
-                        isOutgoingMessage
-                          ? "bg-blue-600 text-white"
-                          : "bg-gray-700 text-gray-100"
-                      } max-w-[70%] p-3 rounded-lg`}
-                    >
-                      {msg.attachments && msg.attachments.length > 0 ? (
-                        <div className="space-y-2">
-                          {msg.attachments.map((file, i) => {
-                            const isImage = file.mimeType?.startsWith("image/");
-                            const isVideo = file.mimeType?.startsWith("video/");
-                            const isPDF = file.mimeType === "application/pdf";
-                            const isDocument = file.mimeType?.includes("document") || 
-                                             file.mimeType?.includes("word") ||
-                                             file.mimeType?.includes("excel") ||
-                                             file.mimeType?.includes("powerpoint");
-                            
-                            return (
-                              <div key={i} className="border border-gray-600 rounded-lg p-2">
-                                {isImage ? (
-                                  <div>
-                                    <img
-                                      src={file.url}
-                                      alt={file.filename}
-                                      className="w-40 rounded cursor-pointer hover:opacity-80"
-                                      onClick={() => window.open(file.url, '_blank')}
-                                      onError={(e) => {
-                                        console.error('Image failed to load:', file.url);
-                                        e.target.style.display = 'none';
-                                        e.target.nextElementSibling.style.color = 'red';
-                                        e.target.nextElementSibling.innerHTML = `❌ Failed to load: ${file.filename}`;
-                                      }}
-                                      onLoad={() => console.log('Image loaded successfully:', file.url)}
-                                    />
-                                    <p className="text-xs text-gray-400 mt-1">{file.filename}</p>
-                                  </div>
-                                ) : isVideo ? (
-                                  <div>
-                                    <video
-                                      src={file.url}
-                                      controls
-                                      className="w-48 rounded"
-                                    />
-                                    <p className="text-xs text-gray-400 mt-1">{file.filename}</p>
-                                  </div>
-                                ) : isPDF ? (
-                                  <a
-                                    href={file.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center space-x-2 text-red-400 hover:text-red-300 p-2 bg-gray-800 rounded"
-                                  >
-                                    <span className="text-2xl">📄</span>
-                                    <div>
-                                      <p className="font-medium">{file.filename}</p>
-                                      <p className="text-xs text-gray-400">PDF Document • {(file.size / 1024).toFixed(1)} KB</p>
-                                    </div>
-                                  </a>
-                                ) : isDocument ? (
-                                  <a
-                                    href={file.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 p-2 bg-gray-800 rounded"
-                                  >
-                                    <span className="text-2xl">📋</span>
-                                    <div>
-                                      <p className="font-medium">{file.filename}</p>
-                                      <p className="text-xs text-gray-400">Document • {(file.size / 1024).toFixed(1)} KB</p>
-                                    </div>
-                                  </a>
-                                ) : (
-                                  <a
-                                    href={file.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center space-x-2 text-green-400 hover:text-green-300 p-2 bg-gray-800 rounded"
-                                  >
-                                    <span className="text-2xl">📎</span>
-                                    <div>
-                                      <p className="font-medium">{file.filename}</p>
-                                      <p className="text-xs text-gray-400">File • {(file.size / 1024).toFixed(1)} KB</p>
-                                    </div>
-                                  </a>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : msg.content ? (
-                        <p>{msg.content}</p>
-                      ) : null}
-                      <div className="text-xs text-gray-400 flex justify-between items-center mt-2">
-                        <span>{formatTimestamp(msg.createdAt)}</span>
-                        {/* Show read receipt for messages from any admin to student */}
-                        {isOutgoingMessage && (
-                          <span className="ml-2">{msg.isRead || msg.read ? "✓✓" : "✓"}</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-
-                return acc;
-              }, [])}
+            <div className="messages-container" onScroll={handleLoadMoreMessages}>
+              {loadingMessages && (
+                <div className="loading-messages">
+                  <div className="loading-spinner" />
+                </div>
+              )}
+              {renderedMessages}
+              {isTyping && typingUser && (
+                <div className="typing-indicator">
+                  <span className="typing-text">{typingUser.firstName || 'User'} is typing</span>
+                  <span className="typing-dots">
+                    <span>.</span><span>.</span><span>.</span>
+                  </span>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="flex ml-4 items-center ">
-              <div className="relative flex items-center flex-grow">
-                <input
-                  type="text"
-                  placeholder="Type a message... (Press Enter to send)"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="w-full py-2 px-4 rounded-full border border-gray-700 bg-gray-900 text-gray-100 focus:outline-none"
-                />
-                <div className="absolute right-2 flex items-center space-x-2">
-                  {/* <IoLinkOutline
-                    className="text-gray-500 cursor-pointer"
-                    size={20}
-                  /> */}
+            <div className="message-input-container">
+              <div className="message-input-wrapper">
+                <div className="message-input-field">
                   <input
-                    type="file"
-                    id="fileUpload"
-                    multiple
-                    hidden
-                    onChange={handleFileChange}
+                    type="text"
+                    placeholder="Type a message..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="message-input"
                   />
-
-                  <label htmlFor="fileUpload" className="cursor-pointer">
-                    <IoLinkOutline
-                      className="text-gray-500 cursor-pointer"
-                      size={20}
-                      title="Attach file"
+                  <div className="input-actions">
+                    <input
+                      type="file"
+                      id="fileUpload"
+                      multiple
+                      hidden
+                      onChange={handleFileChange}
                     />
-                  </label>
-                  <BsEmojiSmile
-                    className="text-gray-500 cursor-pointer"
-                    size={20}
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  />
-                  {/* <HiOutlineMicrophone
-                    className="text-gray-500 cursor-pointer"
-                    size={20}
-                  /> */}
+                    <label htmlFor="fileUpload" className="input-action-btn">
+                      <IoLinkOutline size={20} title="Attach file" />
+                    </label>
+                    <button
+                      className="input-action-btn"
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    >
+                      <BsEmojiSmile size={20} />
+                    </button>
+                  </div>
+                  {showEmojiPicker && (
+                    <div className="emoji-picker-container">
+                      <EmojiPicker onEmojiClick={handleEmojiClick} theme="dark" />
+                    </div>
+                  )}
                 </div>
+                <button onClick={handleSendMessage} className="send-btn">
+                  <IoIosArrowForward size={20} />
+                </button>
               </div>
-              <button
-                onClick={handleSendMessage}
-                className="ml-4 bg-blue-600 text-white rounded-full p-2 hover:bg-blue-700"
-              >
-                <IoIosArrowForward size={20} />
-              </button>
-              {showEmojiPicker && (
-                <div className="absolute bottom-16 right-4">
-                  <EmojiPicker onEmojiClick={handleEmojiClick} />
-                </div>
-              )}
             </div>
           </>
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-400">
-            Select a user to start chatting
+          <div className="chat-placeholder">
+            <FaComments className="chat-placeholder-icon" />
+            <p className="chat-placeholder-text">Select a conversation to start chatting</p>
+            <button
+              className="mobile-menu-btn"
+              onClick={() => setSidebarOpen(true)}
+              style={{ background: '#3b82f6', padding: '12px 24px', borderRadius: '8px', marginTop: '16px' }}
+            >
+              View Conversations
+            </button>
           </div>
         )}
       </div>

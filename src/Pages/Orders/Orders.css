@@ -1,28 +1,166 @@
-/* .orders{
-    display: flex;
-    align-items: center;
-    justify-content: end;
+/* Orders_Revamp.css */
+
+/* Container */
+.orders-container {
+    padding: 24px;
+    min-height: 100vh;
+    background-color: #141414;
+    color: #ffffff;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-.whiteText {
-    color: white !important;
-}  
-
-.statistic-title {
-    color: white !important;
-} */
-
-
-.orders{
-    display: flex;
-    align-items: center;
-    justify-content: end;
+/* Glassmorphism Card */
+.orders-container .glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 24px;
 }
 
-.whiteText {
-    color: white !important;
-}  
+.orders-container .glass-card:hover {
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+}
 
-.statistic-title {
-    color: white !important;
+/* Page Header */
+.orders-container .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.orders-container .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(135deg, #fff 0%, #a5a5a5 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Stats Card */
+.orders-container .stat-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.orders-container .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.orders-container .stat-label {
+    color: #888;
+    font-size: 14px;
+}
+
+/* Ant Design Table Overrides */
+.orders-container .dark-table .ant-table {
+    background: transparent !important;
+    color: #e5e5e5;
+}
+
+.orders-container .dark-table .ant-table-thead>tr>th {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #a0a0a0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+.orders-container .dark-table .ant-table-tbody>tr>td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+}
+
+.orders-container .dark-table .ant-table-tbody>tr:hover>td {
+    background: rgba(255, 255, 255, 0.02) !important;
+}
+
+.orders-container .dark-table .ant-table-pagination.ant-pagination {
+    margin-top: 16px;
+    margin-bottom: 0;
+}
+
+.orders-container .dark-table .ant-pagination-item {
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.orders-container .dark-table .ant-pagination-item a {
+    color: #fff !important;
+}
+
+.orders-container .dark-table .ant-pagination-item-active {
+    border-color: #3b82f6 !important;
+    background: rgba(59, 130, 246, 0.1) !important;
+}
+
+.orders-container .dark-table .ant-pagination-item-active a {
+    color: #3b82f6 !important;
+}
+
+/* Form Inputs */
+.orders-container .dark-input,
+.orders-container .dark-select .ant-select-selector,
+.orders-container .dark-picker {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    height: 40px;
+}
+
+.orders-container .dark-picker input {
+    color: #fff !important;
+}
+
+.orders-container .dark-picker .ant-picker-suffix {
+    color: #888;
+}
+
+.orders-container .dark-input:focus,
+.orders-container .dark-select.ant-select-focused .ant-select-selector,
+.orders-container .dark-picker:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Primary Button */
+.orders-container .primary-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border: none;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    color: white;
+    height: 40px;
+    padding: 0 24px;
+    border-radius: 8px;
+}
+
+.orders-container .primary-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+    background: linear-gradient(135deg, #4f93f6 0%, #3b76f6 100%);
+}
+
+/* Chart Container */
+.orders-container .chart-wrapper {
+    height: 350px;
+    width: 100%;
 }

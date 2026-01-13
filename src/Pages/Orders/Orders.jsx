@@ -1,5 +1,5 @@
-import { Pie } from "@ant-design/charts"; // Add Line chart import
-import { DownloadOutlined } from "@ant-design/icons";
+import { Pie } from "@ant-design/charts";
+import { DownloadOutlined, FilterOutlined } from "@ant-design/icons";
 import {
   Button,
   DatePicker,
@@ -9,8 +9,12 @@ import {
   Table,
   Tag,
   Typography,
+  Row,
+  Col,
+  Card,
+  Space,
+  Avatar
 } from "antd";
-import "antd/dist/reset.css";
 import { format, startOfToday, startOfYear, subDays } from "date-fns";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -19,7 +23,7 @@ import HOC from "../../Component/HOC/HOC";
 import { fetchPaidOrders } from "../../redux/slices/orderSlice";
 import "./Orders.css";
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 
@@ -40,7 +44,7 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="text-center text-red-500">
+        <div className="orders-container text-center text-red-500">
           <h2>Something went wrong. Please try again later.</h2>
         </div>
       );
@@ -138,9 +142,8 @@ const Orders = () => {
         );
       })
       .map((order) => ({
-        "Full Name": `${order.userId?.firstName || ""} ${
-          order.userId?.lastName || ""
-        }`,
+        "Full Name": `${order.userId?.firstName || ""} ${order.userId?.lastName || ""
+          }`,
         "Course Name": order.courseId?.title || "No Course Assigned",
         "Enrolled Date": format(new Date(order.createdAt), "dd/MM/yyyy"),
         "Paid Amount": `Rs. ${(order.amount / 100).toFixed(2)}`,
@@ -155,52 +158,46 @@ const Orders = () => {
 
   const courseColumns = [
     {
-      title: "Image",
-      dataIndex: "userImage",
-      key: "userImage",
-      render: (image) => (
-        <img
-          src={image || "https://via.placeholder.com/50"}
-          alt="User"
-          className="rounded-full w-14 h-14"
-          onError={(e) => {
-            e.target.src = "https://via.placeholder.com/50";
-          }}
-        />
+      title: "STUDENT",
+      key: "student",
+      render: (_, record) => (
+        <Space size={12}>
+          <Avatar src={record.userImage} size={40} />
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <Text strong className="text-white">{record.fullName}</Text>
+          </div>
+        </Space>
       ),
     },
     {
-      title: "Full Name",
-      dataIndex: "fullName",
-      key: "fullName",
-      render: (text, record) => (
-        <span>
-          {text}{" "}
-          <Tag color={record.paymentMode === "full" ? "green" : "blue"}>
-            {record.paymentMode === "installment"
-              ? `${record.installmentDetails?.installmentIndex + 1 || 1}/${
-                  record.installmentDetails?.totalInstallments || 1
-                } Installment`
-              : "Full"}
-          </Tag>
-        </span>
-      ),
-    },
-    {
-      title: "Course Name",
+      title: "COURSE NAME",
       dataIndex: "courseName",
       key: "courseName",
+      render: (text) => <Text className="text-gray-300">{text}</Text>
     },
     {
-      title: "Enrolled Date",
+      title: "ENROLLED DATE",
       dataIndex: "enrolledDate",
       key: "enrolledDate",
+      render: (text) => <Text className="text-gray-300">{text}</Text>
     },
     {
-      title: "Paid Amount",
+      title: "PAYMENT",
+      key: "payment",
+      render: (_, record) => (
+        <Tag color={record.paymentMode === "full" ? "green" : "blue"}>
+          {record.paymentMode === "installment"
+            ? `${record.installmentDetails?.installmentIndex + 1 || 1}/${record.installmentDetails?.totalInstallments || 1
+            } Installment`
+            : "Full Payment"}
+        </Tag>
+      )
+    },
+    {
+      title: "PAID AMOUNT",
       dataIndex: "paidAmount",
       key: "paidAmount",
-      render: (amount) => `Rs. ${amount}`,
+      render: (amount) => <Text strong className="text-green-400">Rs. {amount}</Text>,
     },
   ];
 
@@ -220,9 +217,8 @@ const Orders = () => {
       ?.map((order) => ({
         key: order?._id || "unknown",
         userImage: order?.userId?.image || "https://via.placeholder.com/50",
-        fullName: `${order?.userId?.firstName || ""} ${
-          order?.userId?.lastName || ""
-        }`.trim(),
+        fullName: `${order?.userId?.firstName || ""} ${order?.userId?.lastName || ""
+          }`.trim(),
         courseName: order?.courseId?.title || "No Course Assigned",
         enrolledDate: order?.createdAt
           ? format(new Date(order.createdAt), "dd/MM/yyyy")
@@ -233,11 +229,6 @@ const Orders = () => {
       })) || [];
 
   const totalRevenue = calculateTimeframeRevenue();
-
-  const lifetimeRevenue = paidOrders.reduce(
-    (acc, order) => acc + order.amount / 100,
-    0
-  );
 
   const paymentData = paidOrders.reduce(
     (acc, order) => {
@@ -269,6 +260,11 @@ const Orders = () => {
     colorField: "type",
     radius: 0.8,
     theme: "dark",
+    label: {
+      content: (data) => `${data.type}: ${(data.percent * 100).toFixed(0)}%`,
+      style: { fill: '#fff' }
+    },
+    legend: { position: 'bottom', itemValue: { style: { fill: '#fff' } }, itemName: { style: { fill: '#fff' } } }
   };
 
   const allCoursesPieConfig = {
@@ -281,6 +277,11 @@ const Orders = () => {
     colorField: "course",
     radius: 0.8,
     theme: "dark",
+    label: {
+      content: (data) => `${(data.percent * 100).toFixed(0)}%`,
+      style: { fill: '#fff' }
+    },
+    legend: { position: 'bottom', itemValue: { style: { fill: '#fff' } }, itemName: { style: { fill: '#fff' } } }
   };
 
   const monthWiseCourseConfig = {
@@ -293,115 +294,140 @@ const Orders = () => {
     colorField: "month",
     radius: 0.8,
     theme: "dark",
+    label: {
+      content: (data) => `${data.month}`,
+      style: { fill: '#fff' }
+    },
+    legend: { position: 'bottom', itemValue: { style: { fill: '#fff' } }, itemName: { style: { fill: '#fff' } } }
   };
 
   return (
     <ErrorBoundary>
-      <div
-        className="p-6 min-h-screen"
-        style={{ backgroundColor: "#141414", color: "#fff" }}
-      >
-        <h1 className="text-xl font-semibold mb-4">Orders Dashboard</h1>
-        <div className="bg-gray-800 shadow-md rounded-lg p-4 mb-6">
-          <div className="flex justify-between items-center text-white">
-            <RangePicker
-              onChange={(dates) => handleFilterChange("dateRange", dates)}
-            />
-            <Select
-              placeholder="Select Payment Type"
-              onChange={(value) => handleFilterChange("paymentType", value)}
-              allowClear
-            >
-              <Option value="full">Full</Option>
-              <Option value="installment">Installment</Option>
-            </Select>
-            <Select
-              placeholder="Select Course Type"
-              onChange={(value) => handleFilterChange("courseType", value)}
-              allowClear
-            >
-              {[...new Set(paidOrders?.map((order) => order?.courseId?.title))]
-                .filter(Boolean)
-                .map((course) => (
-                  <Option key={course} value={course}>
-                    {course}
-                  </Option>
-                ))}
-            </Select>
-            <Button
-              icon={<DownloadOutlined />}
-              type="primary"
-              onClick={downloadReport}
-            >
-              Download Report
-            </Button>
+      <div className="orders-container">
+        {/* Header */}
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">Orders Dashboard</h1>
+            <p style={{ color: '#888', marginTop: '4px' }}>Analyze revenue streams and order processing</p>
           </div>
+
+          <Select
+            className="dark-select"
+            style={{ width: 180 }}
+            placeholder="Select Timeframe"
+            onChange={(value) => setTimeframe(value)}
+            allowClear
+          >
+            <Option value="today">Today</Option>
+            <Option value="pastWeek">Past Week</Option>
+            <Option value="pastMonth">Past Month</Option>
+            <Option value="pastYear">Past Year</Option>
+          </Select>
         </div>
 
-        <div className="statistic-container bg-gray-800 p-4 rounded-lg shadow-md">
-          <div className="statistic-title flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2 ">
-              <h4 className="text-white mt-2 text-lg">Total Revenue:</h4>
-              <Statistic
-                value={`Rs. ${totalRevenue.toFixed(2)}`}
-                textStyle={{ color: "white" }}
-                valueStyle={{ fontSize: "20px", color: "white" }}
+        {/* Filters Section */}
+        <div className="glass-card mb-6">
+          <Row gutter={[16, 16]} align="middle">
+            <Col xs={24} md={8} lg={6}>
+              <label className="dark-label">Date Range</label>
+              <RangePicker
+                className="dark-picker w-full"
+                style={{ width: '100%' }}
+                onChange={(dates) => handleFilterChange("dateRange", dates)}
               />
-            </div>
-            <Select
-              className="select-timeframe bg-gray-700 text-white border-none"
-              dropdownClassName="bg-white"
-              placeholder="Select Timeframe"
-              onChange={(value) => setTimeframe(value)}
-              valueStyle={{ fontSize: "24px", color: "white" }}
-              allowClear
-            >
-              <Option value="today">Today</Option>
-              <Option value="pastWeek">Past Week</Option>
-              <Option value="pastMonth">Past Month</Option>
-              <Option value="pastYear">Past Year</Option>
-            </Select>
-          </div>
+            </Col>
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <label className="dark-label">Payment Type</label>
+              <Select
+                className="dark-select w-full"
+                placeholder="Payment Type"
+                style={{ width: '100%' }}
+                onChange={(value) => handleFilterChange("paymentType", value)}
+                allowClear
+              >
+                <Option value="full">Full Payment</Option>
+                <Option value="installment">Installment</Option>
+              </Select>
+            </Col>
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <label className="dark-label">Course Type</label>
+              <Select
+                className="dark-select w-full"
+                placeholder="Course Type"
+                style={{ width: '100%' }}
+                onChange={(value) => handleFilterChange("courseType", value)}
+                allowClear
+              >
+                {[...new Set(paidOrders?.map((order) => order?.courseId?.title))]
+                  .filter(Boolean)
+                  .map((course) => (
+                    <Option key={course} value={course}>
+                      {course}
+                    </Option>
+                  ))}
+              </Select>
+            </Col>
+            <Col xs={24} lg={6} style={{ display: 'flex', alignItems: 'flex-end' }}>
+              <Button
+                type="primary"
+                className="primary-btn w-full"
+                icon={<DownloadOutlined />}
+                onClick={downloadReport}
+                style={{ width: '100%' }}
+              >
+                Download Report
+              </Button>
+            </Col>
+          </Row>
         </div>
 
-        <div>
-          <h2 className="text-lg font-medium mb-4">Analytics</h2>
-          <div className="flex flex-wrap gap-4">
-            <div
-              style={{
-                width: "350px",
-                height: "350px",
-                overflow: "hidden",
-              }}
-              className="flex-1 min-w-[300px]"
-            >
-              <Pie {...pieConfig} />
+        {/* Stats & Charts */}
+        <Row gutter={[24, 24]}>
+          <Col xs={24}>
+            <div className="stat-card mb-6">
+              <div>
+                <div className="stat-label">Total Revenue ({timeframe || "All Time"})</div>
+                <div className="stat-value">Rs. {totalRevenue.toFixed(2)}</div>
+              </div>
             </div>
-            <div
-              style={{
-                width: "350px",
-                height: "350px",
-                overflow: "hidden",
-              }}
-              className="flex-1 min-w-[300px]"
-            >
-              <Pie {...allCoursesPieConfig} />
+          </Col>
+        </Row>
+
+        <Row gutter={[24, 24]} style={{ marginBottom: '32px' }}>
+          <Col xs={24} xl={8}>
+            <div className="glass-card h-full">
+              <h3 className="text-white mb-4 text-center">Payment Distribution</h3>
+              <div className="chart-wrapper">
+                <Pie {...pieConfig} />
+              </div>
             </div>
-            <div
-              style={{
-                width: "350px",
-                height: "350px",
-                overflow: "hidden",
-              }}
-              className="flex-1 min-w-[300px]"
-            >
-              <Pie {...monthWiseCourseConfig} />
+          </Col>
+          <Col xs={24} xl={8}>
+            <div className="glass-card h-full">
+              <h3 className="text-white mb-4 text-center">Course Distribution</h3>
+              <div className="chart-wrapper">
+                <Pie {...allCoursesPieConfig} />
+              </div>
             </div>
+          </Col>
+          <Col xs={24} xl={8}>
+            <div className="glass-card h-full">
+              <h3 className="text-white mb-4 text-center">Monthly Enrolments</h3>
+              <div className="chart-wrapper">
+                <Pie {...monthWiseCourseConfig} />
+              </div>
+            </div>
+          </Col>
+        </Row>
+
+
+        {/* Table Section */}
+        <div className="glass-card">
+          <div className="mb-4">
+            <h3 className="text-white">Recent Orders</h3>
           </div>
-        </div>
-        <div className="mt-6">
           {loading ? (
-            <div className="flex justify-center items-center">
+            <div className="flex justify-center items-center p-12">
               <Spin size="large" />
             </div>
           ) : error ? (
@@ -410,14 +436,14 @@ const Orders = () => {
             <Table
               columns={courseColumns}
               dataSource={courseData}
-              bordered
-              pagination={{ pageSize: 5 }}
-              className="shadow-lg bg-gray-800 rounded-lg text-white"
+              pagination={{ pageSize: 10, position: ['bottomCenter'] }}
+              className="dark-table"
+              scroll={{ x: 800 }}
             />
           )}
         </div>
       </div>
-    </ErrorBoundary>
+    </ErrorBoundary >
   );
 };
 

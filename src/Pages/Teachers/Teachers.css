@@ -1,183 +1,255 @@
-.teacherprofile {
-  width: auto;
-  height: 134px;
-  padding: 12.18px 24.36px 12.18px 24.36px;
-  background: #ffffff;
-  border: 1.22px solid #757575;
-  border-radius: 6.09px;
-  background-size: cover;
-  background-position: center;
-  box-sizing: border-box;
-  background-repeat: no-repeat;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Teachers_Revamp.css */
+
+/* Container & Global Variables for Teachers Module */
+.teachers-container {
+    padding: 24px;
+    min-height: 100vh;
+    background-color: #141414;
+    color: #ffffff;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-.addteacher {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+/* Glassmorphism Card Style */
+.teachers-container .glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 24px;
 }
 
-.addteacher1 {
-  display: flex;
-  align-items: center;
-  gap: 20px;
+.teachers-container .glass-card:hover {
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
 }
 
-.addteacher1 h6 {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 500;
-  font-size: 16px;
-  line-height: 17.98px;
-  color: #ffffff;
-  margin: 0;
+/* Page Header */
+.teachers-container .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
 }
 
-.addteacher2 {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+.teachers-container .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(135deg, #fff 0%, #a5a5a5 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-.addteacher2 label {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 500;
-  font-size: 16px;
-  line-height: 17.98px;
-  color: #ffffff;
-  margin: 0;
+.teachers-container .page-subtitle {
+    color: #888;
+    margin-top: 4px;
+    font-size: 14px;
 }
 
-.addteacher2 select {
-  width: auto;
-  height: 52px;
-  background: linear-gradient(0deg, #ffffff, #ffffff),
-    linear-gradient(0deg, #edf2f7, #edf2f7);
-  border: 1px solid #e0e4ec;
-  outline: none;
-  padding-left: 10px;
-  border-radius: 8px;
-  font-family: "Open Sans", sans-serif;
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 15.74px;
-  color: #8d98aa;
-  margin: 0;
+/* Ant Design Table Overrides */
+.teachers-container .ant-table {
+    background: transparent !important;
+    color: #e5e5e5;
 }
 
-.addteacher3 {
-  margin-top: 30px;
+.teachers-container .ant-table-thead>tr>th {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #a0a0a0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
 }
 
-.addteacher4 {
-  margin-top: 30px;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 30px;
+.teachers-container .ant-table-tbody>tr>td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
 }
 
-.addteacher2 input {
-  width: auto;
-  height: 52px;
-  background: linear-gradient(0deg, #ffffff, #ffffff),
-    linear-gradient(0deg, #edf2f7, #edf2f7);
-  border: 1px solid #e0e4ec;
-  outline: none;
-  padding-left: 10px;
-  border-radius: 8px;
-}
-.addteacher2 textarea {
-  width: auto;
-  height: 158px;
-  background: linear-gradient(0deg, #ffffff, #ffffff),
-    linear-gradient(0deg, #edf2f7, #edf2f7);
-  border: 1px solid #e0e4ec;
-  outline: none;
-  padding-left: 10px;
-  padding-top: 15px;
-  border-radius: 8px;
+.teachers-container .ant-table-tbody>tr:hover>td {
+    background: rgba(255, 255, 255, 0.02) !important;
 }
 
-.addteacher2 input::placeholder {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 15.74px;
-  color: #8d98aa;
-  margin: 0;
+.teachers-container .ant-empty-description {
+    color: #666;
 }
 
-.addteacher2 textarea::placeholder {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 15.74px;
-  color: #8d98aa;
-  margin: 0;
+/* Form Elements */
+.teachers-container .dark-label {
+    color: #cfcfcf;
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: block;
 }
 
-.addteacher5 {
-  width: auto;
-  height: 158px;
-  background: linear-gradient(0deg, #ffffff, #ffffff),
-    linear-gradient(0deg, #edf2f7, #edf2f7);
-  border: 1px solid #e0e4ec;
-  outline: none;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+.teachers-container .dark-input,
+.teachers-container .dark-select .ant-select-selector,
+.teachers-container .dark-picker {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    height: 40px;
 }
 
-.addteacher6 {
-  margin-top: 30px;
-  margin-bottom: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: end;
+.teachers-container .dark-input:focus,
+.teachers-container .dark-select.ant-select-focused .ant-select-selector,
+.teachers-container .dark-picker:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
 }
 
-.addteacher6 button {
-  width: 142px;
-  height: 45px;
-  background-color: #1a85ff;
-  border: none;
-  outline: none;
-  border-radius: 8px;
-  font-family: "Open Sans", sans-serif;
-  font-weight: 700;
-  font-size: 18px;
-  line-height: 24.51px;
-  color: #ffffff;
-  margin: 0;
-  cursor: pointer;
+.teachers-container .dark-input::placeholder {
+    color: #444;
 }
 
-
-/* Pagination button hover fix */
-.ant-pagination-item a {
-  color: white; /* or any light color */
+.teachers-container .ant-select-arrow {
+    color: #888;
 }
 
-.ant-pagination-item:hover,
-.ant-pagination-item:focus {
-  border-color: #1890ff; /* optional highlight */
+/* Checkbox/Switch Overrides */
+.teachers-container .ant-checkbox-wrapper {
+    color: #ccc;
 }
 
-.ant-pagination-item:hover a,
-.ant-pagination-item:focus a {
-  color: #1890ff !important; /* or white */
+.teachers-container .ant-checkbox-inner {
+    background-color: transparent;
+    border-color: #555;
 }
 
-/* Optional: fix the active (current) page button color */
-.ant-pagination-item-active {
-  background-color: #1890ff;
-  border-color: #1890ff;
+.teachers-container .ant-checkbox-checked .ant-checkbox-inner {
+    background-color: #1677ff;
+    border-color: #1677ff;
 }
 
-.ant-pagination-item-active a {
-  color: white;
+/* Buttons */
+.teachers-container .primary-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border: none;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    color: white;
+    height: 40px;
+    padding: 0 24px;
+    border-radius: 8px;
+}
+
+.teachers-container .primary-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+    background: linear-gradient(135deg, #4f93f6 0%, #3b76f6 100%);
+}
+
+.teachers-container .secondary-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    height: 40px;
+    border-radius: 8px;
+}
+
+.teachers-container .secondary-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+/* Profile Specific */
+.teacher-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.teacher-avatar {
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.teacher-info h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #fff;
+}
+
+.teacher-info p {
+    color: #888;
+    font-size: 16px;
+    margin: 0;
+}
+
+/* Action Button in Table */
+.teachers-container .action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 9999px;
+    /* rounded-full */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    margin: 0 auto;
+    box-sizing: border-box;
+
+    /* Default State (blue-500/20 bg, blue-400 text, border-blue-500/30) */
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.teachers-container .action-btn:hover {
+    background-color: #3b82f6;
+    /* bg-blue-500 */
+    color: #ffffff;
+    /* text-white */
+    border-color: #3b82f6;
+}
+
+/* Pagination */
+.teachers-container .ant-pagination-item {
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.teachers-container .ant-pagination-item a {
+    color: #fff !important;
+}
+
+.teachers-container .ant-pagination-item-active {
+    border-color: #3b82f6 !important;
+    background: rgba(59, 130, 246, 0.1) !important;
+}
+
+.teachers-container .ant-pagination-item-active a {
+    color: #3b82f6 !important;
+}
+
+/* Layout Utilities */
+.flex {
+    display: flex;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.gap-4 {
+    gap: 16px;
+}
+
+.mb-6 {
+    margin-bottom: 24px;
 }

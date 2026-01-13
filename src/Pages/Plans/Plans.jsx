@@ -15,9 +15,13 @@ import {
   Card,
   Tag,
   Drawer,
+  Row,
+  Col,
+  Tooltip
 } from "antd";
 import { HiPlus } from "react-icons/hi";
-import { IoClose } from "react-icons/io5";
+import { IoClose, IoEyeOutline, IoCheckmarkCircleOutline } from "react-icons/io5";
+import { AiOutlineEdit, AiOutlineDelete } from "react-icons/ai";
 import HOC from "../../Component/HOC/HOC";
 import {
   createSubscription,
@@ -28,7 +32,7 @@ import {
 import { fetchCourses } from "../../redux/slices/courseSlice";
 import CreateInstallmentButton from "../Courses & Tests/CreateInstallmentButton";
 import api from "../../api/axios";
-import CreateInstallmentForm from "../Courses & Tests/CreateInstallmentForm";
+import "./Plans.css";
 
 const GST_OPTIONS = [0, 5, 12, 18];
 const INTERNET_HANDLING_OPTIONS = [0, 1, 1.5, 2, 2.5];
@@ -44,8 +48,6 @@ const Plans = () => {
 
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [isInstallmentModalVisible, setInstallmentModalVisible] =
-    useState(false);
   const [selectedCourseId, setSelectedCourseId] = useState(null);
   const [form] = Form.useForm();
   const [currentSubscription, setCurrentSubscription] = useState(null);
@@ -90,15 +92,16 @@ const Plans = () => {
     form.resetFields();
     setValidities([{ validity: null, price: null, discount: null }]);
     setFeatures([{ name: "", enabled: true, description: "" }]);
+    setIsPlanSaved(false);
   };
 
   const showEditModal = (subscription) => {
     setCurrentSubscription(subscription);
     setSelectedCourseId(subscription?.course?._id);
     form.setFieldsValue({
-      ...subscription, // This spreads other values which may be needed
+      ...subscription,
       course: subscription?.course?._id,
-    }); // Ensure this matches the value field of Select.Option}); // Pre-fill form for editing
+    });
     setValidities(
       subscription.validities || [
         { validity: null, price: null, discount: null },
@@ -107,8 +110,9 @@ const Plans = () => {
     setFeatures(
       subscription.features || [{ name: "", enabled: true, description: "" }]
     );
-    console.log(selectedCourseId);
     setIsEditModalVisible(true);
+    setIsEditPlanSaved(true); // Assuming existing plan is saved initially
+    setIsEditingAllowed(false);
   };
 
   const handleCancel = () => {
@@ -128,7 +132,6 @@ const Plans = () => {
     };
 
     try {
-      // Save the plan without causing a component-wide re-render
       await dispatch(createSubscription(subscriptionData)).unwrap();
 
       notification.success({
@@ -136,11 +139,7 @@ const Plans = () => {
         description: "Subscription plan added successfully",
       });
 
-      // Set the plan as saved to enable further actions like installment creation
       setIsPlanSaved(true);
-
-      // Do NOT reset or refetch data here unless necessary
-      // Keep modal open and allow user to create installments
     } catch (error) {
       notification.error({
         message: "Error",
@@ -161,22 +160,20 @@ const Plans = () => {
         message: "Success",
         description: "Subscription plan updated successfully",
       });
-      setIsEditPlanSaved(true); // Set the plan as saved
+      setIsEditPlanSaved(true);
       setIsEditingAllowed(false);
-      // handleCancel();
     } catch (error) {
       notification.error({
         message: "Error",
         description: error.message || "Failed to update subscription plan",
       });
-      setIsEditPlanSaved(false); // Reset the save state on error
+      setIsEditPlanSaved(false);
       setIsEditingAllowed(true);
     }
   };
 
   const handleInstallmentSubmit = useCallback(async (installmentData) => {
     try {
-      // Make the API call to create the installment plan
       const response = await api.post(
         "/admin/create-installment",
         installmentData
@@ -190,21 +187,22 @@ const Plans = () => {
         );
       }
     } catch (error) {
-      console.log(error.response.data.message);
       message.error(
-        error.response.data.message || "Error setting installment plan"
+        error.response?.data?.message || "Error setting installment plan"
       );
     }
   }, []);
 
   const handleDeletePlan = (id) => {
     Modal.confirm({
-      title: "Are you sure you want to delete this plan?",
+      title: "Delete Plan",
       icon: <IoClose className="text-red-500" size={24} />,
-      content: "This action cannot be undone.",
+      content: "Are you sure you want to delete this plan? This action cannot be undone.",
       okText: "Yes, Delete",
       okType: "danger",
-      cancelText: "No, Cancel",
+      cancelText: "Cancel",
+      centered: true,
+      maskClosable: true,
       onOk: async () => {
         try {
           await dispatch(deleteSubscription(id)).unwrap();
@@ -218,9 +216,6 @@ const Plans = () => {
             description: error.message || "Failed to delete subscription plan",
           });
         }
-      },
-      onCancel() {
-        console.log("Delete action cancelled");
       },
     });
   };
@@ -237,7 +232,7 @@ const Plans = () => {
     setValidities([
       ...validities,
       { validity: null, price: null, discount: null },
-    ]); // Add a new validity object
+    ]);
   };
 
   const removeValidityField = (index) => {
@@ -247,27 +242,23 @@ const Plans = () => {
 
   const handleFeatureChange = (index, field, value) => {
     const newFeatures = [...features];
-    newFeatures[index][field] = value; // Update specific field in feature object
+    newFeatures[index][field] = value;
     setFeatures(newFeatures);
   };
 
   const addFeatureField = () => {
-    setFeatures([...features, { name: "", enabled: true, description: "" }]); // Add a new feature object
+    setFeatures([...features, { name: "", enabled: true, description: "" }]);
   };
 
   const removeFeatureField = (index) => {
     const newFeatures = features.filter((_, i) => i !== index);
     setFeatures(newFeatures);
   };
+
   const handleGetInstallments = async (courseId) => {
-    console.log("here is the couseID we got :", courseId);
     setLoadingInstallments(true);
     try {
       const response = await api.get(`/admin/installments/${courseId}`);
-      console.log(
-        "here is the data response we get for installments :",
-        response
-      );
       if (response.status === 200) {
         setInstallments(response.data.data);
       } else {
@@ -285,7 +276,9 @@ const Plans = () => {
   const showViewPlanModal = async (plan) => {
     setSelectedPlan(plan);
     setIsViewModalVisible(true);
-    await handleGetInstallments(plan.course._id); // Fetch installments for the selected plan's course ID
+    if (plan?.course?._id) {
+      await handleGetInstallments(plan.course._id);
+    }
   };
 
   const closeViewPlanModal = () => {
@@ -304,180 +297,200 @@ const Plans = () => {
     setSelectedInstallment(null);
   };
 
-  if (loadingSubscriptions || loadingCourses) return <Spin />;
-
-  console.log("here are the subscriptions :", subscriptions);
+  if (loadingSubscriptions || loadingCourses) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-black">
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
-    <div className="plans-container p-6 text-white">
-      <div className="flex justify-between mb-4">
-        <h2 className="text-xl font-semibold">Subscription Plans</h2>
+    <div className="plans-container">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h2 className="text-3xl font-bold text-white mb-2">Subscription Plans</h2>
+          <p className="text-gray-400">Manage your course subscriptions and pricing tiers</p>
+        </div>
         <Button
           type="primary"
-          icon={<HiPlus size={20} />}
+          icon={<HiPlus />}
           onClick={showAddModal}
-          className="bg-blue-500"
+          size="large"
+          className="dark-btn-primary"
         >
-          Add Plan
+          Create New Plan
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <Row gutter={[24, 24]}>
         {subscriptions?.map((plan) => (
-          <div
-            key={plan._id}
-            className="p-6 border rounded-lg shadow-md bg-white text-black relative flex flex-col justify-between"
-            onClick={() => showEditModal(plan)}
-            style={{ minHeight: "250px" }} // Optional: Set a minimum height for cards to standardize height
-          >
-            {/* View Plan Button at Top Right */}
-            <Button
-              type="link"
-              className="absolute top-2 right-2 text-blue-500"
-              onClick={(e) => {
-                if (e && typeof e.stopPropagation === 'function') {
+          <Col xs={24} md={12} lg={8} key={plan._id}>
+            <div className="glass-card">
+              <button
+                className="view-btn"
+                onClick={(e) => {
                   e.stopPropagation();
-                }
-                showViewPlanModal(plan);
-              }}
-            >
-              View Plan
-            </Button>
-            {/* Card Content */}
-            <div>
-              {/* Heading Section */}
-              <h2 className="text-lg font-bold text-black-900 text-center mb-2">
-                {plan.name}
-              </h2>
-              <h3 className="text-lg font-bold text-blue-800 text-center mb-2">
-                {plan.course?.title}
-              </h3>
-
-              {/* Validities Section */}
-              <div className="text-center text-brown-600 font-semibold mb-4">
-                Plans: {plan.validities.map((v) => `${v.validity}`).join(" / ")}{" "}
-                Months
-              </div>
-
-              {/* Features Section */}
-              <div className="mt-4">
-                <ul className="list-disc pl-5">
-                  {plan.features?.map((feature, featureIndex) => (
-                    <li
-                      key={featureIndex}
-                      className="text-black font-medium mb-2"
-                    >
-                      {feature.name}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* Buttons Section at the Bottom */}
-            <div className="flex justify-between items-center mt-4 pt-4 w-full">
-              <Button
-                type="primary"
-                onClick={(e) => {
-                  if (e && typeof e.stopPropagation === 'function') {
-                    e.stopPropagation();
-                  }
-                  showEditModal(plan);
+                  showViewPlanModal(plan);
                 }}
               >
-                Edit Plan
-              </Button>
-              <Button
-                danger
-                onClick={(e) => {
-                  if (e && typeof e.stopPropagation === 'function') {
-                    e.stopPropagation();
-                  }
-                  handleDeletePlan(plan._id);
-                }}
-              >
-                Delete Plan
-              </Button>
+                <Tooltip title="View Details">
+                  <IoEyeOutline size={18} />
+                </Tooltip>
+              </button>
+
+              <div className="card-header">
+                <h3 className="plan-title">{plan.name}</h3>
+                <span className="course-title">{plan.course?.title || 'Unknown Course'}</span>
+              </div>
+
+              <div className="card-body">
+                <div className="mb-4">
+                  <div className="section-label">Validities</div>
+                  <div className="flex flex-wrap">
+                    {plan.validities.map((v, idx) => (
+                      <div key={idx} className="validity-tag">
+                        {v.validity} Months (₹{v.price})
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="section-label">Features</div>
+                  <ul className="features-list">
+                    {plan.features?.slice(0, 4).map((feature, featureIndex) => (
+                      <li key={featureIndex} className="feature-item">
+                        <IoCheckmarkCircleOutline className="feature-icon" />
+                        {feature.name}
+                      </li>
+                    ))}
+                    {plan.features?.length > 4 && (
+                      <li className="text-xs text-gray-500 italic pl-6">
+                        +{plan.features.length - 4} more features...
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="card-footer">
+                <Button
+                  block
+                  className="dark-btn-primary"
+                  icon={<AiOutlineEdit />}
+                  onClick={() => showEditModal(plan)}
+                >
+                  Edit
+                </Button>
+                <Button
+                  block
+                  className="dark-btn-danger"
+                  icon={<AiOutlineDelete />}
+                  onClick={() => handleDeletePlan(plan._id)}
+                >
+                  Delete
+                </Button>
+              </div>
             </div>
-          </div>
+          </Col>
         ))}
-      </div>
+        {(!subscriptions || subscriptions.length === 0) && (
+          <div className="flex flex-col items-center justify-center w-full py-20 text-gray-500">
+            <div className="text-6xl mb-4">📭</div>
+            <h3 className="text-xl font-semibold">No Plans Found</h3>
+            <p>Create a new subscription plan to get started.</p>
+          </div>
+        )}
+      </Row>
 
       {/* View Plan Modal */}
       <Drawer
         title="Plan Details"
         visible={isViewModalVisible}
-        // onCancel={closeViewPlanModal}
         onClose={closeViewPlanModal}
-        footer={[
-          <Button key="close" onClick={closeViewPlanModal}>
-            Close
-          </Button>,
-        ]}
+        width={500}
+        footer={null}
+        className="dark-drawer"
       >
         {selectedPlan && (
-          <>
-            <h3 className="text-lg font-bold mb-2">
-              Plan Name: {selectedPlan.name}
-            </h3>
-            <p>
-              <strong>Course:</strong> {selectedPlan.course.title}
-            </p>
-            <p>
-              <strong>Validities:</strong>
-            </p>
-            <ul className="list-disc pl-5">
-              {selectedPlan.validities.map((validity, index) => (
-                <li key={index}>
-                  {validity.validity} months - ₹
-                  <span>
-                    {/* {validity.price - validity.discount}{" "} */}
-                    {validity.price * (1 - validity.discount / 100)}{" "}
-                    <span className="line-through">₹{validity.price}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <p>
-              <strong>Features:</strong>
-            </p>
-            <ul className="list-disc pl-5">
-              {selectedPlan.features.map((feature, index) => (
-                <li key={index}>{feature.name}</li>
-              ))}
-            </ul>
-            <p>
-              <strong>GST (%):</strong> {selectedPlan.gst}%
-            </p>
-            <p>
-              <strong>Internet Handling Charges (%):</strong>{" "}
-              {selectedPlan.internetHandling}%
-            </p>
-            {/* Installments Section */}
-            <p>
-              <strong>Installments:</strong>
-            </p>
-            {loadingInstallments ? (
-              <Spin />
-            ) : installments.length > 0 ? (
-              <ul className="list-disc pl-5">
-                {installments.map((installment, index) => (
-                  <li key={index}>
-                    {installment.planType}: {installment.numberOfInstallments}{" "}
-                    installments - ₹{Math.floor(installment.totalAmount)}
-                    <Button
-                      type="link"
-                      onClick={() => showInstallmentTimeline(installment)}
-                    >
-                      View Installment
-                    </Button>
+          <div className="text-white space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold mb-1">{selectedPlan.name}</h2>
+              <p className="text-blue-400 font-medium">{selectedPlan?.course?.title}</p>
+            </div>
+
+            <div className="bg-[#2a2a2a] p-4 rounded-lg border border-gray-700">
+              <h4 className="text-gray-400 text-xs uppercase font-bold mb-3 tracking-wider">Pricing Logic</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">GST:</span>
+                  <span>{selectedPlan.gst}%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Internet Handling:</span>
+                  <span>{selectedPlan.internetHandling}%</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-gray-400 text-xs uppercase font-bold mb-3 tracking-wider">Validities</h4>
+              <div className="space-y-2">
+                {selectedPlan.validities.map((validity, index) => (
+                  <div key={index} className="flex justify-between items-center bg-[#2a2a2a] p-3 rounded border border-gray-700">
+                    <span className="font-semibold">{validity.validity} Months</span>
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-green-400">
+                        ₹{Math.floor(validity.price * (1 - validity.discount / 100))}
+                      </div>
+                      {validity.discount > 0 && (
+                        <div className="text-xs text-gray-500">
+                          <span className="line-through mr-1">₹{validity.price}</span>
+                          <span className="text-red-400">({validity.discount}% OFF)</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-gray-400 text-xs uppercase font-bold mb-3 tracking-wider">Features</h4>
+              <ul className="space-y-2">
+                {selectedPlan.features.map((feature, index) => (
+                  <li key={index} className="flex items-start text-gray-300">
+                    <IoCheckmarkCircleOutline className="text-blue-500 mr-2 mt-1 flex-shrink-0" />
+                    {feature.name}
                   </li>
                 ))}
               </ul>
-            ) : (
-              <p>No installments available for this plan.</p>
-            )}
-          </>
+            </div>
+
+            <div>
+              <h4 className="text-gray-400 text-xs uppercase font-bold mb-3 tracking-wider">Installments</h4>
+              {loadingInstallments ? (
+                <div className="flex justify-center py-4"><Spin /></div>
+              ) : installments.length > 0 ? (
+                <div className="space-y-2">
+                  {installments.map((installment, index) => (
+                    <div key={index} className="bg-[#1f1f1f] p-3 rounded border border-gray-800 flex justify-between items-center">
+                      <div>
+                        <p className="font-medium text-white">{installment.planType}</p>
+                        <p className="text-xs text-gray-400">{installment.numberOfInstallments} payments</p>
+                      </div>
+                      <Button size="small" type="link" onClick={() => showInstallmentTimeline(installment)}>
+                        View Schedule
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 italic">No installment plans configured.</p>
+              )}
+            </div>
+          </div>
         )}
       </Drawer>
 
@@ -490,229 +503,174 @@ const Plans = () => {
 
       {/* Add Subscription Modal */}
       <Modal
-        title="Add New Plan"
+        title="Create New Plan"
         visible={isAddModalVisible}
         onCancel={handleCancel}
         footer={null}
         width={800}
+        centered
+        className="dark-modal"
       >
         <Form form={form} layout="vertical" onFinish={handleSavePlan}>
-          {/* Course Selection */}
-          <Form.Item
-            label="Course"
-            name="course"
-            rules={[{ required: true, message: "Please select a course!" }]}
-          >
-            <Select
-              onChange={(value) => setSelectedCourseId(value)}
-              placeholder="Select a course"
-              disabled={isPlanSaved} // Disable field if plan is saved
-            >
-              {courses?.map((course) => (
-                <Select.Option key={course._id} value={course._id}>
-                  {course.title}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          {/* Plan Name */}
-          <Form.Item
-            label="Plan Name"
-            name="name"
-            rules={[{ required: true, message: "Please input the plan name!" }]}
-          >
-            <Input type="text" disabled={isPlanSaved} />
-          </Form.Item>
-
-          {/* Dynamic Validities */}
-          <Form.Item label="Validities">
-            {validities.map((validity, index) => (
-              <div key={index} className="flex mb-2">
-                <InputNumber
-                  value={validity.validity}
-                  min={1}
-                  max={99}
-                  placeholder="Validity (months)"
-                  style={{ marginLeft: 8, width: 200 }}
-                  disabled={isPlanSaved} // Disable input if plan is saved
-                  formatter={(value) => {
-                    const num = Number(value);
-                    if (isNaN(num)) return "";
-                    return Math.min(Math.max(num, 1), 99).toString();
-                  }}
-                  parser={(value) => {
-                    const num = Number(value);
-                    if (isNaN(num)) return 1; // default to min value
-                    return Math.min(Math.max(num, 1), 99);
-                  }}
-                  onChange={(value) =>
-                    handleValidityChange(index, "validity", value)
-                  }
-                />
-
-                <InputNumber
-                  value={validity.price}
-                  type="number"
-                  onChange={(value) =>
-                    handleValidityChange(index, "price", value)
-                  }
-                  placeholder="₹ Marked Price"
-                  style={{ marginLeft: 8, width: 200 }}
-                  disabled={isPlanSaved} // Disable input if plan is saved
-                />
-                <InputNumber
-                  value={validity.discount}
-                  min={0}
-                  max={100}
-                  placeholder="% Discount"
-                  style={{ marginLeft: 8, width: 200 }}
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Course"
+                name="course"
+                rules={[{ required: true, message: "Please select a course!" }]}
+              >
+                <Select
+                  onChange={(value) => setSelectedCourseId(value)}
+                  placeholder="Select a course"
                   disabled={isPlanSaved}
-                  formatter={(value) => {
-                    // remove anything except numbers
-                    const num = Number(value);
-                    if (isNaN(num)) return "";
-                    return Math.min(Math.max(num, 0), 100).toString();
-                  }}
-                  parser={(value) => {
-                    const num = Number(value);
-                    if (isNaN(num)) return 0;
-                    return Math.min(Math.max(num, 0), 100);
-                  }}
-                  onChange={(value) => {
-                    handleValidityChange(index, "discount", value);
-                  }}
-                />
-
-                <Button
-                  type="danger"
-                  onClick={() => removeValidityField(index)}
-                  style={{ marginLeft: 8 }}
-                  disabled={isPlanSaved} // Disable button if plan is saved
+                  className="dark-select"
                 >
-                  Remove
-                </Button>
-              </div>
-            ))}
-            <Button
-              type="dashed"
-              onClick={addValidityField}
-              disabled={isPlanSaved} // Disable button if plan is saved
-            >
-              Add Validity
-            </Button>
-          </Form.Item>
+                  {courses?.map((course) => (
+                    <Select.Option key={course._id} value={course._id}>
+                      {course.title}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Plan Name"
+                name="name"
+                rules={[{ required: true, message: "Please input the plan name!" }]}
+              >
+                <Input placeholder="e.g. Premium Plan" disabled={isPlanSaved} />
+              </Form.Item>
+            </Col>
+          </Row>
 
-          {/* Dynamic Features */}
-          <Form.Item label="Features">
-            {features.map((feature, index) => (
-              <div key={index} className="flex mb-2">
-                <Input
-                  value={feature.name}
-                  type="text"
-                  onChange={(e) =>
-                    handleFeatureChange(index, "name", e.target.value)
-                  }
-                  placeholder="Feature Name"
-                  style={{ flex: 1 }}
-                  disabled={isPlanSaved} // Disable input if plan is saved
-                />
-                <Switch
-                  checked={feature.enabled}
-                  onChange={(checked) =>
-                    handleFeatureChange(index, "enabled", checked)
-                  }
-                  style={{ marginLeft: 8 }}
-                  disabled={isPlanSaved} // Disable switch if plan is saved
-                />
-                <Button
-                  type="danger"
-                  onClick={() => removeFeatureField(index)}
-                  style={{ marginLeft: 8 }}
-                  disabled={isPlanSaved} // Disable button if plan is saved
-                >
-                  Remove
-                </Button>
-              </div>
-            ))}
-            <Button
-              type="dashed"
-              onClick={addFeatureField}
-              disabled={isPlanSaved} // Disable button if plan is saved
-            >
-              Add Feature
-            </Button>
-          </Form.Item>
-
-          {/* GST Percentage */}
-          <Form.Item
-            label="GST (%)"
-            name="gst"
-            rules={[
-              { required: true, message: "Please enter GST percentage!" },
-            ]}
-          >
-            <Select
-              placeholder="Select GST (%)"
-              disabled={isPlanSaved}
-              allowClear
-            >
-              {GST_OPTIONS.map((option) => (
-                <Select.Option key={option} value={option}>
-                  {option}%
-                </Select.Option>
+          <Form.Item label="Validities" className="mb-6">
+            <div className="form-section-container">
+              {validities.map((validity, index) => (
+                <Row key={index} gutter={12} className="mb-3 items-center">
+                  <Col span={6}>
+                    <Form.Item className="mb-0">
+                      <InputNumber
+                        value={validity.validity}
+                        min={1}
+                        max={99}
+                        placeholder="Months"
+                        style={{ width: '100%' }}
+                        disabled={isPlanSaved}
+                        onChange={(value) => handleValidityChange(index, "validity", value)}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={7}>
+                    <Form.Item className="mb-0">
+                      <InputNumber
+                        value={validity.price}
+                        placeholder="Price (₹)"
+                        style={{ width: '100%' }}
+                        disabled={isPlanSaved}
+                        onChange={(value) => handleValidityChange(index, "price", value)}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={7}>
+                    <Form.Item className="mb-0">
+                      <InputNumber
+                        value={validity.discount}
+                        min={0}
+                        max={100}
+                        placeholder="Disc %"
+                        style={{ width: '100%' }}
+                        disabled={isPlanSaved}
+                        onChange={(value) => handleValidityChange(index, "discount", value)}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col span={4}>
+                    <Button
+                      type="text"
+                      danger
+                      onClick={() => removeValidityField(index)}
+                      disabled={isPlanSaved}
+                      icon={<IoClose size={20} />}
+                      className="flex items-center justify-center hover:bg-red-500/10 rounded-full w-8 h-8"
+                    />
+                  </Col>
+                </Row>
               ))}
-            </Select>
+              <Button type="dashed" block onClick={addValidityField} disabled={isPlanSaved} icon={<HiPlus />}>
+                Add Validity Option
+              </Button>
+            </div>
           </Form.Item>
 
-          {/* Internet Handling Charges Percentage */}
-          <Form.Item
-            label="Internet Handling Charges (%)"
-            name="internetHandling"
-            rules={[
-              {
-                required: true,
-                message: "Please enter Internet Handling Charges percentage!",
-              },
-            ]}
-          >
-            <Select
-              placeholder="Select Internet Handling (%)"
-              disabled={isPlanSaved}
-              allowClear
-            >
-              {INTERNET_HANDLING_OPTIONS.map((option) => (
-                <Select.Option key={option} value={option}>
-                  {option}%
-                </Select.Option>
+          <Form.Item label="Features" className="mb-6">
+            <div className="form-section-container">
+              {features.map((feature, index) => (
+                <div key={index} className="flex gap-3 mb-3 items-center">
+                  <Input
+                    value={feature.name}
+                    onChange={(e) => handleFeatureChange(index, "name", e.target.value)}
+                    placeholder="Feature Description"
+                    disabled={isPlanSaved}
+                    className="flex-1"
+                  />
+                  <Switch
+                    checked={feature.enabled}
+                    onChange={(checked) => handleFeatureChange(index, "enabled", checked)}
+                    disabled={isPlanSaved}
+                    size="small"
+                  />
+                  <Button
+                    type="text"
+                    danger
+                    icon={<IoClose size={18} />}
+                    onClick={() => removeFeatureField(index)}
+                    disabled={isPlanSaved}
+                    className="flex items-center justify-center hover:bg-red-500/10 rounded-full w-8 h-8"
+                  />
+                </div>
               ))}
-            </Select>
+              <Button type="dashed" block onClick={addFeatureField} disabled={isPlanSaved} icon={<HiPlus />}>
+                Add Feature
+              </Button>
+            </div>
           </Form.Item>
 
-          {/* Save Button */}
-          {/* <Form.Item className="flex justify-end">
-            <Button type="primary" htmlType="submit" disabled={isPlanSaved}>
-              Save Plan
-            </Button>
-          </Form.Item>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="GST (%)"
+                name="gst"
+                rules={[{ required: true, message: "Required" }]}
+              >
+                <Select placeholder="Select %" disabled={isPlanSaved}>
+                  {GST_OPTIONS.map((option) => (
+                    <Select.Option key={option} value={option}>{option}%</Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Internet Handling (%)"
+                name="internetHandling"
+                rules={[{ required: true, message: "Required" }]}
+              >
+                <Select placeholder="Select %" disabled={isPlanSaved}>
+                  {INTERNET_HANDLING_OPTIONS.map((option) => (
+                    <Select.Option key={option} value={option}>{option}%</Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
 
-          <Form.Item>
-            <CreateInstallmentButton
-              courseId={selectedCourseId}
-              onSubmit={handleInstallmentSubmit}
-              isPlanSaved={isPlanSaved}
-              setIsPlanSaved={setIsPlanSaved}
-              handleCancel={handleCancel}
-            />
-          </Form.Item> */}
-          <div className="flex gap-4 justify-start">
-            <Form.Item className="mb-0">
-              <Button type="primary" htmlType="submit" disabled={isPlanSaved}>
+          <div className="flex gap-4 justify-end pt-4 border-t border-gray-700 mt-4">
+            {!isPlanSaved ? (
+              <Button type="primary" htmlType="submit" size="large" className="dark-btn-primary px-8">
                 Save Plan
               </Button>
-            </Form.Item>
-
-            <Form.Item className="mb-0">
+            ) : (
               <CreateInstallmentButton
                 courseId={selectedCourseId}
                 onSubmit={handleInstallmentSubmit}
@@ -720,7 +678,7 @@ const Plans = () => {
                 setIsPlanSaved={setIsPlanSaved}
                 handleCancel={handleCancel}
               />
-            </Form.Item>
+            )}
           </div>
         </Form>
       </Modal>
@@ -729,24 +687,19 @@ const Plans = () => {
       <Drawer
         title="Edit Plan"
         visible={isEditModalVisible}
-        // onCancel={() => {
-        //   handleCancel();
-        //   setIsEditPlanSaved(false); // Reset save state when modal is closed
-        //   setIsEditingAllowed(false); // Re-enable editing when modal is closed
-        // }}
         onClose={() => {
           handleCancel();
-          setIsEditPlanSaved(false); // Reset save state when modal is closed
-          setIsEditingAllowed(false); // Re-enable editing when modal is closed
+          setIsEditPlanSaved(false);
+          setIsEditingAllowed(false);
         }}
-        footer={null}
+        width={600}
+        className="dark-drawer"
       >
         <Form form={form} layout="vertical" onFinish={handleEditPlan}>
           <Form.Item
             label="Course"
             name="course"
             rules={[{ required: true, message: "Please select a course!" }]}
-            disabled={!isEditingAllowed}
           >
             <Select
               placeholder="Select a course"
@@ -756,7 +709,6 @@ const Plans = () => {
             >
               {courses?.map((course) => (
                 <Select.Option
-                  onclick={() => setSelectedCourseId(course._id)}
                   key={course._id}
                   value={course._id}
                 >
@@ -765,6 +717,7 @@ const Plans = () => {
               ))}
             </Select>
           </Form.Item>
+
           <Form.Item
             label="Plan Name"
             name="name"
@@ -773,210 +726,95 @@ const Plans = () => {
             <Input disabled={!isEditingAllowed} />
           </Form.Item>
 
-          {/* Dynamic Validities */}
           <Form.Item label="Validities">
-            {validities.map((validity, index) => (
-              <div key={index} className="flex mb-2">
-                {/* <Input
-                  value={validity.validityType}
-                  onChange={(e) =>
-                    handleValidityChange(index, "validityType", e.target.value)
-                  }
-                  placeholder="Validity Type"
-                  style={{ flex: 1 }}
-                /> */}
-                <InputNumber
-                  value={validity.validity}
-                  min={1}
-                  max={99}
-                  placeholder="Validity (months)"
-                  style={{ marginLeft: 8, width: 200 }}
-                  disabled={!isEditingAllowed}
-                  formatter={(value) => {
-                    const num = Number(value);
-                    if (isNaN(num)) return "";
-                    return Math.min(Math.max(num, 1), 99).toString();
-                  }}
-                  parser={(value) => {
-                    const num = Number(value);
-                    if (isNaN(num)) return 1; // default to min value
-                    return Math.min(Math.max(num, 1), 99);
-                  }}
-                  onChange={(value) =>
-                    handleValidityChange(index, "validity", value)
-                  }
-                />
-                <InputNumber
-                  value={validity.price}
-                  onChange={(value) =>
-                    handleValidityChange(index, "price", value)
-                  }
-                  placeholder="₹ Price"
-                  style={{ marginLeft: 8 }}
-                  disabled={!isEditingAllowed}
-                />
-                <InputNumber
-                  value={validity.discount}
-                  onChange={(value) =>
-                    handleValidityChange(index, "discount", value)
-                  }
-                  placeholder="Discount (%)"
-                  style={{ marginLeft: 8 }}
-                  disabled={!isEditingAllowed}
-                />
-                <Button
-                  type="danger"
-                  onClick={() => removeValidityField(index)}
-                  style={{ marginLeft: 8 }}
-                  disabled={isEditPlanSaved}
-                >
-                  Remove
-                </Button>
-              </div>
-            ))}
-            <Button
-              type="dashed"
-              onClick={addValidityField}
-              disabled={isEditPlanSaved}
-            >
-              Add Validity
-            </Button>
-          </Form.Item>
-
-          {/* Dynamic Features */}
-          <Form.Item label="Features">
-            {features.map((feature, index) => (
-              <div key={index} className="flex mb-2">
-                <Input
-                  value={feature.name}
-                  onChange={(e) =>
-                    handleFeatureChange(index, "name", e.target.value)
-                  }
-                  placeholder="Feature Name"
-                  style={{ flex: 1 }}
-                  disabled={!isEditingAllowed}
-                />
-                <Switch
-                  checked={feature.enabled}
-                  onChange={(checked) =>
-                    handleFeatureChange(index, "enabled", checked)
-                  }
-                  style={{ marginLeft: 8 }}
-                  disabled={!isEditingAllowed}
-                />
-                <Button
-                  type="danger"
-                  onClick={() => removeFeatureField(index)}
-                  style={{ marginLeft: 8 }}
-                  disabled={isEditPlanSaved}
-                >
-                  Remove
-                </Button>
-              </div>
-            ))}
-            <Button
-              type="dashed"
-              onClick={addFeatureField}
-              disabled={isEditPlanSaved}
-            >
-              Add Feature
-            </Button>
-          </Form.Item>
-
-          {/* GST Percentage */}
-          <Form.Item
-            label="GST (%)"
-            name="gst"
-            rules={[{ required: true, message: "Please select GST percentage!" }]}
-          >
-            <Select
-              placeholder="Select GST (%)"
-              disabled={!isEditingAllowed}
-              allowClear
-            >
-              {GST_OPTIONS.map((option) => (
-                <Select.Option key={option} value={option}>
-                  {option}%
-                </Select.Option>
+            <div className="bg-[#2a2a2a] p-4 rounded-lg border border-gray-700">
+              {validities.map((validity, index) => (
+                <Row key={index} gutter={8} className="mb-2">
+                  <Col span={6}>
+                    <InputNumber
+                      value={validity.validity}
+                      min={1} max={99}
+                      placeholder="Months"
+                      style={{ width: '100%' }}
+                      disabled={!isEditingAllowed}
+                      onChange={(value) => handleValidityChange(index, "validity", value)}
+                    />
+                  </Col>
+                  <Col span={7}>
+                    <InputNumber
+                      value={validity.price}
+                      placeholder="Price"
+                      style={{ width: '100%' }}
+                      disabled={!isEditingAllowed}
+                      onChange={(value) => handleValidityChange(index, "price", value)}
+                    />
+                  </Col>
+                  <Col span={7}>
+                    <InputNumber
+                      value={validity.discount}
+                      min={0} max={100}
+                      placeholder="Disc %"
+                      style={{ width: '100%' }}
+                      disabled={!isEditingAllowed}
+                      onChange={(value) => handleValidityChange(index, "discount", value)}
+                    />
+                  </Col>
+                  <Col span={4}>
+                    <Button danger type="text" icon={<IoClose />} onClick={() => removeValidityField(index)} disabled={isEditPlanSaved} />
+                  </Col>
+                </Row>
               ))}
-            </Select>
-          </Form.Item>
-
-          {/* Internet Handling Charges Percentage */}
-          <Form.Item
-            label="Internet Handling Charges (%)"
-            name="internetHandling"
-            rules={[
-              {
-                required: true,
-                message: "Please select Internet Handling Charges percentage!",
-              },
-            ]}
-          >
-            <Select
-              placeholder="Select Internet Handling (%)"
-              disabled={!isEditingAllowed}
-              allowClear
-            >
-              {INTERNET_HANDLING_OPTIONS.map((option) => (
-                <Select.Option key={option} value={option}>
-                  {option}%
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          {/* Button to enable re-editing */}
-          {/* <Button
-            type="primary"
-            onClick={() => setIsEditingAllowed(true)}
-            disabled={isEditPlanSaved && !isEditingAllowed}
-          >
-            Edit Again
-          </Button> */}
-
-          {/* Save and Create Installment Button */}
-          {/* <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              className="w-full"
-              disabled={isEditPlanSaved}
-            >
-              Update Plan
-            </Button>
-          </Form.Item> */}
-
-          {/* Buttons side by side */}
-          <Form.Item>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: "10px",
-              }}
-            >
-              <Button
-                type="default"
-                onClick={() => setIsEditingAllowed(true)}
-                disabled={isEditPlanSaved && !isEditingAllowed}
-                style={{ flex: 1 }}
-              >
-                Edit Again
-              </Button>
-
-              <Button
-                type="primary"
-                htmlType="submit"
-                disabled={isEditPlanSaved}
-                style={{ flex: 1 }}
-              >
-                Update Plan
-              </Button>
+              <Button type="dashed" block onClick={addValidityField} disabled={isEditPlanSaved}>+ Add Validity</Button>
             </div>
           </Form.Item>
 
-          <Form.Item>
+          <Form.Item label="Features">
+            <div className="bg-[#2a2a2a] p-4 rounded-lg border border-gray-700">
+              {features.map((feature, index) => (
+                <div key={index} className="flex gap-2 mb-2">
+                  <Input
+                    value={feature.name}
+                    onChange={(e) => handleFeatureChange(index, "name", e.target.value)}
+                    disabled={!isEditingAllowed}
+                  />
+                  <Switch
+                    checked={feature.enabled}
+                    onChange={(val) => handleFeatureChange(index, "enabled", val)}
+                    disabled={!isEditingAllowed}
+                    size="small"
+                    className="mt-1"
+                  />
+                  <Button danger type="text" icon={<IoClose />} onClick={() => removeFeatureField(index)} disabled={isEditPlanSaved} />
+                </div>
+              ))}
+              <Button type="dashed" block onClick={addFeatureField} disabled={isEditPlanSaved}>+ Add Feature</Button>
+            </div>
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="GST (%)" name="gst">
+                <Select disabled={!isEditingAllowed}>
+                  {GST_OPTIONS.map((o) => <Select.Option key={o} value={o}>{o}%</Select.Option>)}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Internet Handling (%)" name="internetHandling">
+                <Select disabled={!isEditingAllowed}>
+                  {INTERNET_HANDLING_OPTIONS.map((o) => <Select.Option key={o} value={o}>{o}%</Select.Option>)}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <div className="flex gap-3 justify-end mt-4 pt-4 border-t border-gray-700">
+            {!isEditingAllowed && !isEditPlanSaved ? (
+              <Button onClick={() => setIsEditingAllowed(true)}>Enable Editing</Button>
+            ) : (
+              <Button type="primary" htmlType="submit" disabled={isEditPlanSaved}>Update Plan</Button>
+            )}
+
             <CreateInstallmentButton
               courseId={selectedCourseId}
               onSubmit={handleInstallmentSubmit}
@@ -984,7 +822,7 @@ const Plans = () => {
               setIsPlanSaved={setIsEditPlanSaved}
               handleCancel={handleCancel}
             />
-          </Form.Item>
+          </div>
         </Form>
       </Drawer>
     </div>
@@ -1000,20 +838,22 @@ const InstallmentTimelineModal = ({ visible, onCancel, installment }) => {
       visible={visible}
       onCancel={onCancel}
       footer={<Button onClick={onCancel}>Close</Button>}
+      centered
+      className="dark-modal"
     >
-      <Card>
+      <div className="bg-[#1f1f1f] p-4 rounded-lg">
         <Timeline>
           {installment.installments.map((inst, index) => (
             <Timeline.Item key={index} color="blue">
-              <div>
-                <strong>Installment {index + 1}:</strong> ₹
+              <div className="text-white">
+                <strong className="text-blue-400">Installment {index + 1}:</strong> ₹
                 {Math.floor(inst.amount)}
               </div>
-              <div>Due Date: {inst.dueDate}</div>
+              <div className="text-gray-400 text-xs">Due Date: {inst.dueDate}</div>
             </Timeline.Item>
           ))}
         </Timeline>
-      </Card>
+      </div>
     </Modal>
   );
 };

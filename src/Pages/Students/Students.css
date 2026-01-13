@@ -1,224 +1,445 @@
-.students {
-  margin-top: 20px;
+/* Students_Revamp.css */
+/* ... (Keep existing styles) ... */
+
+.students-container {
+    padding: 24px;
+    min-height: 100vh;
+    background-color: #141414;
+    color: #ffffff;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-.students1 {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
+/* Glassmorphism Card Reference */
+.students-container .glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 24px;
+    /* Added spacing between cards */
 }
 
-.students2 {
-  display: flex;
-  align-items: center;
-  gap: 50px;
+/* ... (Keep other existing styles) ... */
+
+/* Layout Utilities */
+.flex {
+    display: flex;
 }
 
-.students2 label {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 700;
-  font-size: 16px;
-  line-height: 21.79px;
-  color: #ffffff;
-  margin: 0;
+.flex-col {
+    flex-direction: column;
 }
 
-.students2 select {
-  width: 167px;
-  height: 45px;
-  background-color: #ffffff;
-  border-radius: 4px;
-  box-shadow: 0px 4px 21px 0px #00000026;
-  outline: none;
-  font-family: "Open Sans", sans-serif;
-  font-weight: 500;
-  font-size: 16px;
-  line-height: 24.51px;
-  color: #000000;
-  margin: 0;
-  padding-left: 10px;
+.items-center {
+    align-items: center;
 }
 
-.students4 {
-  width: 100%;
-  overflow-x: auto;
-  margin-bottom: 20px;
-  box-sizing: border-box;
+.justify-between {
+    justify-content: space-between;
 }
 
-.students3 {
-  margin-top: 20px;
+.justify-center {
+    justify-content: center;
 }
 
-.students4 table {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: "Public Sans", sans-serif;
+.gap-2 {
+    gap: 8px;
 }
 
-.students4 table thead tr {
-  background-color: #ffffff66;
-  height: 52px;
+.gap-3 {
+    gap: 12px;
 }
 
-.students4 table th {
-  text-align: left;
-  font-weight: 600;
-  font-size: 15px;
-  line-height: 21.79px;
-  color: #ffffff;
-  padding-left: 5px;
-  /* white-space: nowrap; */
-}
-.students4 table tbody tr {
-  height: 50px;
+.gap-4 {
+    gap: 16px;
 }
 
-.students4 table td {
-  text-align: left;
-  font-weight: 600;
-  font-size: 15px;
-  line-height: 21.79px;
-  color: #ffffff;
-  padding-left: 5px;
-  padding-top: 5px;
-  cursor: pointer;
-  /* white-space: nowrap; */
+.gap-6 {
+    gap: 24px;
 }
 
-.studentprofile {
-  position: relative;
-  /* height: 242px; */
-  height: 125px;
-  background-size: cover;
-  background-position: center;
-  box-sizing: border-box;
-  background-repeat: no-repeat;
-  border-radius: 10px;
+.gap-8 {
+    gap: 32px;
 }
 
-.studentprofile1 {
-  display: flex;
-  position: absolute;
-  bottom: -100px;
-  left: 20px;
+.w-full {
+    width: 100%;
 }
 
-.studentprofile2 {
-  width: 147px;
-  height: 147px;
-  border-radius: 50%;
-  border: 2px solid #141414;
-  padding: 10px;
-  background: #141414;
+.h-full {
+    height: 100%;
 }
 
-.studentprofile2 img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
+/* Grid Layouts */
+.grid {
+    display: grid;
 }
 
-.studentprofile3 {
+.grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 
-.studentprofile3 h6 {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 700;
-  font-size: 32px;
-  line-height: 43.58px;
-  color: #000000;
-  margin: 0;
+.grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.studentprofile3 h5 {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 700;
-  font-size: 20px;
-  line-height: 32.68px;
-  color: #ffffff;
-  margin: 0;
-  margin-top: 30px;
+/* Responsive Grid */
+@media (min-width: 1024px) {
+    .lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .lg\:col-span-1 {
+        grid-column: span 1 / span 1;
+    }
+
+    .lg\:col-span-2 {
+        grid-column: span 2 / span 2;
+    }
 }
 
-.studentprofile4 {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  cursor: pointer;
+@media (max-width: 768px) {
+    .student-profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .grid-cols-3 {
+        grid-template-columns: 1fr;
+    }
 }
 
-
-
-
-.studentprofile5{
-  margin-top: 130px;
-  margin-bottom: 130px;
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  gap: 50px;
+/* Text Colors & Typography */
+.text-white {
+    color: #ffffff !important;
 }
 
-.studentprofile6{
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.text-gray-300 {
+    color: #d1d5db !important;
 }
 
-
-.studentprofile6 label{
-  font-family: "Open Sans", sans-serif;
-  font-weight: 700;
-  font-size: 17.05px;
-  line-height: 23.22px;
-  color: #ffffff;
-  margin: 0;
+.text-gray-400 {
+    color: #9ca3af !important;
 }
 
-
-.studentprofile6 input{
-  width: auto;
-  height: 45px;
-  background-color: #FFFFFF;
-  border: 1.22px solid #757575;
-  border-radius: 6.09px;
-  outline: none;
-  padding-left: 20px;
+.text-gray-500 {
+    color: #6b7280 !important;
 }
 
-.studentprofile6 input::placeholder{
-  font-family: "Open Sans", sans-serif;
-  font-weight: 400;
-  font-size: 17.05px;
-  line-height: 23.22px;
-  color: #737373;
-  margin: 0;
+.text-blue-400 {
+    color: #60a5fa !important;
 }
 
-
-
-/* Pagination button hover fix */
-.ant-pagination-item a {
-  color: white; /* or any light color */
+.text-green-400 {
+    color: #4ade80 !important;
 }
 
-.ant-pagination-item:hover,
-.ant-pagination-item:focus {
-  border-color: #1890ff; /* optional highlight */
+.text-purple-400 {
+    color: #c084fc !important;
 }
 
-.ant-pagination-item:hover a,
-.ant-pagination-item:focus a {
-  color: #1890ff !important; /* or white */
+.font-bold {
+    font-weight: 700;
 }
 
-/* Optional: fix the active (current) page button color */
-.ant-pagination-item-active {
-  background-color: #1890ff;
-  border-color: #1890ff;
+.font-semibold {
+    font-weight: 600;
 }
 
-.ant-pagination-item-active a {
-  color: white;
+.text-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+}
+
+.text-2xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+}
+
+.text-4xl {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+}
+
+/* Backgrounds */
+.bg-white\/5 {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.bg-blue-600 {
+    background-color: #2563eb;
+}
+
+/* Spacing */
+.p-4 {
+    padding: 16px;
+}
+
+.p-8 {
+    padding: 32px;
+}
+
+.px-3 {
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.py-1 {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.mb-2 {
+    margin-bottom: 8px;
+}
+
+.mb-4 {
+    margin-bottom: 16px;
+}
+
+.mb-6 {
+    margin-bottom: 24px;
+}
+
+.mt-6 {
+    margin-top: 24px;
+}
+
+/* Borders */
+.rounded-full {
+    border-radius: 9999px;
+}
+
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+
+.border-b {
+    border-bottom-width: 1px;
+}
+
+.border-gray-800 {
+    border-color: #1f2937;
+}
+
+/* Lists */
+.ant-list-item-meta-title>a {
+    color: #60a5fa !important;
+    /* Force blue for links */
+    font-size: 16px;
+}
+
+.ant-list-item-meta-title>a:hover {
+    color: #93c5fd !important;
+}
+
+.ant-list-item-meta-description {
+    color: #9ca3af !important;
+}
+
+/* Page Header */
+.students-container .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.students-container .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(135deg, #fff 0%, #a5a5a5 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.students-container .page-subtitle {
+    color: #888;
+    margin-top: 4px;
+    font-size: 14px;
+}
+
+/* Ant Design Table Overrides */
+.students-container .dark-table .ant-table {
+    background: transparent;
+    color: #e5e5e5;
+}
+
+.students-container .dark-table .ant-table-thead>tr>th {
+    background: rgba(255, 255, 255, 0.05);
+    color: #a0a0a0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+.students-container .dark-table .ant-table-tbody>tr>td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+}
+
+.students-container .dark-table .ant-table-tbody>tr:hover>td {
+    background: rgba(255, 255, 255, 0.02) !important;
+}
+
+.students-container .dark-table .ant-empty-description {
+    color: #666;
+}
+
+/* Form & Inputs */
+.students-container .dark-label {
+    color: #cfcfcf;
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.students-container .dark-input,
+.students-container .dark-select .ant-select-selector,
+.students-container .dark-picker {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    height: 40px;
+}
+
+.students-container .dark-input:focus,
+.students-container .dark-select.ant-select-focused .ant-select-selector,
+.students-container .dark-picker:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+}
+
+.students-container .dark-input::placeholder {
+    color: #444;
+}
+
+/* Buttons */
+.students-container .primary-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border: none;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.students-container .primary-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+    background: linear-gradient(135deg, #4f93f6 0%, #3b76f6 100%);
+}
+
+.students-container .secondary-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.students-container .secondary-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+/* Pagination */
+.students-container .ant-pagination-item {
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.students-container .ant-pagination-item a {
+    color: #fff !important;
+}
+
+.students-container .ant-pagination-item-active {
+    border-color: #3b82f6 !important;
+    background: rgba(59, 130, 246, 0.1) !important;
+}
+
+.students-container .ant-pagination-item-active a {
+    color: #3b82f6 !important;
+}
+
+/* Profile Specific */
+.student-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.student-avatar {
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.student-info h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #fff;
+}
+
+.student-info p {
+    color: #888;
+    font-size: 16px;
+    margin: 0;
+}
+
+.details-section h3 {
+    color: #3b82f6;
+    font-size: 20px;
+    margin-bottom: 24px;
+    font-weight: 600;
+}
+
+.detail-item {
+    margin-bottom: 20px;
+}
+
+.detail-label {
+    color: #888;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    display: block;
+}
+
+/* Action Button in Table */
+.students-container .action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 9999px;
+    /* rounded-full */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    margin: 0 auto;
+    box-sizing: border-box;
+
+    /* Default State (blue-500/20 bg, blue-400 text, border-blue-500/30) */
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.students-container .action-btn:hover {
+    background-color: #3b82f6;
+    /* bg-blue-500 */
+    color: #ffffff;
+    /* text-white */
+    border-color: #3b82f6;
 }

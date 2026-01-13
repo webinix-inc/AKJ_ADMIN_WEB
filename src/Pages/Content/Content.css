@@ -1,0 +1,262 @@
+/* ==========================================
+   CONTENT PAGE - DARK THEME STYLES
+   ========================================== */
+
+/* Container Styles */
+/* Container Styles */
+.content-page {
+    padding: 24px;
+    min-height: 100vh;
+    background: #141414;
+}
+
+/* Folder Contents Page Overrides */
+.p-4.text-white {
+    background: #141414 !important;
+    min-height: 100vh;
+}
+
+/* Table Dark Theme */
+.content-page table,
+.p-4.text-white table {
+    background: #171717 !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+}
+
+.content-page thead,
+.p-4.text-white thead {
+    background: #1e1e1e !important;
+}
+
+.content-page th,
+.p-4.text-white th {
+    background: #1e1e1e !important;
+    color: #fff !important;
+    border-color: #333 !important;
+    padding: 16px !important;
+    font-weight: 600 !important;
+}
+
+.content-page td,
+.p-4.text-white td {
+    background: #171717 !important;
+    color: #d4d4d4 !important;
+    border-color: #262626 !important;
+    padding: 16px !important;
+}
+
+.content-page tr:hover td,
+.p-4.text-white tr:hover td {
+    background: #1f1f1f !important;
+}
+
+/* Override white backgrounds */
+.w-full.bg-white {
+    background: #171717 !important;
+    border: 1px solid #262626 !important;
+}
+
+/* Gray text overrides */
+.text-gray-800 {
+    color: #fff !important;
+}
+
+.text-gray-700 {
+    color: #e5e5e5 !important;
+}
+
+.text-gray-600 {
+    color: #a3a3a3 !important;
+}
+
+.text-gray-500 {
+    color: #888 !important;
+}
+
+.text-gray-400 {
+    color: #666 !important;
+}
+
+/* Gradient backgrounds override */
+.bg-gradient-to-r.from-gray-50,
+.bg-gradient-to-r.from-gray-100 {
+    background: #1e1e1e !important;
+}
+
+/* Blue hover states */
+.hover\:bg-blue-50:hover {
+    background: #1e3a5f !important;
+}
+
+.hover\:bg-gray-50:hover {
+    background: #1f1f1f !important;
+}
+
+/* Folder icon backgrounds */
+.bg-gradient-to-br.from-blue-100,
+.bg-gradient-to-br.from-purple-100,
+.bg-gradient-to-br.from-orange-100 {
+    background: #262626 !important;
+}
+
+/* Badge overrides */
+.bg-blue-100 {
+    background: #1e3a5f !important;
+}
+
+.bg-purple-100 {
+    background: #4c1d95 !important;
+}
+
+.bg-orange-100 {
+    background: #7c2d12 !important;
+}
+
+.text-blue-800 {
+    color: #60a5fa !important;
+}
+
+.text-purple-800 {
+    color: #a78bfa !important;
+}
+
+.text-orange-800 {
+    color: #fb923c !important;
+}
+
+/* Folder preview boxes */
+.flex.items-center.justify-center.w-16.h-16.rounded-xl {
+    background: #262626 !important;
+    border: 1px solid #333 !important;
+}
+
+/* Border overrides */
+.border-gray-100,
+.border-gray-200 {
+    border-color: #262626 !important;
+}
+
+/* Shadow overrides */
+.shadow-sm {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Hover button */
+.hover\:bg-gray-100:hover {
+    background: #333 !important;
+}
+
+/* File/Folder Item Hover */
+.border-b.border-gray-100.hover\:bg-blue-50:hover,
+.border-b.border-gray-100.hover\:bg-gray-50:hover {
+    background: #1f1f1f !important;
+}
+
+/* Action buttons */
+.p-2.rounded-full.hover\:bg-gray-100 {
+    color: #888 !important;
+}
+
+.p-2.rounded-full.hover\:bg-gray-100:hover {
+    background: #333 !important;
+    color: #fff !important;
+}
+
+/* Empty state */
+.text-red-500 {
+    color: #888 !important;
+}
+
+/* Preview Modal Fixes */
+.ant-modal-content video {
+    max-width: 100% !important;
+    border-radius: 8px !important;
+}
+
+/* Folder icon colors in table */
+.text-blue-600 {
+    color: #3b82f6 !important;
+}
+
+.text-purple-600 {
+    color: #a855f7 !important;
+}
+
+.text-orange-600 {
+    color: #f97316 !important;
+}
+
+/* Status badges in dark theme */
+.rounded-full.text-xs.font-medium {
+    border: 1px solid transparent !important;
+}
+
+/* Upload Dragger Dark Theme */
+.ant-upload-drag {
+    background: #171717 !important;
+    border-color: #404040 !important;
+}
+
+.ant-upload-drag:hover {
+    border-color: #3b82f6 !important;
+}
+
+.ant-upload-drag-icon,
+.ant-upload-text,
+.ant-upload-hint {
+    color: #888 !important;
+}
+
+.ant-upload-drag .anticon {
+    color: #3b82f6 !important;
+}
+
+/* Free Class Modal */
+.ant-modal-content {
+    background: #0f0f0f !important;
+}
+
+/* Responsive Grid */
+@media (max-width: 768px) {
+
+    .content-page,
+    .p-4.text-white {
+        padding: 16px !important;
+    }
+
+    .flex.justify-between.items-center {
+        flex-direction: column !important;
+        gap: 12px !important;
+        align-items: stretch !important;
+    }
+
+    .flex.gap-2 {
+        flex-wrap: wrap !important;
+    }
+
+    .flex.gap-2 button {
+        flex: 1 !important;
+        min-width: 120px !important;
+    }
+}
+
+/* Gallery View Grid */
+.flex.flex-wrap.gap-6 {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+    gap: 16px !important;
+}
+
+/* Skeleton pulse animation */
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}

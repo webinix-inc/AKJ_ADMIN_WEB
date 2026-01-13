@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { AiFillFolder } from "react-icons/ai";
-import { FiMoreVertical } from "react-icons/fi";
-import { FaTrashAlt, FaEdit } from "react-icons/fa";
+import { FiMoreVertical, FiSearch, FiPlus, FiGrid, FiList } from "react-icons/fi";
+import { FaTrashAlt, FaEdit, FaEye, FaEyeSlash, FaFolder } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import {
   Menu,
@@ -12,12 +12,24 @@ import {
   Button,
   message,
   Switch,
+  Spin,
+  Empty
 } from "antd";
 import HOC from "../../Component/HOC/HOC";
 import api from "../../api/axios";
+import "./TestPanel.css"; // Import new styles
 
 const { Option } = Select;
 const { confirm } = Modal;
+
+// Skeleton Component
+const FolderSkeleton = () => (
+  <div className="folder-card animate-pulse">
+    <div className="folder-icon-wrapper bg-gray-800" />
+    <div className="h-4 bg-gray-800 w-3/4 rounded mb-2" />
+    <div className="h-3 bg-gray-800 w-1/2 rounded" />
+  </div>
+);
 
 const TestPanel = () => {
   const navigate = useNavigate();
@@ -29,9 +41,11 @@ const TestPanel = () => {
   const [courses, setCourses] = useState([]);
   const [selectedCourses, setSelectedCourses] = useState([]);
   const [editingFolder, setEditingFolder] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const fetchFolders = async () => {
+  const fetchFolders = useCallback(async () => {
     try {
+      setLoading(true);
       const response = await api.get("/testPanel/folders");
       const folderData = response.data.folders.map((folder) => ({
         ...folder,
@@ -42,23 +56,25 @@ const TestPanel = () => {
     } catch (error) {
       console.error("Error fetching folders:", error);
       message.error("Failed to fetch folders.");
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchCourses = async () => {
+  const fetchCourses = useCallback(async () => {
     try {
       const response = await api.get("/admin/courses");
       setCourses(response.data.data);
     } catch (error) {
       console.error("Error fetching courses:", error);
-      message.error("Failed to fetch courses.");
+      // message.error("Failed to fetch courses.");
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchFolders();
     fetchCourses();
-  }, []);
+  }, [fetchFolders, fetchCourses]);
 
   useEffect(() => {
     if (searchTerm.trim() === "") {
@@ -121,17 +137,6 @@ const TestPanel = () => {
     }
   };
 
-  const confirmDelete = (id) => {
-    confirm({
-      title: "Are you sure you want to delete this folder?",
-      content: "This action cannot be undone.",
-      okText: "Yes",
-      okType: "danger",
-      cancelText: "No",
-      onOk: () => handleDeleteFolder(id),
-    });
-  };
-
   const handleDeleteFolder = async (id) => {
     try {
       await api.delete(`/testPanel/folders/${id}`);
@@ -143,161 +148,172 @@ const TestPanel = () => {
     }
   };
 
+  const confirmDelete = (id) => {
+    confirm({
+      title: "Delete this folder?",
+      content: "This will remove the folder and its associations. Quizzes inside might be lost.",
+      okText: "Delete",
+      okType: "danger",
+      cancelText: "Cancel",
+      maskClosable: true,
+      onOk: () => handleDeleteFolder(id),
+    });
+  };
+
   const handleToggleVisibility = async (folder) => {
     try {
       const updatedVisibility = !folder.isVisible;
       await api.patch(`/testPanel/folders/${folder._id}`, {
         isVisible: updatedVisibility,
       });
-      fetchFolders();
-      message.success(
-        `Folder visibility updated to ${
-          updatedVisibility ? "Visible" : "Not Visible"
-        }.`
-      );
+      // Optimistic update
+      setFolders(prev => prev.map(f => f._id === folder._id ? { ...f, isVisible: updatedVisibility } : f));
+      message.success(updatedVisibility ? "Folder is now visible" : "Folder is hidden");
     } catch (error) {
       console.error("Error updating folder visibility:", error);
       message.error("Failed to update visibility.");
+      // Revert optimization if needed, or just refetch
+      fetchFolders();
     }
   };
-
-  const renderFolderMenu = (folder) => (
-    <Menu>
-      <Menu.Item onClick={() => handleOpenModal(folder)}>
-        <FaEdit className="mr-2" />
-        Edit
-      </Menu.Item>
-      <Menu.Item danger onClick={() => confirmDelete(folder._id)}>
-        <FaTrashAlt className="mr-2" />
-        Delete
-      </Menu.Item>
-      <Menu.Item>
-        <div className="flex items-center justify-between">
-          <span>Visible</span>
-          <Switch
-            checked={folder.isVisible}
-            onChange={() => handleToggleVisibility(folder)}
-            size="small"
-          />
-        </div>
-      </Menu.Item>
-    </Menu>
-  );
 
   const handleFolderClick = (folderId) => {
     navigate(`/content/testpanel/${folderId}`);
   };
 
+  const renderFolderMenu = (folder) => (
+    <Menu>
+      <Menu.Item key="edit" onClick={() => handleOpenModal(folder)} icon={<FaEdit />}>
+        Edit Folder
+      </Menu.Item>
+      <Menu.Item key="visibility" onClick={() => handleToggleVisibility(folder)} icon={folder.isVisible ? <FaEyeSlash /> : <FaEye />}>
+        {folder.isVisible ? 'Hide Folder' : 'Make Visible'}
+      </Menu.Item>
+      <Menu.Divider />
+      <Menu.Item key="delete" danger onClick={() => confirmDelete(folder._id)} icon={<FaTrashAlt />}>
+        Delete Folder
+      </Menu.Item>
+    </Menu>
+  );
+
   return (
-    <div
-      className="min-h-screen flex flex-col items-center p-6"
-      style={{ backgroundColor: "#141414", color: "#fff" }}>
-      <div className="w-full max-w-5xl">
-        {/* Header Section */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-700 pb-4 mb-6 gap-4">
-          <h1 className="text-xl font-semibold text-white">Test Content</h1>
-          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
-            <Input
-              placeholder="Search folders..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full sm:w-60"
-            />
-            <Button type="primary" onClick={() => handleOpenModal()} className="w-full sm:w-auto">
-              + New Folder
-            </Button>
-          </div>
+    <div className="test-panel-container">
+      {/* Header */}
+      <div className="test-panel-header">
+        <div>
+          <h1 className="test-panel-title">Test Content Panel</h1>
+          <p style={{ color: '#888', margin: 0, marginTop: 4 }}>Manage quizzes and test folders</p>
         </div>
 
-        {/* Folders Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-          {filteredFolders.map((folder) => (
-            <div
-              key={folder._id}
-              className="flex flex-col items-center p-4 bg-gray-800 border border-gray-700 rounded-lg shadow hover:shadow-lg transition">
-              {/* Folder Icon - Triggers Navigation */}
-              <AiFillFolder
-                className="text-[#1a85ff] text-7xl mb-2 cursor-pointer"
-                onClick={() => handleFolderClick(folder._id)}
-              />
-
-              {/* Name and Menu in a Single Row with Minimal Gap */}
-              <div className="flex items-center w-full justify-center">
-                {/* Folder Name - Triggers Navigation */}
-                <p
-                  className="text-gray-300 text-sm font-medium cursor-pointer"
-                  onClick={() => handleFolderClick(folder._id)}>
-                  {folder.name}
-                </p>
-
-                {/* Dropdown Menu */}
-                <Dropdown
-                  overlay={renderFolderMenu(folder)}
-                  trigger={["click"]}
-                  placement="bottomRight">
-                  <FiMoreVertical className="cursor-pointer text-gray-500 hover:text-gray-300 ml-1 -mt-3" />
-                </Dropdown>
-              </div>
-
-              {/* Folder Courses */}
-              <p className="text-gray-500 text-xs mt-1">
-                {folder.courses.length > 0
-                  ? folder.courses.map((course) => course.title).join(", ")
-                  : "No courses assigned"}
-              </p>
-            </div>
-          ))}
+        <div className="test-panel-actions">
+          <Input
+            prefix={<FiSearch className="text-gray-500" />}
+            placeholder="Search folders..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="dark-input"
+            style={{ width: 240, borderRadius: 8 }}
+          />
+          <Button
+            type="primary"
+            icon={<FiPlus />}
+            onClick={() => handleOpenModal()}
+            size="middle"
+            style={{ borderRadius: 8, fontWeight: 500 }}
+          >
+            New Folder
+          </Button>
         </div>
       </div>
 
-      {/* Modal for Creating/Editing Folder */}
+      {/* Grid */}
+      {loading ? (
+        <div className="folders-grid">
+          {[1, 2, 3, 4, 5, 6].map(i => <FolderSkeleton key={i} />)}
+        </div>
+      ) : filteredFolders.length > 0 ? (
+        <div className="folders-grid">
+          {filteredFolders.map((folder) => (
+            <div
+              key={folder._id}
+              className="folder-card group"
+              onClick={() => handleFolderClick(folder._id)}
+            >
+              <div className="folder-actions">
+                <Dropdown overlay={renderFolderMenu(folder)} trigger={["click"]} placement="bottomRight">
+                  <div className="p-2 hover:bg-gray-800 rounded-full transition-colors" onClick={e => e.stopPropagation()}>
+                    <FiMoreVertical className="text-gray-400 text-lg" />
+                  </div>
+                </Dropdown>
+              </div>
+
+              <div className="folder-icon-wrapper">
+                <FaFolder />
+              </div>
+
+              <div className="folder-info">
+                <h3>{folder.name}</h3>
+                <div className="folder-meta">
+                  <span>{folder.courses?.length || 0} Courses</span>
+                  <span className={`px-2 py-0.5 rounded text-xs ${folder.isVisible ? 'bg-green-900/30 text-green-400' : 'bg-gray-800 text-gray-400'}`}>
+                    {folder.isVisible ? 'Visible' : 'Hidden'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+          <AiFillFolder size={64} className="mb-4 opacity-20" />
+          <p>No folders found</p>
+          {searchTerm && <Button type="link" onClick={() => setSearchTerm('')}>Clear Search</Button>}
+        </div>
+      )}
+
+      {/* Modal */}
       <Modal
         title={editingFolder ? "Edit Folder" : "Create New Folder"}
         open={isModalOpen}
         onCancel={handleCloseModal}
         footer={[
-          <Button key="cancel" onClick={handleCloseModal}>
+          <Button key="cancel" onClick={handleCloseModal} className="dark-button-secondary">
             Cancel
           </Button>,
           <Button key="submit" type="primary" onClick={handleAddOrUpdateFolder}>
-            {editingFolder ? "Save Changes" : "Create"}
+            {editingFolder ? "Save Changes" : "Create Folder"}
           </Button>,
-        ]}>
-        <div className="w-full">
-          <label
-            htmlFor="folderName"
-            className="block text-sm font-medium text-gray-700 mb-1">
-            Folder Name
-          </label>
-          <Input
-            id="folderName"
-            type="text"
-            placeholder="Enter folder name"
-            value={newFolderName}
-            onChange={(e) => setNewFolderName(e.target.value)}
-            className="mb-4"
-          />
-        </div>
+        ]}
+        wrapClassName="dark-modal"
+      >
+        <div className="flex flex-col gap-4 py-4">
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Folder Name</label>
+            <Input
+              placeholder="Ex: Weekly Tests"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              className="dark-input"
+            />
+          </div>
 
-        <div className="w-full">
-          <label
-            htmlFor="assignCourses"
-            className="block text-sm font-medium text-gray-700 mb-1">
-            Assign to the Course
-          </label>
-          <Select
-            id="assignCourses"
-            mode="multiple"
-            placeholder="Assign Courses (optional)"
-            value={selectedCourses}
-            onChange={(value) => setSelectedCourses(value)}
-            className="w-full">
-            {courses.map((course) => (
-              <Option key={course._id} value={course._id}>
-                {course.title}
-              </Option>
-            ))}
-          </Select>
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Assign to Courses</label>
+            <Select
+              mode="multiple"
+              placeholder="Select courses..."
+              value={selectedCourses}
+              onChange={(value) => setSelectedCourses(value)}
+              className="w-full dark-select"
+              popupClassName="dark-select-dropdown"
+            >
+              {courses.map((course) => (
+                <Option key={course._id} value={course._id}>
+                  {course.title}
+                </Option>
+              ))}
+            </Select>
+          </div>
         </div>
       </Modal>
     </div>

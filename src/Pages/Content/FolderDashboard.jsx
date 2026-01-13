@@ -7,18 +7,239 @@
 //
 // ============================================================================
 
-import { Button, Card, Col, message, Modal, Row, Spin } from "antd";
-import React, { useEffect, useState } from "react";
+import { Button, Modal, Spin } from "antd";
+import React, { useEffect, useState, memo, useCallback, Suspense } from "react";
 import {
   FaArrowRight,
   FaCog,
   FaFolder,
   FaLock,
-  FaPlus
+  FaPlus,
+  FaCrown,
+  FaBoxOpen
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import HOC from "../../Component/HOC/HOC";
+
+import "./Content.css";
+
+// Styles
+const styles = {
+  header: {
+    marginBottom: '32px',
+  },
+  headerTop: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    flexWrap: 'wrap',
+    gap: '16px',
+    marginBottom: '24px',
+  },
+  title: {
+    margin: 0,
+    fontSize: '28px',
+    fontWeight: '700',
+    color: '#ffffff',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  subtitle: {
+    margin: '8px 0 0',
+    fontSize: '14px',
+    color: '#888',
+  },
+  buttonGroup: {
+    display: 'flex',
+    gap: '12px',
+    flexWrap: 'wrap',
+  },
+  statsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+    gap: '16px',
+    marginBottom: '32px',
+  },
+  statCard: {
+    background: '#171717',
+    borderRadius: '12px',
+    border: '1px solid #262626',
+    padding: '20px',
+    textAlign: 'center',
+  },
+  statNumber: {
+    fontSize: '32px',
+    fontWeight: '700',
+    marginBottom: '4px',
+  },
+  statLabel: {
+    fontSize: '13px',
+    color: '#888',
+  },
+  foldersGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+    gap: '20px',
+  },
+  folderCard: {
+    background: '#171717',
+    borderRadius: '16px',
+    border: '1px solid #262626',
+    padding: '24px',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    textAlign: 'center',
+  },
+  folderIcon: {
+    width: '64px',
+    height: '64px',
+    borderRadius: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: '0 auto 16px',
+    fontSize: '28px',
+  },
+  folderName: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: '8px',
+  },
+  folderBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    padding: '4px 12px',
+    borderRadius: '20px',
+    fontSize: '12px',
+    fontWeight: '500',
+    marginBottom: '12px',
+  },
+  itemCount: {
+    fontSize: '13px',
+    color: '#888',
+    marginBottom: '16px',
+  },
+  emptyState: {
+    textAlign: 'center',
+    padding: '64px 24px',
+  },
+  emptyIcon: {
+    fontSize: '64px',
+    marginBottom: '16px',
+  },
+  skeleton: {
+    background: '#262626',
+    borderRadius: '16px',
+    height: '200px',
+    animation: 'pulse 1.5s ease-in-out infinite',
+  },
+};
+
+// Skeleton component for loading state
+const FolderSkeleton = memo(() => (
+  <div style={styles.skeleton} />
+));
+
+// Folder Card component
+const FolderCard = memo(({ folder, onClick }) => {
+  const [hovered, setHovered] = useState(false);
+
+  const getDisplay = () => {
+    if (folder.isMasterFolder) {
+      return {
+        icon: <FaCrown style={{ color: '#a855f7' }} />,
+        bgColor: 'linear-gradient(135deg, #7c3aed20 0%, #a855f720 100%)',
+        borderColor: '#7c3aed40',
+        badge: '👑 Master',
+        badgeBg: '#7c3aed20',
+        badgeColor: '#a855f7',
+      };
+    } else if (folder.isSystemFolder) {
+      return {
+        icon: <FaLock style={{ color: '#f97316' }} />,
+        bgColor: 'linear-gradient(135deg, #ea580c20 0%, #f9731620 100%)',
+        borderColor: '#f9731640',
+        badge: '🔒 System',
+        badgeBg: '#f9731620',
+        badgeColor: '#f97316',
+      };
+    }
+    return {
+      icon: <FaFolder style={{ color: '#3b82f6' }} />,
+      bgColor: 'linear-gradient(135deg, #2563eb20 0%, #3b82f620 100%)',
+      borderColor: '#3b82f640',
+      badge: '📁 Folder',
+      badgeBg: '#3b82f620',
+      badgeColor: '#3b82f6',
+    };
+  };
+
+  const display = getDisplay();
+  const itemCount = (folder.folders?.length || 0) + (folder.files?.length || 0);
+
+  return (
+    <div
+      style={{
+        ...styles.folderCard,
+        borderColor: hovered ? display.borderColor : '#262626',
+        transform: hovered ? 'translateY(-4px)' : 'none',
+        boxShadow: hovered ? '0 12px 24px rgba(0,0,0,0.4)' : 'none',
+      }}
+      onClick={() => onClick(folder._id)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div style={{ ...styles.folderIcon, background: display.bgColor }}>
+        {display.icon}
+      </div>
+
+      <h3 style={styles.folderName}>{folder.name}</h3>
+
+      <span style={{
+        ...styles.folderBadge,
+        background: display.badgeBg,
+        color: display.badgeColor,
+      }}>
+        {display.badge}
+      </span>
+
+      <div style={styles.itemCount}>
+        {itemCount} {itemCount === 1 ? 'item' : 'items'}
+      </div>
+
+      {folder.systemDescription && (
+        <p style={{ fontSize: '12px', color: '#666', marginBottom: '16px', lineHeight: 1.4 }}>
+          {folder.systemDescription.slice(0, 60)}...
+        </p>
+      )}
+
+      <Button
+        type="primary"
+        size="small"
+        icon={<FaArrowRight />}
+        style={{ width: '100%', fontWeight: '600' }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick(folder._id);
+        }}
+      >
+        Open Folder
+      </Button>
+    </div>
+  );
+});
+
+// Stat Card component
+const StatCard = memo(({ value, label, color }) => (
+  <div style={styles.statCard}>
+    <div style={{ ...styles.statNumber, color }}>{value}</div>
+    <div style={styles.statLabel}>{label}</div>
+  </div>
+));
 
 const FolderDashboard = () => {
   const navigate = useNavigate();
@@ -29,10 +250,10 @@ const FolderDashboard = () => {
   const [initializing, setInitializing] = useState(false);
 
   // Fetch all top-level folders (including Master Folder)
-  const fetchTopLevelFolders = async () => {
+  const fetchTopLevelFolders = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const [masterResponse, foldersResponse] = await Promise.all([
         api.get('/admin/master-folder/hierarchy', {
           params: { depth: 1, includeFiles: false }
@@ -43,40 +264,34 @@ const FolderDashboard = () => {
       ]);
 
       const masterFolder = masterResponse.data.data;
-      
-      // Combine Master Folder with other top-level folders
       const allFolders = [];
+
       if (masterFolder) {
         allFolders.push(masterFolder);
       }
-      
-      // Add other folders that aren't the master folder
+
       if (foldersResponse.data.success) {
         const otherFolders = foldersResponse.data.data.filter(
           folder => !folder.isMasterFolder
         );
         allFolders.push(...otherFolders);
       }
-      
+
       setFolders(allFolders);
-      
+
     } catch (error) {
       console.error('Error fetching folders:', error);
-      
-      // If Master Folder doesn't exist, show initialization option
-      if (error.response?.status === 404 || 
-          error.response?.data?.message?.includes('Master Folder not found')) {
+      if (error.response?.status === 404 ||
+        error.response?.data?.message?.includes('Master Folder not found')) {
         setShowInitModal(true);
-      } else {
-        message.error('Failed to load folders: ' + (error.response?.data?.message || error.message));
       }
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Fetch folder statistics
-  const fetchStatistics = async () => {
+  const fetchStatistics = useCallback(async () => {
     try {
       const response = await api.get('/admin/master-folder/statistics');
       if (response.data.success) {
@@ -84,274 +299,146 @@ const FolderDashboard = () => {
       }
     } catch (error) {
       console.error('Error fetching statistics:', error);
-      // Don't show error for statistics as it's not critical
     }
-  };
+  }, []);
 
   // Initialize Master Folder System
-  const initializeMasterFolder = async () => {
+  const initializeMasterFolder = useCallback(async () => {
     try {
       setInitializing(true);
       const response = await api.post('/admin/master-folder/initialize');
-      
+
       if (response.data.success) {
-        message.success('Master Folder System initialized successfully!');
         setShowInitModal(false);
-        // Refresh the folder list
         await fetchTopLevelFolders();
         await fetchStatistics();
       }
     } catch (error) {
       console.error('Error initializing Master Folder:', error);
-      message.error('Failed to initialize Master Folder System: ' + 
-        (error.response?.data?.message || error.message));
     } finally {
       setInitializing(false);
     }
-  };
+  }, [fetchTopLevelFolders, fetchStatistics]);
 
   useEffect(() => {
     fetchTopLevelFolders();
     fetchStatistics();
-  }, []);
+  }, [fetchTopLevelFolders, fetchStatistics]);
 
   // Navigate to folder contents
-  const handleFolderClick = (folderId) => {
-    // Ensure we have a valid string ID
+  const handleFolderClick = useCallback((folderId) => {
     const cleanFolderId = typeof folderId === 'object' ? folderId._id || folderId.id : folderId;
-    
-    if (!cleanFolderId) {
-      console.error('❌ [ERROR] Invalid folder ID in FolderDashboard:', folderId);
-      message.error('Invalid folder ID');
-      return;
-    }
-
+    if (!cleanFolderId) return;
     navigate(`/folder/${cleanFolderId}`);
-  };
-
-  // Get folder icon and styling based on type
-  const getFolderDisplay = (folder) => {
-    if (folder.isMasterFolder) {
-      return {
-        icon: <div className="text-4xl">👑</div>,
-        bgColor: 'bg-gradient-to-br from-purple-100 to-purple-200',
-        borderColor: 'border-purple-300',
-        textColor: 'text-purple-800',
-        badge: '👑 Master',
-        badgeColor: 'bg-purple-100 text-purple-800'
-      };
-    } else if (folder.isSystemFolder) {
-      return {
-        icon: <FaLock className="text-4xl text-orange-600" />,
-        bgColor: 'bg-gradient-to-br from-orange-100 to-orange-200',
-        borderColor: 'border-orange-300',
-        textColor: 'text-orange-800',
-        badge: '🔒 System',
-        badgeColor: 'bg-orange-100 text-orange-800'
-      };
-    } else {
-      return {
-        icon: <FaFolder className="text-4xl text-blue-600" />,
-        bgColor: 'bg-gradient-to-br from-blue-100 to-blue-200',
-        borderColor: 'border-blue-300',
-        textColor: 'text-blue-800',
-        badge: '📁 Folder',
-        badgeColor: 'bg-blue-100 text-blue-800'
-      };
-    }
-  };
+  }, [navigate]);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-96">
-        <Spin size="large" />
-        <span className="ml-3 text-lg">Loading folders...</span>
+      <div style={styles.container}>
+        <div style={styles.header}>
+          <div style={styles.skeleton} />
+        </div>
+        <div style={styles.foldersGrid}>
+          {[1, 2, 3, 4].map(i => <FolderSkeleton key={i} />)}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
+    <div style={styles.container}>
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-4">
+      <div style={styles.header}>
+        <div style={styles.headerTop}>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              📂 Content Management
+            <h1 style={styles.title}>
+              <span>📂</span> Content Management
             </h1>
-            <p className="text-gray-600">
+            <p style={styles.subtitle}>
               Manage all your content folders, files, and resources
             </p>
           </div>
-          <div className="flex gap-3">
-            <Button 
-              type="primary" 
+          <div style={styles.buttonGroup}>
+            <Button
+              type="primary"
               icon={<FaPlus />}
               onClick={() => navigate('/create-folder')}
+              style={{ fontWeight: '600' }}
             >
               Create Folder
             </Button>
-            <Button 
+            <Button
               icon={<FaCog />}
               onClick={() => setShowInitModal(true)}
             >
-              Initialize System
+              Initialize
             </Button>
           </div>
         </div>
 
         {/* Statistics Cards */}
         {statistics && (
-          <Row gutter={16} className="mb-6">
-            <Col span={6}>
-              <Card className="text-center">
-                <div className="text-2xl font-bold text-blue-600">
-                  {statistics.total}
-                </div>
-                <div className="text-gray-600">Total Folders</div>
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card className="text-center">
-                <div className="text-2xl font-bold text-purple-600">
-                  {statistics.system}
-                </div>
-                <div className="text-gray-600">System Folders</div>
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card className="text-center">
-                <div className="text-2xl font-bold text-green-600">
-                  {statistics.deletable}
-                </div>
-                <div className="text-gray-600">User Folders</div>
-              </Card>
-            </Col>
-            <Col span={6}>
-              <Card className="text-center">
-                <div className="text-2xl font-bold text-orange-600">
-                  {statistics.protected}
-                </div>
-                <div className="text-gray-600">Protected</div>
-              </Card>
-            </Col>
-          </Row>
+          <div style={styles.statsGrid}>
+            <StatCard value={statistics.total} label="Total Folders" color="#3b82f6" />
+            <StatCard value={statistics.system} label="System Folders" color="#a855f7" />
+            <StatCard value={statistics.deletable} label="User Folders" color="#22c55e" />
+            <StatCard value={statistics.protected} label="Protected" color="#f97316" />
+          </div>
         )}
       </div>
 
       {/* Folders Grid */}
       {folders.length > 0 ? (
-        <Row gutter={[24, 24]}>
-          {folders.map((folder) => {
-            const display = getFolderDisplay(folder);
-            const itemCount = (folder.folders?.length || 0) + (folder.files?.length || 0);
-            
-            return (
-              <Col key={folder._id} xs={24} sm={12} md={8} lg={6}>
-                <Card
-                  hoverable
-                  className={`${display.bgColor} ${display.borderColor} border-2 transition-all duration-300 hover:shadow-lg hover:scale-105`}
-                  onClick={() => handleFolderClick(folder._id)}
-                  bodyStyle={{ padding: '24px' }}
-                >
-                  <div className="text-center">
-                    {/* Folder Icon */}
-                    <div className="flex justify-center mb-4">
-                      {display.icon}
-                    </div>
-                    
-                    {/* Folder Name */}
-                    <h3 className={`text-lg font-semibold mb-2 ${display.textColor}`}>
-                      {folder.name}
-                    </h3>
-                    
-                    {/* Folder Badge */}
-                    <div className="mb-3">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${display.badgeColor}`}>
-                        {display.badge}
-                      </span>
-                    </div>
-                    
-                    {/* Item Count */}
-                    <div className="text-sm text-gray-600 mb-3">
-                      {itemCount} {itemCount === 1 ? 'item' : 'items'}
-                    </div>
-                    
-                    {/* System Description */}
-                    {folder.systemDescription && (
-                      <div className="text-xs text-gray-500 mb-4 line-clamp-2">
-                        {folder.systemDescription}
-                      </div>
-                    )}
-                    
-                    {/* Enter Button */}
-                    <Button 
-                      type="primary" 
-                      size="small"
-                      icon={<FaArrowRight />}
-                      className="w-full"
-                      onClick={(e) => {
-                        if (e && typeof e.stopPropagation === 'function') {
-                          e.stopPropagation();
-                        }
-                        handleFolderClick(folder._id);
-                      }}
-                    >
-                      Open Folder
-                    </Button>
-                  </div>
-                </Card>
-              </Col>
-            );
-          })}
-        </Row>
+        <div style={styles.foldersGrid}>
+          {folders.map((folder) => (
+            <FolderCard
+              key={folder._id}
+              folder={folder}
+              onClick={handleFolderClick}
+            />
+          ))}
+        </div>
       ) : (
-        <div className="text-center py-16">
-          <div className="text-6xl mb-4">📂</div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">
-            No Folders Found
-          </h3>
-          <p className="text-gray-500 mb-6">
-            Initialize the Master Folder System to get started with content management
+        <div style={styles.emptyState}>
+          <div style={styles.emptyIcon}><FaBoxOpen color="#888" /></div>
+          <h3 style={{ color: '#fff', marginBottom: '8px' }}>No Folders Found</h3>
+          <p style={{ color: '#888', marginBottom: '24px' }}>
+            Initialize the Master Folder System to get started
           </p>
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             size="large"
             icon={<FaCog />}
             onClick={() => setShowInitModal(true)}
           >
-            Initialize Master Folder System
+            Initialize Master Folder
           </Button>
         </div>
       )}
 
       {/* Master Folder Initialization Modal */}
       <Modal
-        title="🗂️ Initialize Master Folder System"
-        visible={showInitModal}
+        title={<span style={{ color: '#fff' }}>🗂️ Initialize Master Folder System</span>}
+        open={showInitModal}
         onOk={initializeMasterFolder}
         onCancel={() => setShowInitModal(false)}
         confirmLoading={initializing}
         okText="Initialize"
         cancelText="Cancel"
       >
-        <div className="py-4">
-          <p className="mb-4">
-            The Master Content Folder system provides a permanent, organized structure 
-            for managing all your content. It includes:
+        <div style={{ padding: '16px 0' }}>
+          <p style={{ marginBottom: '16px', color: '#d4d4d4' }}>
+            The Master Content Folder system provides a permanent, organized structure
+            for managing all your content:
           </p>
-          <ul className="list-disc list-inside space-y-2 text-sm text-gray-600">
-            <li>📁 <strong>Master Content Folder</strong> - Main container (cannot be deleted)</li>
+          <ul style={{ margin: 0, paddingLeft: '20px', color: '#a3a3a3', lineHeight: 2 }}>
+            <li>📁 <strong>Master Content Folder</strong> - Main container</li>
             <li>📚 <strong>Course Materials</strong> - Course-related content</li>
-            <li>🗃️ <strong>General Resources</strong> - General documents and files</li>
+            <li>🗃️ <strong>General Resources</strong> - General documents</li>
             <li>📋 <strong>Templates</strong> - Reusable templates</li>
-            <li>📦 <strong>Archived Content</strong> - Old content for reference</li>
+            <li>📦 <strong>Archived Content</strong> - Old content</li>
             <li>📤 <strong>Shared Documents</strong> - Cross-departmental files</li>
           </ul>
-          <p className="mt-4 text-sm text-gray-500">
-            This will create the folder structure in your database. The operation is safe 
-            and won't affect existing content.
-          </p>
         </div>
       </Modal>
     </div>

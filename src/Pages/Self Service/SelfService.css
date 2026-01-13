@@ -1,483 +1,171 @@
-.selfservice {
-  margin-top: 50px;
+/* Self Service Revamp - Dark Theme Scope */
+.self-service-container {
+    background-color: #141414;
+    min-height: 100vh;
+    padding: 24px;
+    /* Removed custom gradient to match standard theme */
+    font-family: 'Inter', sans-serif;
+    color: #fff;
 }
 
-.selfservice1 {
-  display: flex;
-  align-items: center;
-  gap: 20px;
+/* Glassmorphism Card (Shared) */
+.self-service-container .glass-card {
+    background: rgba(30, 30, 30, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.selfservice2 {
-  width: auto;
-  height: auto;
-  padding: 10px 25px 10px 25px;
-  border-radius: 30px;
-  background: #81bcff;
-  box-shadow: 0px 4px 4px 0px #ffffff40;
-  box-shadow: 0px 4px 4px 0px #00000040 inset;
-  cursor: pointer;
+.self-service-container .glass-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: rgba(26, 133, 255, 0.3);
 }
 
-.selfservice2 h6 {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 800;
-  font-size: 25px;
-  line-height: 65.37px;
-  color: #ffffff;
-  margin: 0;
+/* Page Header */
+.self-service-container .page-header {
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
-.selfservice3 {
-  text-decoration: none;
+.self-service-container .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+    letter-spacing: -0.5px;
 }
 
-.addcoupon {
-  margin-top: 20px;
-  height: 100vh;
-  overflow-y: scroll;
+.self-service-container .page-subtitle {
+    color: #aaa;
+    margin-top: 8px;
+    font-size: 14px;
 }
 
-.addcoupon1 {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 30px;
+/* Forms (Shared) */
+.self-service-container .dark-label {
+    display: block;
+    color: #ccc;
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 14px;
 }
 
-.addcoupon2 {
-  display: flex;
-  flex-direction: column;
+.self-service-container .dark-input {
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    transition: all 0.3s ease;
 }
 
-.addcoupon2 label {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 700;
-  font-size: 20px;
-  line-height: 65.37px;
-  color: #ffffff;
-  margin: 0;
+.self-service-container .dark-input:focus {
+    background-color: rgba(0, 0, 0, 0.4);
+    border-color: #1a85ff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(26, 133, 255, 0.2);
 }
 
-.addcoupon2 span {
-  color: #ff0505;
+.self-service-container .dark-input::placeholder {
+    color: #666;
 }
 
-.addcoupon2 input {
-  width: 100%;
-  height: 58px;
-  border-radius: 7px;
-  background: #0d0d0d;
-  border: 1px solid #1a85ff;
-  outline: none;
-  padding-left: 20px;
-  font-family: "Open Sans", sans-serif;
-  font-weight: 500;
-  font-size: 18px;
-  line-height: 24.51px;
-  color: #ffffff;
-  margin: 0;
+/* Buttons (Shared) */
+.self-service-container .primary-btn {
+    background: linear-gradient(135deg, #1a85ff 0%, #0062cc 100%);
+    border: none;
+    color: white;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(26, 133, 255, 0.3);
 }
 
-.addcoupon2 input::placeholder {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 500;
-  font-size: 18px;
-  line-height: 24.51px;
-  color: #878787;
-  margin: 0;
+.self-service-container .primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(26, 133, 255, 0.5);
 }
 
-.addcoupon3 {
-  margin-top: 10px;
+.self-service-container .secondary-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
-.addcoupon4 {
+.self-service-container .secondary-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
 }
 
-.addcoupon4 label {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 700;
-  font-size: 20px;
-  line-height: 65.37px;
-  color: #ffffff;
-  margin: 0;
-  display: block;
+.self-service-container .danger-btn {
+    background: rgba(255, 77, 79, 0.1);
+    border: 1px solid rgba(255, 77, 79, 0.2);
+    color: #ff4d4f;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
-.addcoupon4 span {
-  color: #ff0505;
+.self-service-container .danger-btn:hover {
+    background: rgba(255, 77, 79, 0.2);
+    box-shadow: 0 4px 12px rgba(255, 77, 79, 0.2);
 }
 
-.addcoupon5 {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 20px;
-  align-items: center;
+/* Tables (Shared) */
+.self-service-container .ant-table {
+    background: transparent !important;
 }
 
-.addcoupon6 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.self-service-container .ant-table-thead>tr>th {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #ccc !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    font-weight: 600;
 }
 
-.addcoupon6 p {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 500;
-  font-size: 18px;
-  line-height: 27.24px;
-  color: #878787;
-  margin: 0;
+.self-service-container .ant-table-tbody>tr>td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    color: #fff !important;
 }
 
-.addcoupon6 input {
-  width: 20px;
-  height: 20px;
-  border: 1px solid #d9d9d9;
-  background: transparent;
-  background-color: transparent;
+.self-service-container .ant-table-tbody>tr:hover>td {
+    background: rgba(255, 255, 255, 0.03) !important;
 }
 
-.addcoupon7 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 10px;
+.self-service-container .ant-pagination-item {
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-.addcoupon7 p {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 500;
-  font-size: 18px;
-  line-height: 27.24px;
-  color: #878787;
-  margin: 0;
+.self-service-container .ant-pagination-item a {
+    color: #fff !important;
 }
 
-.addcoupon8 {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 20px;
+.self-service-container .ant-pagination-item-active {
+    border-color: #1a85ff !important;
+    background: rgba(26, 133, 255, 0.1) !important;
 }
 
-.addcoupon9 {
-}
-
-.addcoupon9 h6 {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 800;
-  font-size: 20px;
-  line-height: 27.24px;
-  color: #ffffff;
-  margin: 0;
-}
-
-.addcoupon9 p {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 500;
-  font-size: 18px;
-  line-height: 27.24px;
-  color: #878787;
-  margin: 0;
-  margin-top: 5px;
-}
-
-.addcoupon10 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.addcoupon10 p {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 500;
-  font-size: 18px;
-  line-height: 27.24px;
-  color: #878787;
-  margin: 0;
-}
-
-.custom-date-input {
-  position: relative;
-  display: inline-block;
-}
-
-input[type="date"] {
-  padding-right: 10px;
-}
-
-input[type="time"] {
-  padding-right: 10px;
-}
-
-.date-icon {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
-  background-image: url("../../Image/calendar.png"); /* Replace with your icon path */
-  background-size: cover;
-  pointer-events: none; /* Allow clicks to pass through */
-}
-
-.date-icon1 {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
-  background-image: url("../../Image/clock.png"); /* Replace with your icon path */
-  background-size: cover;
-  pointer-events: none; /* Allow clicks to pass through */
-}
-/* Optional: Styling the input when focused or active */
-.custom-date-input input[type="date"]:focus + .date-icon {
-  /* Example: Change color of the icon when input is focused */
-  filter: brightness(0.8);
-}
-
-.addcoupon11 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 5px;
-}
-
-.addcoupon11 p {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 500;
-  font-size: 18px;
-  line-height: 27.24px;
-  color: #878787;
-  margin: 0;
-}
-
-.addcoupon11 input[type="checkbox"] {
-  width: 17px;
-  height: 17px;
-}
-
-.managebaner {
-  margin-top: 20px;
-}
-
-.managebaner1 {
-  width: 100%;
-  height: 360px;
-  background: #0d0d0d;
-  border: 1px solid #1a85ff;
-  border-radius: 10px;
-  padding: 30px;
-}
-
-.managebaner2 {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.managebaner2 p {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 600;
-  font-size: 16px;
-  line-height: 21.79px;
-  color: #ffffff;
-  margin: 0;
-}
-
-.managebaner3 {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  cursor: pointer;
-}
-
-.managebaner3 span {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 600;
-  font-size: 11px;
-  line-height: 14.98px;
-  color: #ff0505;
-  margin: 0;
-}
-
-.managebaner5 {
-  width: 290px;
-  height: 144px;
-  border-radius: 10px;
-  margin-top: 10px;
-  cursor: pointer;
-}
-
-.managebaner5 img {
-  width: 100%;
-  height: 100%;
-  border-radius: 10px;
-}
-
-.managebaner6 {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-top: 5px;
-}
-
-.managebaner6 p {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 600;
-  font-size: 12px;
-  line-height: 16.34px;
-  color: #0fb700;
-  margin: 0;
-}
-
-.managebaner7 {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin-top: 15px;
-}
-
-.managebaner7 label {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 19.07px;
-  color: #ffffff;
-  margin: 0;
-}
-
-.managebaner8 {
-  width: 100%;
-  height: 28px;
-  border-radius: 5px;
-  border: 1px solid #1a85ff;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
-.managebaner8 p {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 600;
-  font-size: 11px;
-  line-height: 14.98px;
-  color: #d0cece;
-  margin: 0;
-}
-
-.managebaner8 span {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 600;
-  font-size: 11px;
-  line-height: 14.98px;
-  color: #1a85ff;
-  margin: 0;
-}
-
-.managebaner9 {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 15px;
-}
-
-.managebaner9 h6 {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 19.07px;
-  color: #ffffff;
-  margin: 0;
-}
-
-.managebaner10 {
-  width: 100%;
-  height: 360px;
-  background: #0d0d0d;
-  border-radius: 10px;
-  border: 1px solid #1a85ff;
-  padding: 15px;
-}
-
-.managebaner11 {
-}
-
-.managebaner11 h6 {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 600;
-  font-size: 16px;
-  line-height: 21.79px;
-  color: #ffffff;
-  margin: 0;
-}
-
-.managebaner11 p {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 600;
-  font-size: 10px;
-  line-height: 13.62px;
-  color: #ffffff;
-  margin: 0;
-  margin-top: 20px;
-}
-
-.managebaner12 {
-  margin-top: 20px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.managebaner13 {
-  width: 100%;
-  height: 144px;
-  border-radius: 10px;
-  background: #d9d9d9;
-  border: 1px dashed #1a85ff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.managebaner13 img {
-  width: 100%;
-  height: 100%;
-  border-radius: 10px;
-}
-
-.managebaner13 p {
-  font-family: "Open Sans", sans-serif;
-  font-weight: 500;
-  font-size: 10px;
-  line-height: 13.62px;
-  color: #000000;
-  margin: 0;
-}
-
-.managebaner14 {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  height: 100vh;
-  overflow-y: scroll;
-  margin-bottom: 20px;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
-
-.managebaner15 {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.self-service-container .ant-pagination-item-active a {
+    color: #1a85ff !important;
 }

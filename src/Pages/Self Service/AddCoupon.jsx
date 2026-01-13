@@ -1,53 +1,42 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { createCoupon } from "../../redux/slices/couponSlice"; // Redux action
+import { createCoupon } from "../../redux/slices/couponSlice";
 import {
-  Modal,
-  Button,
+  Form,
   Input,
-  Checkbox,
   Select,
+  Button,
   DatePicker,
   TimePicker,
+  Checkbox,
+  Row,
+  Col,
+  notification,
+  Card
 } from "antd";
+import {
+  ArrowLeftOutlined,
+  SaveOutlined,
+  TagOutlined,
+  UserOutlined,
+  BookOutlined,
+  ClockCircleOutlined,
+  DollarOutlined
+} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import img5 from "../../Image/img30.png";
 import HOC from "../../Component/HOC/HOC";
 import dayjs from "dayjs";
 import { fetchCourses } from "../../redux/slices/courseSlice";
+import './SelfService.css';
 
 const { Option } = Select;
 
 const AddCoupon = () => {
-  const [formData, setFormData] = useState({
-    offerName: "",
-    couponCode: "",
-    couponType: "Public",
-    assignedUserIds: [],
-    courseSelectionType: "All",
-    assignedCourseIds: [],
-    usageLimit: "",
-    isUnlimited: false,
-    usagePerStudent: "",
-    visibility: true,
-    discountType: "Flat",
-    discountAmount: "",
-    discountPercentage: "",
-    startDate: "",
-    startTime: "",
-    endDate: "",
-    endTime: "",
-    isLifetime: true,
-    minimumOrderValue: "",
-    usageCount: 0,
-    userUsage: [],
-  });
-
-  const [modalShow, setModalShow] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [form] = Form.useForm();
 
-  // Fetch courses from Redux
   const { courses, loading: coursesLoading } = useSelector(
     (state) => state.courses
   );
@@ -56,356 +45,271 @@ const AddCoupon = () => {
     dispatch(fetchCourses());
   }, [dispatch]);
 
-  const handleChange = (field, value) => {
-    setFormData({ ...formData, [field]: value });
+  const onFinish = async (values) => {
+    setLoading(true);
+    try {
+      // Format dates and times
+      const formattedValues = {
+        ...values,
+        startDate: values.startDate ? values.startDate.format('YYYY-MM-DD') : undefined,
+        endDate: values.endDate ? values.endDate.format('YYYY-MM-DD') : undefined,
+        startTime: values.startTime ? values.startTime.format('HH:mm') : undefined,
+        endTime: values.endTime ? values.endTime.format('HH:mm') : undefined,
+      };
+
+      // Handle array conversion for Assigned User IDs
+      if (typeof formattedValues.assignedUserIds === 'string') {
+        formattedValues.assignedUserIds = formattedValues.assignedUserIds.split(',').map(id => id.trim());
+      }
+
+      await dispatch(createCoupon(formattedValues)).unwrap();
+      notification.success({ message: "Coupon created successfully!" });
+      setTimeout(() => {
+        navigate("/selfservice/manage-coupons");
+      }, 1500);
+    } catch (error) {
+      console.error("Error creating coupon:", error);
+      notification.error({ message: "Failed to create coupon" });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDateChange = (date, dateString, fieldName) => {
-    setFormData({ ...formData, [fieldName]: dateString });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    dispatch(createCoupon(formData))
-      .unwrap()
-      .then(() => {
-        setModalShow(true);
-        setTimeout(() => {
-          setModalShow(false);
-          navigate("/selfservice/manage-coupons");
-        }, 2000);
-      })
-      .catch((err) => console.error("Error creating coupon:", err));
-  };
+  // Watch for form value changes to conditionally render fields
+  const couponType = Form.useWatch('couponType', form);
+  const courseSelectionType = Form.useWatch('courseSelectionType', form);
+  const discountType = Form.useWatch('discountType', form);
+  const isLifetime = Form.useWatch('isLifetime', form);
 
   return (
-    <>
-      {/* Success Modal */}
-      <Modal
-        open={modalShow}
-        centered
-        footer={null}
-        onCancel={() => navigate("/selfservice/manage-coupons")}
-        className="text-center"
-      >
-        <div className="flex flex-col items-center gap-4">
-          <img src={img5} alt="Success" className="w-20 h-20" />
-          <p className="text-lg font-medium text-gray-800">
-            Coupon Added Successfully
-          </p>
-        </div>
-      </Modal>
-
-      <div className="max-w-4xl mx-auto bg-white shadow-md rounded-md p-8 mt-6">
-        <div className="flex justify-between items-center mb-6">
+    <div className="self-service-container">
+      <div className="page-header">
+        <div>
           <Button
-            type="primary"
-            onClick={() => navigate("/selfservice")}
-            className="bg-blue-500 text-white"
+            type="text"
+            icon={<ArrowLeftOutlined />}
+            className="text-white hover:text-blue-400 p-0 mr-2"
+            onClick={() => navigate("/selfservice/manage-coupons")}
           >
             Back
           </Button>
-          <h2 className="text-xl font-semibold text-gray-800">
-            Create Coupon Code
-          </h2>
+          <span className="page-title align-middle">🎟️ Create Coupon Code</span>
+          <p className="page-subtitle ml-8">Design a new discount offer for your students.</p>
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Offer Name */}
-          <div>
-            <label className="block mb-2 text-sm font-medium text-gray-600">
-              Offer Name
-            </label>
-            <Input
-              name="offerName"
-              value={formData.offerName}
-              onChange={(e) => handleChange("offerName", e.target.value)}
-              placeholder="Enter offer name"
-              required
-            />
-          </div>
-
-          {/* Coupon Code */}
-          <div>
-            <label className="block mb-2 text-sm font-medium text-gray-600">
-              Coupon Code
-            </label>
-            <Input
-              name="couponCode"
-              value={formData.couponCode}
-              onChange={(e) => handleChange("couponCode", e.target.value)}
-              placeholder="Enter coupon code"
-              required
-            />
-          </div>
-
-          {/* Coupon Type */}
-          <div>
-            <label className="block mb-2 text-sm font-medium text-gray-600">
-              Coupon Type
-            </label>
-            <Select
-              name="couponType"
-              value={formData.couponType}
-              onChange={(value) => handleChange("couponType", value)}
-              className="w-full"
-            >
-              <Option value="Public">Public</Option>
-              <Option value="Private">Private</Option>
-            </Select>
-          </div>
-
-          {/* Assigned Users */}
-          {formData.couponType === "Private" && (
-            <div>
-              <label className="block mb-2 text-sm font-medium text-gray-600">
-                Assigned Users
-              </label>
-              <Input
-                name="assignedUserIds"
-                value={formData.assignedUserIds.join(",")}
-                onChange={(e) =>
-                  handleChange(
-                    "assignedUserIds",
-                    e.target.value.split(",").map((id) => id.trim())
-                  )
-                }
-                placeholder="Enter user IDs (comma separated)"
-              />
-            </div>
-          )}
-
-          {/* Course Selection Type */}
-          <div>
-            <label className="block mb-2 text-sm font-medium text-gray-600">
-              Course Selection Type
-            </label>
-            <Select
-              name="courseSelectionType"
-              value={formData.courseSelectionType}
-              onChange={(value) => handleChange("courseSelectionType", value)}
-              className="w-full"
-            >
-              <Option value="All">Assign to All Courses</Option>
-              <Option value="Specific">Assign to Specific Courses</Option>
-            </Select>
-          </div>
-
-          {/* Assigned Courses */}
-          {formData.courseSelectionType === "Specific" && (
-            <div>
-              <label className="block mb-2 text-sm font-medium text-gray-600">
-                Assigned Courses
-              </label>
-              <Select
-                mode="multiple"
-                placeholder="Select courses"
-                value={formData.assignedCourseIds}
-                onChange={(value) => handleChange("assignedCourseIds", value)}
-                className="w-full"
-                loading={coursesLoading}
-              >
-                {courses.map((course) => (
-                  <Option key={course._id} value={course._id}>
-                    {course.title}
-                  </Option>
-                ))}
-              </Select>
-            </div>
-          )}
-
-          {/* Usage Limit */}
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <label className="block mb-2 text-sm font-medium text-gray-600">
-                Usage Limit
-              </label>
-              <Input
-                type="number"
-                name="usageLimit"
-                value={formData.usageLimit}
-                onChange={(e) => handleChange("usageLimit", e.target.value)}
-                disabled={formData.isUnlimited}
-              />
-            </div>
-            {/* <Checkbox
-              name="isUnlimited"
-              checked={formData.isUnlimited}
-              onChange={(e) => handleChange("isUnlimited", e.target.checked)}
-            >
-              Set as Unlimited
-            </Checkbox> */}
-          </div>
-
-          {/* Usage Per Student */}
-          <div>
-            <label className="block mb-2 text-sm font-medium text-gray-600">
-              Usage Per Student
-            </label>
-            <Input
-              type="number"
-              name="usagePerStudent"
-              value={formData.usagePerStudent}
-              onChange={(e) => handleChange("usagePerStudent", e.target.value)}
-            />
-          </div>
-
-          {/* Visibility */}
-          <div>
-            <Checkbox
-              name="visibility"
-              checked={formData.visibility}
-              onChange={(e) => handleChange("visibility", e.target.checked)}
-            >
-              Make Coupon Visible
-            </Checkbox>
-          </div>
-
-          {/* Discount */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block mb-2 text-sm font-medium text-gray-600">
-                Discount Type
-              </label>
-              <Select
-                name="discountType"
-                value={formData.discountType}
-                onChange={(value) => handleChange("discountType", value)}
-                className="w-full"
-              >
-                <Option value="Flat">Flat Discount</Option>
-                <Option value="Percentage">Percentage Discount</Option>
-              </Select>
-            </div>
-            {/* <div>
-              <label className="block mb-2 text-sm font-medium text-gray-600">
-                Discount Amount
-              </label>
-              <Input
-                type="number"
-                name="discountAmount"
-                value={formData.discountAmount}
-                onChange={(e) =>
-                  handleChange("discountAmount", e.target.value)
-                }
-              />
-            </div> */}
-            {formData.discountType === "Flat" ? (
-              <div>
-                <label className="block mb-2 text-sm font-medium text-gray-600">
-                  Discount Amount
-                </label>
-                <Input
-                  type="number"
-                  name="discountAmount"
-                  value={formData.discountAmount}
-                  onChange={(e) =>
-                    handleChange("discountAmount", e.target.value)
-                  }
-                />
-              </div>
-            ) : (
-              <div>
-                <label className="block mb-2 text-sm font-medium text-gray-600">
-                  Discount Percentage
-                </label>
-                <Input
-                  type="number"
-                  name="discountPercentage"
-                  value={formData.discountPercentage}
-                  onChange={(e) =>
-                    handleChange("discountPercentage", e.target.value)
-                  }
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Date & Time */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block mb-2 text-sm font-medium text-gray-600">
-                Start Date
-              </label>
-              <DatePicker
-                className="w-full"
-                value={formData.startDate ? dayjs(formData.startDate) : null}
-                onChange={(date, dateString) =>
-                  handleDateChange(date, dateString, "startDate")
-                }
-              />
-            </div>
-            <div>
-              <label className="block mb-2 text-sm font-medium text-gray-600">
-                Start Time
-              </label>
-              <TimePicker
-                className="w-full"
-                value={
-                  formData.startTime ? dayjs(formData.startTime, "HH:mm") : null
-                }
-                onChange={(time, timeString) =>
-                  handleDateChange(time, timeString, "startTime")
-                }
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block mb-2 text-sm font-medium text-gray-600">
-                End Date
-              </label>
-              <DatePicker
-                className="w-full"
-                value={formData.endDate ? dayjs(formData.endDate) : null}
-                onChange={(date, dateString) =>
-                  handleDateChange(date, dateString, "endDate")
-                }
-              />
-            </div>
-            <div>
-              <label className="block mb-2 text-sm font-medium text-gray-600">
-                End Time
-              </label>
-              <TimePicker
-                className="w-full"
-                value={
-                  formData.endTime ? dayjs(formData.endTime, "HH:mm") : null
-                }
-                onChange={(time, timeString) =>
-                  handleDateChange(time, timeString, "endTime")
-                }
-              />
-            </div>
-          </div>
-
-          {/* Minimum Order Value */}
-          <div>
-            <label className="block mb-2 text-sm font-medium text-gray-600">
-              Minimum Order Value
-            </label>
-            <Input
-              type="number"
-              name="minimumOrderValue"
-              value={formData.minimumOrderValue}
-              onChange={(e) =>
-                handleChange("minimumOrderValue", e.target.value)
-              }
-            />
-          </div>
-
-          {/* Submit */}
-          <Button
-            type="primary"
-            htmlType="submit"
-            className="w-full bg-blue-500 text-white"
-          >
-            Create Coupon
-          </Button>
-        </form>
       </div>
-    </>
+
+      <div className="glass-card max-w-5xl mx-auto">
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+          initialValues={{
+            couponType: "Public",
+            courseSelectionType: "All",
+            discountType: "Flat",
+            isUnlimited: false,
+            visibility: true,
+            isLifetime: true,
+            usageCount: 0,
+            userUsage: [],
+          }}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+            {/* Left Column: Core Details */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-blue-400 mb-4 border-b border-gray-700 pb-2">
+                <TagOutlined /> Basic Information
+              </h3>
+
+              <Form.Item
+                label={<span className="dark-label">Offer Name</span>}
+                name="offerName"
+                rules={[{ required: true, message: 'Please enter offer name' }]}
+              >
+                <Input placeholder="e.g. New Year Sale" className="dark-input" prefix={<TagOutlined className="text-gray-500" />} />
+              </Form.Item>
+
+              <Form.Item
+                label={<span className="dark-label">Coupon Code</span>}
+                name="couponCode"
+                rules={[{ required: true, message: 'Please enter coupon code' }]}
+              >
+                <Input placeholder="e.g. WELCOME2025" className="dark-input font-mono uppercase" />
+              </Form.Item>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item label={<span className="dark-label">Coupon Type</span>} name="couponType">
+                    <Select className="dark-select" dropdownClassName="dark-dropdown">
+                      <Option value="Public">Public</Option>
+                      <Option value="Private">Private</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item label={<span className="dark-label">Visibility</span>} name="visibility" valuePropName="checked">
+                    <Checkbox className="text-gray-300">Visible to Users</Checkbox>
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              {couponType === 'Private' && (
+                <Form.Item
+                  label={<span className="dark-label">Assigned User IDs</span>}
+                  name="assignedUserIds"
+                  help="Comma separated user IDs"
+                >
+                  <Input.TextArea placeholder="User ID 1, User ID 2..." className="dark-input" rows={2} />
+                </Form.Item>
+              )}
+
+              <h3 className="text-lg font-semibold text-blue-400 mt-8 mb-4 border-b border-gray-700 pb-2">
+                <BookOutlined /> Course Applicability
+              </h3>
+
+              <Form.Item label={<span className="dark-label">Course Selection</span>} name="courseSelectionType">
+                <Select className="dark-select" dropdownClassName="dark-dropdown">
+                  <Option value="All">All Courses</Option>
+                  <Option value="Specific">Specific Courses</Option>
+                </Select>
+              </Form.Item>
+
+              {courseSelectionType === 'Specific' && (
+                <Form.Item
+                  label={<span className="dark-label">Select Courses</span>}
+                  name="assignedCourseIds"
+                  rules={[{ required: true, message: 'Please select at least one course' }]}
+                >
+                  <Select
+                    mode="multiple"
+                    placeholder="Search and select courses"
+                    className="dark-select"
+                    dropdownClassName="dark-dropdown"
+                    loading={coursesLoading}
+                    optionFilterProp="children"
+                  >
+                    {courses.map(course => (
+                      <Option key={course._id} value={course._id}>{course.title}</Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              )}
+            </div>
+
+            {/* Right Column: Limits & values */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-blue-400 mb-4 border-b border-gray-700 pb-2">
+                <DollarOutlined /> Discount & Usage
+              </h3>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item label={<span className="dark-label">Discount Type</span>} name="discountType">
+                    <Select className="dark-select" dropdownClassName="dark-dropdown">
+                      <Option value="Flat">Flat Amount (₹)</Option>
+                      <Option value="Percentage">Percentage (%)</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label={<span className="dark-label">{discountType === 'Flat' ? 'Amount (₹)' : 'Percentage (%)'}</span>}
+                    name={discountType === 'Flat' ? 'discountAmount' : 'discountPercentage'}
+                    rules={[{ required: true, message: 'Required' }]}
+                  >
+                    <Input type="number" className="dark-input" min={0} />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Form.Item label={<span className="dark-label">Minimum Order Value (₹)</span>} name="minimumOrderValue">
+                <Input type="number" className="dark-input" min={0} />
+              </Form.Item>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item label={<span className="dark-label">Total Usage Limit</span>} name="usageLimit">
+                    <Input type="number" className="dark-input" placeholder="Total redemptions" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item label={<span className="dark-label">Usage Per Student</span>} name="usagePerStudent">
+                    <Input type="number" className="dark-input" placeholder="Max per user" />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <h3 className="text-lg font-semibold text-blue-400 mt-8 mb-4 border-b border-gray-700 pb-2">
+                <ClockCircleOutlined /> Validity Period
+              </h3>
+
+              <Form.Item name="isLifetime" valuePropName="checked">
+                <Checkbox className="text-gray-300">Lifetime Validity</Checkbox>
+              </Form.Item>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    label={<span className="dark-label">Start Date</span>}
+                    name="startDate"
+                    rules={[{ required: true, message: 'Required' }]}
+                  >
+                    <DatePicker className="w-full dark-input" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label={<span className="dark-label">Start Time</span>}
+                    name="startTime"
+                  >
+                    <TimePicker className="w-full dark-input" format="HH:mm" />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              {!isLifetime && (
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      label={<span className="dark-label">End Date</span>}
+                      name="endDate"
+                      rules={[{ required: true, message: 'Required' }]}
+                    >
+                      <DatePicker className="w-full dark-input" />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label={<span className="dark-label">End Time</span>}
+                      name="endTime"
+                    >
+                      <TimePicker className="w-full dark-input" format="HH:mm" />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-gray-700 flex justify-end gap-4">
+            <Button className="secondary-btn" size="large" onClick={() => navigate("/selfservice/manage-coupons")}>
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="primary-btn"
+              size="large"
+              icon={<SaveOutlined />}
+              loading={loading}
+            >
+              Create Coupon
+            </Button>
+          </div>
+        </Form>
+      </div>
+    </div>
   );
 };
 

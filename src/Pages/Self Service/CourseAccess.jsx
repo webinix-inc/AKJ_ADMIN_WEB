@@ -1,29 +1,31 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Select, Button, message, Card, Spin, Input } from "antd";
-import { LockOutlined, ClockCircleOutlined } from "@ant-design/icons";
-import { fetchAllUserProfiles } from "../../redux/slices/userSlice"; // Fetch users from Redux
-import { fetchCourses } from "../../redux/slices/courseSlice"; // Fetch courses from Redux
-import api from "../../api/axios"; // Axios instance
+import { Select, Button, message, Card, Spin, Input, Form, Typography, Space } from "antd";
+import { LockOutlined, ClockCircleOutlined, UserOutlined, BookOutlined } from "@ant-design/icons";
+import { fetchAllUserProfiles } from "../../redux/slices/userSlice";
+import { fetchCourses } from "../../redux/slices/courseSlice";
+import api from "../../api/axios";
 import HOC from "../../Component/HOC/HOC";
+import './SelfService.css';
 
 const { Option } = Select;
+const { Title } = Typography;
 
 const CourseAccess = () => {
   const dispatch = useDispatch();
-  
+
   // Redux State
   const { allUsers, loading: usersLoading } = useSelector((state) => state.user);
   const { courses, loading: coursesLoading } = useSelector((state) => state.courses);
 
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
-  const [expiresIn, setExpiresIn] = useState(""); // Expiration in days (optional)
+  const [expiresIn, setExpiresIn] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchAllUserProfiles()); // Fetch users from Redux
-    dispatch(fetchCourses()); // Fetch courses from Redux
+    dispatch(fetchAllUserProfiles());
+    dispatch(fetchCourses());
   }, [dispatch]);
 
   const handleAccess = async (action) => {
@@ -50,7 +52,9 @@ const CourseAccess = () => {
 
       const response = await api.post("/admin/courses/access", payload);
       message.success(response.data.message);
-      setExpiresIn(""); // Reset input after submission
+      if (action === "ASSIGN") setExpiresIn("");
+      setSelectedUsers([]);
+      setSelectedCourse(null);
     } catch (error) {
       message.error(error.response?.data?.message || "Action failed.");
     } finally {
@@ -59,34 +63,54 @@ const CourseAccess = () => {
   };
 
   return (
-    <div className="p-8">
-      <Card title="Manage Course Access" bordered={false} style={{ maxWidth: 600, margin: "0 auto" }}>
-        {loading || usersLoading || coursesLoading ? <Spin size="large" /> : (
-          <>
-            <div className="mb-4">
-              <label>Select Users:</label>
+    <div className="self-service-container">
+      <div className="page-header justify-center text-center">
+        <div>
+          <h1 className="page-title">🔐 Manage Course Access</h1>
+          <p className="page-subtitle">Grant or revoke course access for students manually.</p>
+        </div>
+      </div>
+
+      <div className="flex justify-center">
+        <div className="glass-card p-8 w-full max-w-2xl">
+          {(loading || usersLoading || coursesLoading) && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10 rounded-xl">
+              <Spin size="large" />
+            </div>
+          )}
+
+          <Form layout="vertical">
+            <Form.Item label={<span className="dark-label"><UserOutlined /> Select Students</span>}>
               <Select
                 mode="multiple"
                 style={{ width: "100%" }}
-                placeholder="Select users"
+                placeholder="Search and select students..."
                 onChange={(value) => setSelectedUsers(value)}
+                value={selectedUsers}
                 loading={usersLoading}
+                className="dark-select"
+                dropdownClassName="dark-dropdown"
+                filterOption={(input, option) =>
+                  option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                }
               >
                 {allUsers.map((user) => (
                   <Option key={user._id} value={user._id}>
-                    {user.firstName} ({user.email})
+                    {user.firstName} {user.lastName} ({user.email})
                   </Option>
                 ))}
               </Select>
-            </div>
+            </Form.Item>
 
-            <div className="mb-4">
-              <label>Select Course:</label>
+            <Form.Item label={<span className="dark-label"><BookOutlined /> Select Course</span>}>
               <Select
                 style={{ width: "100%" }}
-                placeholder="Select course"
+                placeholder="Select a course..."
                 onChange={(value) => setSelectedCourse(value)}
+                value={selectedCourse}
                 loading={coursesLoading}
+                className="dark-select"
+                dropdownClassName="dark-dropdown"
               >
                 {courses.map((course) => (
                   <Option key={course._id} value={course._id}>
@@ -94,41 +118,43 @@ const CourseAccess = () => {
                   </Option>
                 ))}
               </Select>
-            </div>
+            </Form.Item>
 
-            <div className="mb-4">
-              <label>Access Duration (Days) <small>(Optional)</small>:</label>
+            <Form.Item label={<span className="dark-label"><ClockCircleOutlined /> Access Duration (Days) <span className="text-gray-500 text-xs ml-1">(Optional: Leave empty for lifetime)</span></span>}>
               <Input
                 type="number"
                 min="1"
-                placeholder="Enter number of days (leave empty for permanent access)"
+                placeholder="e.g. 30"
                 value={expiresIn}
                 onChange={(e) => setExpiresIn(e.target.value)}
-                suffix={<ClockCircleOutlined />}
+                className="dark-input"
               />
-            </div>
+            </Form.Item>
 
-            <div className="flex gap-4">
+            <div className="flex gap-4 mt-8">
               <Button
                 type="primary"
                 icon={<LockOutlined />}
                 onClick={() => handleAccess("ASSIGN")}
                 loading={loading}
+                className="primary-btn flex-1 h-10 text-base"
               >
                 Grant Access
               </Button>
 
               <Button
-                type="danger"
+                type="primary"
+                danger
                 onClick={() => handleAccess("REVOKE")}
                 loading={loading}
+                className="flex-1 h-10 text-base rounded-md"
               >
                 Revoke Access
               </Button>
             </div>
-          </>
-        )}
-      </Card>
+          </Form>
+        </div>
+      </div>
     </div>
   );
 };

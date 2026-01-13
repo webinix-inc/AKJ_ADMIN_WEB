@@ -1,12 +1,31 @@
 import React, { useEffect, useState } from "react";
 import HOC from "../../Component/HOC/HOC";
 import "./Students.css";
-import OverlayTrigger from "react-bootstrap/OverlayTrigger";
-import Tooltip from "react-bootstrap/Tooltip";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
-import { Pagination, Select, DatePicker } from "antd";
+import {
+  Pagination,
+  Select,
+  DatePicker,
+  Input,
+  Table,
+  Space,
+  Tag,
+  Tooltip,
+  Avatar,
+  Card
+} from "antd";
+import {
+  SearchOutlined,
+  UserOutlined,
+  CalendarOutlined,
+  PhoneOutlined,
+  MailOutlined,
+  EyeOutlined
+} from "@ant-design/icons";
 import dayjs from "dayjs";
+
+const { RangePicker } = DatePicker;
 
 const Students = () => {
   const [studentsData, setStudentsData] = useState([]);
@@ -50,9 +69,8 @@ const Students = () => {
   };
 
   const filteredStudents = studentsData.filter((student) => {
-    const fullName = `${student.firstName ?? ""} ${
-      student.lastName ?? ""
-    }`.toLowerCase();
+    const fullName = `${student.firstName ?? ""} ${student.lastName ?? ""
+      }`.toLowerCase();
     const email = (student.email ?? "").toLowerCase();
     const phone = String(student.phone ?? "").toLowerCase();
 
@@ -77,186 +95,157 @@ const Students = () => {
     return matchesSearch && matchesDate;
   });
 
-  const indexOfLastStudent = currentPage * studentsPerPage;
-  const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
-  const currentStudents = filteredStudents.slice(
-    indexOfFirstStudent,
-    indexOfLastStudent
-  );
+  const columns = [
+    {
+      title: 'Student',
+      dataIndex: 'image',
+      key: 'image',
+      width: 80,
+      render: (image, record) => (
+        <Link to={`/students/studentprofile/${record._id}`}>
+          {image ? (
+            <Avatar src={image} size={48} className="border border-gray-600" />
+          ) : (
+            <Avatar size={48} style={{ backgroundColor: '#3b82f6', verticalAlign: 'middle' }}>
+              {getInitials(`${record.firstName} ${record.lastName}`)}
+            </Avatar>
+          )}
+        </Link>
+      )
+    },
+    {
+      title: 'Full Name',
+      key: 'fullName',
+      render: (_, record) => (
+        <div className="flex flex-col">
+          <Link to={`/students/studentprofile/${record._id}`} className="text-white hover:text-blue-400 font-semibold text-base transition-colors">
+            {record.firstName} {record.lastName}
+          </Link>
+          <span className="text-xs text-gray-500">ID: {record._id.slice(-6).toUpperCase()}</span>
+        </div>
+      ),
+      sorter: (a, b) => (a.firstName || "").localeCompare(b.firstName || "")
+    },
+    {
+      title: 'Contact Info',
+      key: 'contact',
+      render: (_, record) => (
+        <div className="flex flex-col gap-1">
+          <span className="text-gray-300 flex items-center gap-2">
+            <MailOutlined className="text-blue-500" /> {record.email || "N/A"}
+          </span>
+          <span className="text-gray-400 flex items-center gap-2 text-sm">
+            <PhoneOutlined className="text-green-500" /> {record.phone || "N/A"}
+          </span>
+        </div>
+      )
+    },
+    {
+      title: 'Registered On',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (date) => (
+        <Space>
+          <CalendarOutlined className="text-gray-500" />
+          <span className="text-gray-300">{date ? new Date(date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : "N/A"}</span>
+        </Space>
+      ),
+      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      align: 'center',
+      render: (_, record) => (
+        <Tooltip title="View Full Profile">
+          <Link to={`/students/studentprofile/${record._id}`}>
+            <div className="action-btn">
+              <EyeOutlined />
+            </div>
+          </Link>
+        </Tooltip>
+      )
+    }
+  ];
 
   return (
-    <div className="students">
-      <div className="students1" style={{ width: "90%" }}>
-        {/* Add filter or search options here if needed */}
+    <div className="students-container">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">👨‍🎓 Students Directory</h1>
+          <p className="page-subtitle">Manage and view all registered students.</p>
+        </div>
+        <div className="bg-white/5 px-4 py-2 rounded-lg border border-white/10">
+          <span className="text-gray-400 text-sm">Total Students:</span>
+          <span className="text-white font-bold ml-2 text-lg">{studentsData.length}</span>
+        </div>
       </div>
-      <div className="students3">
-        {/* <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
-          <input
-            type="text"
-            placeholder="Search by name, email, or phone"
+
+      <div className="glass-card mb-6">
+        <div className="flex flex-wrap gap-4 items-center justify-between">
+          <Input
+            prefix={<SearchOutlined className="text-gray-500" />}
+            placeholder="Search by name, email, or phone..."
             value={searchTerm}
             onChange={(e) => {
               setSearchTerm(e.target.value.toLowerCase());
               setCurrentPage(1);
             }}
-            style={{ padding: "8px", width: "300px" }}
-          />
-
-          <DatePicker
-            placeholder="Filter by registration date"
-            value={selectedDate}
-            onChange={(date) => {
-              setSelectedDate(date);
-              setCurrentPage(1);
-            }}
+            className="dark-input"
+            style={{ maxWidth: '350px' }}
             allowClear
           />
-        </div> */}
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "20px",
-            marginBottom: "20px",
-          }}
-        >
-          <input
-            type="text"
-            placeholder="Search by name, email, or phone"
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value.toLowerCase());
-              setCurrentPage(1);
-            }}
-            style={{ padding: "8px", width: "300px" }}
-          />
 
-          <Select
-            value={dateFilter}
-            onChange={(value) => {
-              setDateFilter(value);
-              setCurrentPage(1);
-            }}
-            style={{ width: 200 }}
-            options={[
-              { value: "all", label: "All Dates" },
-              { value: "today", label: "Today" },
-              { value: "thisMonth", label: "This Month" },
-              { value: "custom", label: "Custom Range" },
-            ]}
-          />
-
-          {dateFilter === "custom" && (
-            <DatePicker.RangePicker
-              value={customRange}
-              onChange={(dates) => {
-                setCustomRange(dates);
+          <div className="flex flex-wrap gap-3">
+            <Select
+              value={dateFilter}
+              onChange={(value) => {
+                setDateFilter(value);
                 setCurrentPage(1);
               }}
-              allowClear
+              className="dark-select"
+              dropdownClassName="dark-dropdown"
+              style={{ width: 160 }}
+              options={[
+                { value: "all", label: "All Time" },
+                { value: "today", label: "Registered Today" },
+                { value: "thisMonth", label: "This Month" },
+                { value: "custom", label: "Custom Range" },
+              ]}
             />
-          )}
-        </div>
 
-        <div className="students4">
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>IMAGE</th>
-                  <th>FULL NAME</th>
-                  <th>EMAIL</th>
-                  <th>Registration Date</th>
-                  <th>PHONE NO.</th>
-                </tr>
-              </thead>
-              <tbody>
-                {/* {studentsData.length > 0 ? ( */}
-                {currentStudents.length > 0 ? (
-                  currentStudents.map((item, index) => (
-                    <tr key={index}>
-                      <td>
-                        <Link
-                          to={`/students/studentprofile/${item._id}`}
-                          className="selfservice3"
-                        >
-                          <OverlayTrigger
-                            placement="bottom"
-                            overlay={
-                              <Tooltip id={`tooltip-${index}`}>
-                                <strong>Click to View Profile</strong>
-                              </Tooltip>
-                            }
-                          >
-                            {item.image ? (
-                              <img
-                                src={item.image}
-                                alt={item.fullName}
-                                style={{
-                                  width: "55px",
-                                  height: "55px",
-                                  borderRadius: "50%",
-                                }}
-                              />
-                            ) : (
-                              <div
-                                style={{
-                                  width: "55px",
-                                  height: "55px",
-                                  borderRadius: "50%",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  backgroundColor: "#ddd",
-                                  color: "#555",
-                                  fontWeight: "bold",
-                                }}
-                              >
-                                {getInitials(
-                                  item.firstName + " " + item.lastName
-                                )}
-                              </div>
-                            )}
-                          </OverlayTrigger>
-                        </Link>
-                      </td>
-                      <td>{item.firstName + " " + item.lastName || "N/A"}</td>
-                      <td>{item.email || "N/A"}</td>
-                      <td>
-                        {item.createdAt
-                          ? new Date(item.createdAt).toLocaleDateString()
-                          : "N/A"}
-                      </td>
-                      <td>{item.phone || "N/A"}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="5">No students found</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          )}
+            {dateFilter === "custom" && (
+              <RangePicker
+                value={customRange}
+                onChange={(dates) => {
+                  setCustomRange(dates);
+                  setCurrentPage(1);
+                }}
+                className="dark-picker"
+                style={{ width: 260 }}
+              />
+            )}
+          </div>
         </div>
+      </div>
 
-        <div
-          style={{
-            marginTop: "20px",
-            display: "flex",
-            justifyContent: "center",
+      <div className="glass-card p-0 overflow-hidden">
+        <Table
+          columns={columns}
+          dataSource={filteredStudents}
+          loading={loading}
+          rowKey="_id"
+          pagination={{
+            current: currentPage,
+            pageSize: studentsPerPage,
+            total: filteredStudents.length,
+            onChange: (page) => setCurrentPage(page),
+            showSizeChanger: false,
+            className: 'p-4'
           }}
-        >
-          <Pagination
-            current={currentPage}
-            pageSize={studentsPerPage}
-            total={filteredStudents.length}
-            onChange={(page) => setCurrentPage(page)}
-            showSizeChanger={false}
-          />
-        </div>
+          className="dark-table"
+          locale={{ emptyText: <div className="py-8 text-gray-500">No students found matching your criteria.</div> }}
+        />
       </div>
     </div>
   );

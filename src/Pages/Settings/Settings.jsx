@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import HOC from "../../Component/HOC/HOC";
 import "./Settings.css";
 import { LuImagePlus } from "react-icons/lu";
@@ -16,6 +17,7 @@ const Settings = () => {
     profilePicture: null,
     // logo: null,
   });
+  const [originalProfile, setOriginalProfile] = useState(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -32,6 +34,14 @@ const Settings = () => {
           //   bio: data.bio || "",
           profilePicture: data.image || null,
           //   logo: data.logo || null,
+        });
+        setOriginalProfile({
+          userId: data._id || "",
+          firstName: data.firstName || "",
+          lastName: data.lastName || "",
+          email: data.email || "",
+          phoneNumber: data.phone || "",
+          profilePicture: data.image || null,
         });
       } catch (error) {
         console.error("Failed to fetch profile:", error);
@@ -54,17 +64,11 @@ const Settings = () => {
   };
 
   // Handle form reset
+  // Handle form reset
   const handleReset = () => {
-    setProfile({
-      firstName: "",
-      lastName: "",
-      email: "",
-      userType: "",
-      phoneNumber: "",
-      //   bio: "",
-      profilePicture: null,
-      //   logo: null,
-    });
+    if (originalProfile) {
+      setProfile({ ...originalProfile });
+    }
   };
   const handleUpdateProfile = async () => {
     try {
@@ -88,6 +92,11 @@ const Settings = () => {
   };
   const handleUploadProfilePicture = async (userId) => {
     try {
+      if (!userId) {
+        alert("User ID is missing. Please refresh the page.");
+        return;
+      }
+
       // Check if the file is selected
       if (
         !profile.profilePicture ||
@@ -102,12 +111,17 @@ const Settings = () => {
       formData.append("image", profile.profilePicture);
 
       // Send PUT request with userId as a dynamic parameter
-      const response = await api.put(
-        `/admin/upload-profile-picture/${userId}`, // Insert userId dynamically here
+      // Use raw axios to avoid global 'Content-Type: application/json' interference
+      const token = localStorage.getItem("accessToken");
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || "http://localhost:8890/api/v1";
+
+      const response = await axios.put(
+        `${apiBaseUrl}/admin/upload-profile-picture/${userId}`,
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
+            "Authorization": `Bearer ${token}`,
+            // Do NOT set Content-Type here; let the browser set it with the boundary
           },
         }
       );
@@ -116,168 +130,163 @@ const Settings = () => {
       if (response.status === 200) {
         console.log("Profile picture updated successfully", response.data);
         alert("Profile picture updated successfully!");
+
+        // Update local state with the new image URL from server
+        const newImageUrl = response.data.data.image;
+        setProfile(prev => ({
+          ...prev,
+          profilePicture: newImageUrl
+        }));
+        setOriginalProfile(prev => ({
+          ...prev,
+          profilePicture: newImageUrl
+        }));
+
+        // Optional: Reload to sync Navbar (since Navbar fetches its own data)
+        window.location.reload();
+
       } else {
         console.error("Error updating profile picture:", response.data);
         alert("Failed to update profile picture.");
       }
     } catch (error) {
       console.error("Error during profile picture upload:", error);
-      alert("Failed to upload profile picture.");
+      alert("Failed to upload profile picture. " + (error.response?.data?.message || error.message));
     }
   };
 
   return (
-    <>
-      <div className="setting">
-        <div className="setting1">
-          <p>Account Setting</p>
-        </div>
-        <div className="setting2">
-          <div className="setting3">
-            <label htmlFor="profilePicture">Your Profile Picture</label>
+    <div className="settings-page">
+      <div className="settings-header">
+        <h1>Account Settings</h1>
+        <p>Manage your personal information and profile picture</p>
+      </div>
 
+      <div className="settings-grid">
+        {/* Profile Picture Section */}
+        <div className="settings-card profile-section">
+          <h2>Profile Picture</h2>
+          <div className="profile-upload-container">
             {profile.profilePicture ? (
-              <div className="mt-6 flex items-center gap-4">
-                <img
-                  src={profile.profilePicture}
-                  alt="Profile"
-                  className="w-24 h-24 rounded-full object-cover border shadow"
-                />
-
-                <input
-                  type="file"
-                  name="profilePicture"
-                  onChange={handleFileChange} // Trigger the file selection handler
-                  accept="image/*"
-                  //   style={{ display: "none" }}
-                />
-                <div
-                  className="ml-auto px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-                  onClick={() => handleUploadProfilePicture(profile.userId)}
-                >
-                  Update Profile Picture
+              <div className="profile-active-view">
+                <div className="profile-image-wrapper">
+                  <img
+                    src={
+                      typeof profile.profilePicture === "string"
+                        ? profile.profilePicture
+                        : URL.createObjectURL(profile.profilePicture)
+                    }
+                    alt="Profile"
+                    className="profile-preview-img"
+                  />
+                </div>
+                <div className="profile-actions">
+                  <label className="upload-btn secondary">
+                    Change Photo
+                    <input
+                      type="file"
+                      name="profilePicture"
+                      onChange={handleFileChange}
+                      accept="image/*"
+                      style={{ display: "none" }}
+                    />
+                  </label>
+                  {profile.profilePicture instanceof File && (
+                    <button
+                      className="action-btn primary"
+                      onClick={() => handleUploadProfilePicture(profile.userId)}
+                    >
+                      Upload & Save
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (
-              <div className="setting4">
-                <div className="setting5">
-                  <input
-                    type="file"
-                    id="profilePicture"
-                    name="profilePicture"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    style={{ display: "none" }}
-                  />
-                  <label htmlFor="profilePicture" className="file-label">
-                    <LuImagePlus color="#8D98AA" size={30} />
-                    <p>Upload your photo</p>
-                  </label>
-                </div>
-              </div>
-            )}
-          </div>
-          {/* <div className="setting3">
-            <label htmlFor="logo">Your LOGO</label>
-            <div className="setting4">
-              <div className="setting5">
+              <label htmlFor="profilePicture" className="profile-upload-placeholder">
                 <input
                   type="file"
-                  id="logo"
-                  name="logo"
+                  id="profilePicture"
+                  name="profilePicture"
                   accept="image/*"
                   onChange={handleFileChange}
-                  style={{ display: "none" }}
+                  hidden
                 />
-                <label htmlFor="logo" className="file-label">
-                  <LuImagePlus color="#8D98AA" size={30} />
-                  <p>Upload LOGO</p>
-                </label>
-              </div>
-            </div>
-          </div> */}
+                <div className="placeholder-content">
+                  <LuImagePlus size={48} />
+                  <span>Upload your photo</span>
+                  <p>Supports: JPG, PNG, JPEG</p>
+                </div>
+              </label>
+            )}
+          </div>
         </div>
 
-        <div className="setting6">
-          <div className="setting7">
-            <div className="setting8">
-              <label htmlFor="fullName">First name</label>
+        {/* Personal Details Form */}
+        <div className="settings-card form-section">
+          <h2>Personal Information</h2>
+          <div className="form-grid">
+            <div className="form-group">
+              <label htmlFor="firstName">First Name</label>
               <input
                 type="text"
                 name="firstName"
                 id="firstName"
-                placeholder="Please enter your first name"
+                placeholder="Enter your first name"
                 value={profile.firstName}
                 onChange={handleInputChange}
+                className="form-input"
               />
             </div>
-            <div className="setting8">
-              <label htmlFor="fullName">Last name</label>
+            <div className="form-group">
+              <label htmlFor="lastName">Last Name</label>
               <input
                 type="text"
                 name="lastName"
                 id="lastName"
-                placeholder="Please enter your full name"
+                placeholder="Enter your last name"
                 value={profile.lastName}
                 onChange={handleInputChange}
+                className="form-input"
               />
             </div>
-            <div className="setting8">
-              <label htmlFor="email">Email</label>
+            <div className="form-group">
+              <label htmlFor="email">Email Address</label>
               <input
                 type="email"
                 name="email"
                 id="email"
-                placeholder="Please enter your email"
+                placeholder="Enter your email"
                 value={profile.email}
                 onChange={handleInputChange}
+                className="form-input"
+                disabled // Usually email shouldn't be changeable directly or just for safety
               />
             </div>
-            {/* <div className="setting8">
-              <label htmlFor="userType">UserType</label>
-              <input
-                type="text"
-                name="userType"
-                id="userType"
-                placeholder="Please enter your userType"
-                value={profile.userType}
-                onChange={handleInputChange}
-              />
-            </div> */}
-            <div className="setting8">
-              <label htmlFor="phoneNumber">Phone number</label>
+            <div className="form-group">
+              <label htmlFor="phoneNumber">Phone Number</label>
               <input
                 type="text"
                 name="phoneNumber"
                 id="phoneNumber"
-                placeholder="Please enter your phone number"
+                placeholder="Enter your phone number"
                 value={profile.phoneNumber}
                 onChange={handleInputChange}
+                className="form-input"
               />
             </div>
           </div>
-          {/* <div className="setting9">
-            <div className="setting8">
-              <label htmlFor="bio">Bio</label>
-              <textarea
-                name="bio"
-                id="bio"
-                placeholder="Write your Bio here e.g your hobbies, interests ETC"
-                value={profile.bio}
-                onChange={handleInputChange}
-              ></textarea>
-            </div>
-          </div> */}
-          <div className="setting10">
-            <button onClick={handleUpdateProfile}>Update Details</button>
 
-            <p onClick={handleReset} style={{ cursor: "pointer" }}>
-              Reset
-            </p>
+          <div className="form-actions bottom">
+            <button className="btn-reset" onClick={handleReset}>
+              Reset Changes
+            </button>
+            <button className="btn-save" onClick={handleUpdateProfile}>
+              Update Details
+            </button>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

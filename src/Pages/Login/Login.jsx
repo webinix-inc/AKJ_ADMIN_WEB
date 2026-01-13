@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import img1 from "../../Image/img1.png";
-import img2 from "../../Image/img2.png";
-import { loginAdmin, resetLoginState } from "../../redux/slices/adminSlice"; // Import the loginAdmin action
+import { loginAdmin, resetLoginState } from "../../redux/slices/adminSlice";
+import { Form, Input, Button, Row, Col, Typography, message } from "antd";
+import { UserOutlined, LockOutlined, GoogleOutlined } from "@ant-design/icons";
 import "./Login.css";
+
+const { Title, Text } = Typography;
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+
+  // Note: showPassword state removed as Ant Design Input.Password handles it internally
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -18,13 +21,12 @@ const Login = () => {
   // Access Redux state
   const { loading, error } = useSelector((state) => state.admin);
 
-  // Reset loading state when component mounts to clear any persisted loading state
+  // Reset loading state when component mounts
   useEffect(() => {
     dispatch(resetLoginState());
   }, [dispatch]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onFinish = async () => {
     const loginData = {
       email,
       password,
@@ -32,87 +34,96 @@ const Login = () => {
     try {
       const res = await dispatch(loginAdmin(loginData)).unwrap();
       if (res && res.accessToken) {
+        message.success("Login successful!");
         navigate("/home");
         localStorage.setItem("accessToken", res.accessToken);
       }
     } catch (error) {
-      // Error is already handled by Redux and will be displayed
       console.error("Login error:", error);
+      // Redux handles error state, but we can also show a toast
+      // message.error(error.message || "Login failed"); 
     }
   };
+
   return (
-    <>
-      <div className="login">
-        <div className="login1">
-          <div className="login2">
-            <h3>LOGO</h3>
-          </div>
-          <div className="login3">
-            <div className="login4">
-              <div className="login5">
-                <h5>Welcome Back!</h5>
-              </div>
-              <div className="login6">
-                <img src={img2} alt="" />
-                <p>Sign in with Google</p>
-              </div>
-              <div className="login7">
-                <p>or login with email</p>
-              </div>
-              <form onSubmit={handleSubmit}>
-                <div className="login8">
-                  <div className="login9">
-                    <label>Email ID / username</label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="login9">
-                    <label>Password</label>
-                    <div style={{ position: "relative" }}>
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                      />
-                      <span
-                        onClick={() => setShowPassword(!showPassword)}
-                        style={{
-                          position: "absolute",
-                          right: 10,
-                          top: "50%",
-                          transform: "translateY(-50%)",
-                          cursor: "pointer",
-                        }}
-                      >
-                        {showPassword ? (
-                          <FaEye color="#818181" />
-                        ) : (
-                          <FaEyeSlash color="#818181" />
-                        )}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="login10">
-                  <button type="submit" disabled={loading}>
-                    {loading ? "Logging in..." : "Login"}
-                  </button>
-                  {error && <p className="error">{error.message}</p>}
-                </div>
-              </form>
+    <div className="login-container">
+      <div className="login-card">
+        <Row>
+          {/* Left Side - Brand Image */}
+          <Col xs={0} md={12} className="brand-section">
+            <img src={img1} alt="Brand" className="brand-image" loading="lazy" />
+            <div className="brand-overlay-text">
+              <h1 className="brand-title">Welcome Admin</h1>
+              <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: '16px' }}>
+                Manage your dashboard securely and efficiently.
+              </Text>
             </div>
-            <div className="login11">
-              <img src={img1} alt="" />
+          </Col>
+
+          {/* Right Side - Login Form */}
+          <Col xs={24} md={12} className="form-section">
+            <div className="form-header">
+              <div style={{ marginBottom: '24px' }}>
+                {/* Placeholder for Logo if needed, or just text */}
+                <h3 style={{ color: '#0f65acff', fontSize: '24px', fontWeight: '900', margin: 0 }}>AKJ Classes</h3>
+              </div>
+              <h2 className="welcome-text">Welcome Back!</h2>
+              <p className="subtitle-text">Please sign in to continue</p>
             </div>
-          </div>
-        </div>
+
+            <Form
+              layout="vertical"
+              onFinish={onFinish}
+              className="login-form"
+              requiredMark={false}
+              initialValues={{ email: "", password: "" }}
+            >
+              <Form.Item
+                label="Email ID / Username"
+                name="email"
+                rules={[{ required: true, message: 'Please enter your email!' }]}
+              >
+                <Input
+                  prefix={<UserOutlined style={{ color: '#666' }} />}
+                  placeholder="Enter your email"
+                  className="dark-input"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </Form.Item>
+
+              <Form.Item
+                label="Password"
+                name="password"
+                rules={[{ required: true, message: 'Please enter your password!' }]}
+              >
+                <Input.Password
+                  prefix={<LockOutlined style={{ color: '#666' }} />}
+                  placeholder="Enter your password"
+                  className="dark-input"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </Form.Item>
+
+              <Form.Item>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={loading}
+                  block
+                  className="submit-btn"
+                >
+                  {loading ? "Logging in..." : "Login"}
+                </Button>
+              </Form.Item>
+
+              {error && <p className="error-text">{error.message}</p>}
+            </Form>
+          </Col>
+        </Row>
       </div>
-    </>
+    </div>
   );
 };
 

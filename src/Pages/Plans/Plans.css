@@ -1,334 +1,310 @@
-.plans {
-  display: flex;
-  align-items: center;
-  justify-content: end;
+/* Plans Page Revamp - Dark Theme (Scoped) */
+.plans-container {
+    background-color: #141414;
+    min-height: 100vh;
+    padding: 24px;
+    /* Removed custom gradient to match standard theme */
+    font-family: 'Inter', sans-serif;
 }
 
-.plans button {
-  width: auto;
-  height: auto;
-  border-radius: 6px;
-  padding: 10px;
-  background: #1a85ff;
-  cursor: pointer;
-  border: none;
-  outline: none;
-  font-family: "Open Sans", sans-serif;
-  font-weight: 600;
-  font-size: 12px;
-  line-height: 16.34px;
-  color: #ffffff;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 5px;
+/* Glassmorphism Card Scope */
+.plans-container .glass-card {
+    background: rgba(30, 30, 30, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-.plans1 {
-  margin-top: 30px;
+.plans-container .glass-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: rgba(26, 133, 255, 0.3);
 }
 
-.pricingplans {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  width: 95%;
+.plans-container .card-header {
+    padding: 24px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    text-align: center;
 }
 
-.pricingplans1 {
-  max-width: 300px;
-  width: 100%;
-  height: auto;
-  border-radius: 5px;
-  border: 0.8px solid #553782;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 20px;
-  transition: transform 0.3s, box-shadow 0.3s;
-  background: #fff;
-  cursor: pointer;
-}
-.pricingplans1:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+.plans-container .plan-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
 }
 
-.pricingplans111 {
-  max-width: 300px;
-  width: 100%;
-  height: auto;
-  border-radius: 5px;
-  border: 0.8px solid #fc9721;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 20px;
-  transition: transform 0.3s, box-shadow 0.3s;
-  background: #fff;
-  cursor: pointer;
+.plans-container .course-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a85ff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: rgba(26, 133, 255, 0.1);
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
 }
 
-.pricingplans111:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+.plans-container .card-body {
+    padding: 24px;
+    flex: 1;
 }
 
-.pricingplans122 {
-  max-width: 300px;
-  width: 100%;
-  height: auto;
-  border-radius: 5px;
-  border: 0.8px solid #2547c4;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 20px;
-  transition: transform 0.3s, box-shadow 0.3s;
-  background: #fff;
-  cursor: pointer;
+.plans-container .section-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #666;
+    font-weight: 600;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
 }
 
-.pricingplans122:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+.plans-container .validity-tag {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ccc;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    display: inline-block;
+    margin: 0 6px 6px 0;
 }
 
-.pricingplans2 {
-  width: 183px;
-  height: 38px;
-  border-radius: 32px;
-  background: linear-gradient(135deg, #3b2667 0%, #bc78ec 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.plans-container .features-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
-.pricingplans211 {
-  width: 183px;
-  height: 38px;
-  border-radius: 32px;
-  background: linear-gradient(135deg, #fccf31 0%, #f55555 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.plans-container .feature-item {
+    display: flex;
+    align-items: flex-start;
+    color: #ccc;
+    font-size: 14px;
+    margin-bottom: 10px;
+    line-height: 1.5;
 }
 
-.pricingplans222 {
-  width: 183px;
-  height: 38px;
-  border-radius: 32px;
-  background: linear-gradient(135deg, #52e5e7 0%, #130cb7 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.plans-container .feature-icon {
+    color: #10b981;
+    margin-right: 10px;
+    margin-top: 3px;
+    flex-shrink: 0;
 }
 
-.pricingplans211 h6 {
-  font-family: "Inter", sans-serif;
-  font-weight: 700;
-  font-size: 18px;
-  line-height: 21.78px;
-  color: #ffffff;
-  margin: 0;
+.plans-container .card-footer {
+    padding: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.2);
 }
 
-.pricingplans222 h6 {
-  font-family: "Inter", sans-serif;
-  font-weight: 700;
-  font-size: 18px;
-  line-height: 21.78px;
-  color: #ffffff;
-  margin: 0;
+.plans-container .dark-btn-primary {
+    background: linear-gradient(135deg, #1a85ff 0%, #0062cc 100%);
+    border: none;
+    color: white;
+    font-weight: 600;
+    border-radius: 8px;
+    height: 40px;
+    box-shadow: 0 4px 12px rgba(26, 133, 255, 0.3);
 }
 
-.pricingplans2 h6 {
-  font-family: "Inter", sans-serif;
-  font-weight: 700;
-  font-size: 18px;
-  line-height: 21.78px;
-  color: #ffffff;
-  margin: 0;
+.plans-container .dark-btn-primary:hover {
+    box-shadow: 0 6px 16px rgba(26, 133, 255, 0.5);
+    opacity: 0.9;
 }
 
-.pricingplans3 {
-  margin-top: 20px;
+.plans-container .dark-btn-danger {
+    background: rgba(255, 77, 79, 0.1);
+    border: 1px solid rgba(255, 77, 79, 0.2);
+    color: #ff4d4f;
+    font-weight: 600;
+    border-radius: 8px;
+    height: 40px;
 }
 
-.pricingplans3 h6 {
-  font-family: "Inter", sans-serif;
-  font-weight: 700;
-  font-size: 18px;
-  line-height: 31.47px;
-  color: #023d50;
-  margin: 0;
+.plans-container .dark-btn-danger:hover {
+    background: rgba(255, 77, 79, 0.2) !important;
+    border-color: #ff4d4f !important;
+    color: #ff4d4f !important;
 }
 
-.pricingplans3 span {
-  font-family: "Inter", sans-serif;
-  font-weight: 700;
-  font-size: 15px;
-  line-height: 18.15px;
-  color: #023d50;
-  margin: 0;
+.plans-container .view-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
-.pricingplans4 {
-  margin-top: 20px;
-  text-align: center;
+.plans-container .view-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
 }
 
-.pricingplans4 p {
-  font-family: "Inter", sans-serif;
-  font-weight: 500;
-  font-size: 12px;
-  line-height: 14.52px;
-  color: #000000;
-  margin: 0;
-  text-align: center;
+/* Modal & Drawer Scoped Overrides */
+.dark-modal .ant-modal-content,
+.dark-drawer .ant-drawer-content {
+    background-color: rgba(30, 30, 30, 0.95) !important;
+    color: #fff !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.pricingplans5 {
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+.dark-modal .ant-modal-header,
+.dark-drawer .ant-drawer-header {
+    background-color: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    padding-bottom: 20px !important;
 }
 
-.pricingplans6 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.dark-modal .ant-modal-title,
+.dark-drawer .ant-drawer-title {
+    color: #fff !important;
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px;
 }
 
-.pricingplans6 p {
-  font-family: "Inter", sans-serif;
-  font-weight: 500;
-  font-size: 12px;
-  line-height: 14.52px;
-  color: #000000;
-  margin: 0;
+.dark-modal .ant-modal-close-x,
+.dark-drawer .ant-drawer-close {
+    color: #aaa !important;
+    transition: color 0.3s;
 }
 
-.pricingplans7 {
-  width: 183px;
-  height: 42px;
-  border-radius: 10px 10px 0px 0px;
-  background: linear-gradient(135deg, #3b2667 0%, #bc78ec 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  margin-top: 30px;
+.dark-modal .ant-modal-close-x:hover,
+.dark-drawer .ant-drawer-close:hover {
+    color: #fff !important;
 }
 
-.pricingplans7 h6 {
-  font-family: "Inter", sans-serif;
-  font-weight: 700;
-  font-size: 18px;
-  line-height: 21.78px;
-  color: #ffffff;
-  margin: 0;
+/* Form inputs (scoped) */
+.plans-container .ant-form-item-label>label,
+.dark-modal .ant-form-item-label>label,
+.dark-drawer .ant-form-item-label>label {
+    color: #ccc !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
 }
 
-.pricingplans711 {
-  width: 183px;
-  height: 42px;
-  border-radius: 10px 10px 0px 0px;
-  background: linear-gradient(135deg, #fccf31 0%, #f55555 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  margin-top: 30px;
+.plans-container .ant-input,
+.plans-container .ant-input-number,
+.plans-container .ant-input-number-input,
+.plans-container .ant-select-selector,
+.dark-modal .ant-input,
+.dark-modal .ant-input-number,
+.dark-modal .ant-input-number-input,
+.dark-modal .ant-select-selector,
+.dark-drawer .ant-input,
+.dark-drawer .ant-input-number,
+.dark-drawer .ant-input-number-input,
+.dark-drawer .ant-select-selector {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    padding: 8px 11px !important;
+    transition: all 0.3s ease !important;
 }
 
-.pricingplans711 h6 {
-  font-family: "Inter", sans-serif;
-  font-weight: 700;
-  font-size: 18px;
-  line-height: 21.78px;
-  color: #ffffff;
-  margin: 0;
+.plans-container .ant-select-selector,
+.dark-modal .ant-select-selector,
+.dark-drawer .ant-select-selector {
+    padding: 4px 11px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
 }
 
-.pricingplans722 {
-  width: 183px;
-  height: 42px;
-  border-radius: 10px 10px 0px 0px;
-  background: linear-gradient(135deg, #52e5e7 0%, #130cb7 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  margin-top: 30px;
+.plans-container .ant-input:hover,
+.dark-modal .ant-input:hover,
+.dark-drawer .ant-input:hover {
+    border-color: rgba(255, 255, 255, 0.3) !important;
 }
 
-.pricingplans722 h6 {
-  font-family: "Inter", sans-serif;
-  font-weight: 700;
-  font-size: 18px;
-  line-height: 21.78px;
-  color: #ffffff;
-  margin: 0;
+.plans-container .ant-input:focus,
+.dark-modal .ant-input:focus,
+.dark-drawer .ant-input:focus,
+.dark-modal .ant-input-number-focused,
+.dark-modal .ant-select-focused .ant-select-selector {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    border-color: #1a85ff !important;
+    box-shadow: 0 0 0 2px rgba(26, 133, 255, 0.15) !important;
 }
 
-
-
-
-.addplans{
-
+.dark-modal .ant-btn-dashed,
+.dark-drawer .ant-btn-dashed {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    border: 1px dashed rgba(255, 255, 255, 0.2) !important;
+    color: #888 !important;
+    height: 40px;
+    border-radius: 8px !important;
+    transition: all 0.3s;
 }
 
-
-.addplans1{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
+.dark-modal .ant-btn-dashed:hover,
+.dark-drawer .ant-btn-dashed:hover {
+    border-color: #1a85ff !important;
+    color: #1a85ff !important;
+    background-color: rgba(26, 133, 255, 0.05) !important;
 }
 
-
-.addplans1 h6{
-  font-family: "Open Sans", sans-serif;
-  font-weight: 800;
-  font-size: 24px;
-  line-height: 32.68px;
-  color: #000000;
-  margin: 0;
+.plans-container .ant-switch,
+.dark-modal .ant-switch,
+.dark-drawer .ant-switch {
+    background-color: #333;
 }
 
-
-
-.addplans2{
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 40px;
-  margin-top: 30px;
+.plans-container .ant-switch-checked,
+.dark-modal .ant-switch-checked,
+.dark-drawer .ant-switch-checked {
+    background-color: #1a85ff;
 }
 
-
-.addplans3{
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+/* Inset Container */
+.form-section-container {
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
 }
 
-.addplans3 label{
-  font-family: "Open Sans", sans-serif;
-  font-weight: 600;
-  font-size: 16px;
-  line-height: 21.79px;
-  color: #000000;
-  margin: 0;
+/* Specific Dropdown Style */
+.ant-select-dropdown {
+    background-color: #1f1f1f !important;
+    border: 1px solid #333;
 }
 
+.ant-select-item {
+    color: #fff;
+}
 
-.addplans3 input{
-  width: 100%;
-  height: 49px;
-  border-radius: 10px;
-  border: 1px solid #1A85FF;
-  outline: none;
+.ant-select-item-option-selected {
+    background-color: #1a85ff !important;
+}
+
+.ant-select-item-option-active {
+    background-color: rgba(255, 255, 255, 0.1) !important;
 }

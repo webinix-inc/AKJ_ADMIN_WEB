@@ -1,9 +1,30 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import HOC from "../../Component/HOC/HOC";
-import { FaArrowLeft } from "react-icons/fa6";
 import api from "../../api/axios";
 import "./Students.css";
+import {
+  Typography,
+  Button,
+  Avatar,
+  Descriptions,
+  List,
+  Tag,
+  Card,
+  Space,
+  Skeleton
+} from "antd";
+import {
+  ArrowLeftOutlined,
+  UserOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  CalendarOutlined,
+  ReadOutlined
+} from "@ant-design/icons";
+import { AssignmentView } from '../User Management/AssignmentView';
+
+const { Title, Text } = Typography;
 
 const StudentProfile = () => {
   const { id } = useParams();
@@ -15,7 +36,6 @@ const StudentProfile = () => {
     const fetchStudentDetails = async () => {
       try {
         const response = await api.get(`/admin/getProfile/${id}`);
-        console.log("this is the response for student/:id page :", response);
         if (response.status === 200) {
           setStudentDetails(response.data.data);
         } else {
@@ -35,16 +55,29 @@ const StudentProfile = () => {
     if (!name) return "NA";
     const initials = name?.split(" ").map((n) => n[0]);
     return initials?.length > 1
-      ? initials[0] + initials[1]
-      : initials[0] || "NA";
+      ? (initials[0] + initials[1]).toUpperCase()
+      : (initials[0] || "NA").toUpperCase();
   };
 
   if (loading) {
-    return <p>Loading...</p>;
+    return (
+      <div className="students-container">
+        <div style={{ maxWidth: 1200, margin: '0 auto', paddingTop: 40 }}>
+          <Skeleton active avatar paragraph={{ rows: 4 }} />
+        </div>
+      </div>
+    );
   }
 
   if (!studentDetails) {
-    return <p>Student details not found</p>;
+    return (
+      <div className="students-container flex items-center justify-center h-screen">
+        <div className="text-center">
+          <h2 className="text-white text-2xl mb-4">Student not found</h2>
+          <Button onClick={() => navigate("/students")} type="primary">Go Back</Button>
+        </div>
+      </div>
+    );
   }
 
   const {
@@ -57,112 +90,156 @@ const StudentProfile = () => {
     purchasedCourses,
   } = studentDetails;
 
+  const fullName = `${firstName || ''} ${lastName || ''}`.trim() || 'Unknown Student';
+
   return (
-    <div className="students">
-      <div className="studentprofile">
-        <div className="studentprofile1">
-          <div className="studentprofile2">
-            {image ? (
-              <img
-                src={image}
-                alt={firstName}
-                style={{
-                  width: "100px",
-                  height: "100px",
-                  borderRadius: "50%",
-                }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: "100px",
-                  height: "100px",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#ddd",
-                  color: "#555",
-                  fontWeight: "bold",
-                }}
-              >
-                {getInitials(firstName + lastName)}
-              </div>
-            )}
-          </div>
-          <div className="studentprofile3 text-white">
-            <h6 className="text-white">{`${firstName} ${lastName}`}</h6>
-            <h5 className="text-white">{email}</h5>
-          </div>
-        </div>
-        <div className="studentprofile4">
-          <FaArrowLeft
-            size={30}
-            color="white"
+    <div className="students-container">
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+
+        {/* Navigation */}
+        <div className="mb-6">
+          <Button
+            type="text"
+            icon={<ArrowLeftOutlined />}
+            className="text-gray-400 hover:text-white"
             onClick={() => navigate("/students")}
-          />
+          >
+            Back to Students
+          </Button>
         </div>
-      </div>
 
-      {/* Student Details */}
-      <div style={{ marginTop: "130px" }}>
-        <h5 className="text-white text-3xl">Basic Details</h5>
-        <div className="studentprofile5" style={{ marginTop: "20px" }}>
-          <div className="studentprofile6">
-            <label>First Name</label>
-            <input type="text" value={firstName || ""} readOnly />
-          </div>
-          <div className="studentprofile6">
-            <label>Last Name</label>
-            <input type="text" value={lastName || ""} readOnly />
-          </div>
-          <div className="studentprofile6">
-            <label>Email</label>
-            <input type="text" value={email || "Not Provided Yet"} readOnly />
-          </div>
-          <div className="studentprofile6">
-            <label>Phone Number</label>
-            <input type="text" value={phone || ""} readOnly />
-          </div>
-          <div className="studentprofile6">
-            <label>Registration Date</label>
-            <input
-              type="text"
-              value={
-                createdAt ? new Date(createdAt).toLocaleDateString() : "N/A"
-              }
-              readOnly
-            />
-          </div>
-        </div>
-      </div>
+        {/* Header Profile Card */}
+        <div className="glass-card student-profile-header p-8 flex flex-col md:flex-row items-center md:items-start gap-8 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-blue-600/20 to-purple-600/20 z-0 bg-blue-600" style={{ position: 'absolute', opacity: 0.2 }}></div>
 
-      {/* Purchased Courses */}
-      <div className="studentprofile5 text-white" style={{ marginTop: "2rem" }}>
-        <h5>Purchased Courses</h5>
-        {purchasedCourses && purchasedCourses.length > 0 ? (
-          purchasedCourses.map((course, index) => (
-            <div
-              key={index}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                borderBottom: "1px solid #ccc",
-                padding: "10px 0",
-              }}
-            >
-              <span>
-                <strong>{course?.course?.title || "Untitled Course"}</strong>
-              </span>
-              <span>
-                Enrollment Date:{" "}
-                {new Date(course.purchaseDate).toLocaleDateString()}
-              </span>
+          <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 w-full" style={{ zIndex: 10, display: 'flex', alignItems: 'center' }}>
+            <div className="student-avatar">
+              {image ? (
+                <Avatar
+                  src={image}
+                  size={120}
+                  className="border-4 border-black shadow-xl"
+                />
+              ) : (
+                <Avatar
+                  size={120}
+                  className="border-4 border-black shadow-xl bg-blue-600 flex items-center justify-center text-4xl font-bold"
+                  style={{ fontSize: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  {getInitials(fullName)}
+                </Avatar>
+              )}
             </div>
-          ))
-        ) : (
-          <p>No purchased courses</p>
-        )}
+
+            <div className="student-info text-center md:text-left flex-1" style={{ flex: 1 }}>
+              <h1 className="text-4xl font-bold text-white mb-2">{fullName}</h1>
+              <div className="flex flex-wrap justify-center md:justify-start gap-4 text-gray-400">
+                <span className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full text-sm">
+                  <MailOutlined className="text-blue-400" /> {email || "No Email"}
+                </span>
+                <span className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full text-sm">
+                  <PhoneOutlined className="text-green-400" /> {phone || "No Phone"}
+                </span>
+                <span className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full text-sm">
+                  <CalendarOutlined className="text-purple-400" /> Joined {createdAt ? new Date(createdAt).toLocaleDateString() : 'N/A'}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex gap-3 relative z-10">
+              <div className="text-center px-6 py-2 bg-white/5 rounded-lg border border-white/10">
+                <div className="text-2xl font-bold text-blue-400">{purchasedCourses?.length || 0}</div>
+                <div className="text-xs text-gray-500 uppercase tracking-wide">Courses</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+
+          {/* Left Column: Basic Details */}
+          <div className="lg:col-span-1">
+            <div className="glass-card h-full p-4">
+              <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2 border-b border-gray-800 pb-4">
+                <UserOutlined /> Personal Information
+              </h3>
+
+              <div className="space-y-6">
+                <div className="detail-item">
+                  <span className="detail-label">First Name</span>
+                  <div className="detail-value">{firstName || '-'}</div>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Last Name</span>
+                  <div className="detail-value">{lastName || '-'}</div>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Email Address</span>
+                  <div className="detail-value text-blue-400" style={{ wordBreak: 'break-all' }}>{email || "N/A"}</div>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Phone Number</span>
+                  <div className="detail-value">{phone || "N/A"}</div>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">User ID</span>
+                  <div className="detail-value font-mono text-xs text-gray-500 bg-white/5 p-2 rounded inline-block" style={{ wordBreak: 'break-all' }}>
+                    {studentDetails._id}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Courses & Assignments */}
+          <div className="lg:col-span-2 flex flex-col gap-6">
+
+            {/* Purchased Courses */}
+            <div className="glass-card p-4">
+              <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2 border-b border-gray-800 pb-4">
+                <ReadOutlined /> Enrolled Courses
+              </h3>
+
+              <List
+                itemLayout="horizontal"
+                dataSource={purchasedCourses}
+                locale={{ emptyText: <span className="text-gray-500">No courses purchased yet.</span> }}
+                renderItem={(item) => (
+                  <List.Item className="border-b border-gray-800 last:border-0 hover:bg-white/5 transition-colors px-4 -mx-4">
+                    <List.Item.Meta
+                      avatar={
+                        <Avatar
+                          shape="square"
+                          size={48}
+                          src={item.course?.thumbnail}
+                          icon={<ReadOutlined />}
+                          className="bg-white/5"
+                        />
+                      }
+                      title={
+                        <Link to={`/courses_tests/courses/allcourses`} className="text-blue-400 hover:text-blue-300 text-base font-medium">
+                          {item.course?.title || "Untitled Course"}
+                        </Link>
+                      }
+                      description={
+                        <span className="text-gray-500 text-xs">
+                          Enrolled on {item.purchaseDate ? new Date(item.purchaseDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Unknown Date'}
+                        </span>
+                      }
+                    />
+                    <div>
+                      <Tag color="blue" className="m-0">Active</Tag>
+                    </div>
+                  </List.Item>
+                )}
+              />
+            </div>
+
+            {/* Assignments Section */}
+            <AssignmentView userId={id} userName={fullName} embedded={true} />
+
+          </div>
+        </div>
       </div>
     </div>
   );

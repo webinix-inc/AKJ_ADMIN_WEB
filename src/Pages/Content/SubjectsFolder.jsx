@@ -8,7 +8,6 @@ import {
 } from "@ant-design/icons";
 import {
   Button,
-  Card,
   Dropdown,
   Form,
   Input,
@@ -16,9 +15,8 @@ import {
   Modal,
   Select,
   Spin,
-  Typography,
 } from "antd";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, memo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -31,14 +29,151 @@ import {
   updateSubjectById,
 } from "../../redux/slices/courseSlice";
 
-const { Title, Paragraph } = Typography;
+import "./Content.css";
+
 const { Option } = Select;
+
+// Styles
+const styles = {
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '24px',
+    flexWrap: 'wrap',
+    gap: '16px',
+  },
+  title: {
+    margin: 0,
+    fontSize: '24px',
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+    gap: '20px',
+  },
+  card: {
+    background: '#171717',
+    borderRadius: '16px',
+    border: '1px solid #262626',
+    padding: '24px',
+    textAlign: 'center',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    position: 'relative',
+  },
+  cardName: {
+    fontSize: '15px',
+    fontWeight: '600',
+    color: '#fff',
+    marginTop: '12px',
+  },
+  menuBtn: {
+    position: 'absolute',
+    top: '12px',
+    right: '12px',
+    color: '#888',
+    fontSize: '18px',
+    cursor: 'pointer',
+  },
+  skeleton: {
+    background: '#262626',
+    borderRadius: '16px',
+    height: '150px',
+    animation: 'pulse 1.5s ease-in-out infinite',
+  },
+  emptyState: {
+    gridColumn: '1 / -1',
+    textAlign: 'center',
+    padding: '48px',
+    color: '#888',
+    fontSize: '14px',
+  },
+  loadingContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '300px',
+  },
+};
+
+// Subject Card Component
+const SubjectCard = memo(({ subject, isEditing, editName, onEditChange, onSaveEdit, onRename, onDelete, onClick }) => {
+  const [hovered, setHovered] = useState(false);
+
+  const menu = (
+    <Menu>
+      <Menu.Item key="1" icon={<SaveOutlined />} onClick={(e) => {
+        e.domEvent?.stopPropagation();
+        onRename(subject);
+      }}>
+        Rename
+      </Menu.Item>
+      <Menu.Item key="2" icon={<DeleteOutlined />} danger onClick={(e) => {
+        e.domEvent?.stopPropagation();
+        onDelete(subject._id);
+      }}>
+        Delete
+      </Menu.Item>
+    </Menu>
+  );
+
+  return (
+    <div
+      style={{
+        ...styles.card,
+        borderColor: hovered ? '#3b82f640' : '#262626',
+        transform: hovered ? 'translateY(-4px)' : 'none',
+        boxShadow: hovered ? '0 8px 24px rgba(0,0,0,0.4)' : 'none',
+      }}
+      onClick={() => onClick(subject._id)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <FolderOutlined style={{ fontSize: '48px', color: '#3b82f6' }} />
+
+      {isEditing ? (
+        <div
+          style={{ marginTop: '12px', display: 'flex', gap: '8px', justifyContent: 'center' }}
+          onClick={e => e.stopPropagation()}
+        >
+          <Input
+            value={editName}
+            onChange={(e) => onEditChange(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+            size="small"
+            style={{ width: '70%' }}
+          />
+          <Button
+            type="primary"
+            size="small"
+            icon={<SaveOutlined />}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSaveEdit(subject._id);
+            }}
+          />
+        </div>
+      ) : (
+        <div style={styles.cardName}>{subject.name}</div>
+      )}
+
+      <Dropdown overlay={menu} trigger={['click']} placement="bottomRight">
+        <MoreOutlined
+          style={styles.menuBtn}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </Dropdown>
+    </div>
+  );
+});
 
 const SubjectsFolder = () => {
   const dispatch = useDispatch();
   const { id } = useParams();
-  const { course, loading } = useSelector((state) => state.courses);
-  const { courses } = useSelector((state) => state.courses);
+  const { course, loading, courses } = useSelector((state) => state.courses);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
@@ -52,7 +187,7 @@ const SubjectsFolder = () => {
     dispatch(fetchCourses());
   }, [dispatch, id]);
 
-  const handleAddSubject = async (values) => {
+  const handleAddSubject = useCallback(async (values) => {
     try {
       await dispatch(createSubject(values)).unwrap();
       toast.success("Subject added successfully");
@@ -60,26 +195,21 @@ const SubjectsFolder = () => {
       dispatch(fetchCourseById(id));
     } catch (error) {
       toast.error(error.message || "Failed to add subject");
-      console.error("Failed to add subject:", error);
     }
-  };
+  }, [dispatch, id]);
 
-  const handleRenameSubject = (event, subject) => {
-    if (event && typeof event.stopPropagation === 'function') {
-      event.stopPropagation();
-    }
+  const handleRenameSubject = useCallback((subject) => {
     setEditingSubject(subject._id);
     setNewSubjectName(subject.name);
-  };
+  }, []);
 
-  const handleCardClick = (e, id) => {
-    if (e && typeof e.stopPropagation === 'function') {
-      e.stopPropagation();
+  const handleCardClick = useCallback((subjectId) => {
+    if (!editingSubject) {
+      navigate(`/content/subjects/${subjectId}/chapters`);
     }
-    navigate(`/content/subjects/${id}/chapters`);
-  };
+  }, [navigate, editingSubject]);
 
-  const handleSaveEdit = async (e,subjectId) => {
+  const handleSaveEdit = useCallback(async (subjectId) => {
     try {
       await dispatch(
         updateSubjectById({
@@ -87,175 +217,100 @@ const SubjectsFolder = () => {
           updatedData: { name: newSubjectName },
         })
       ).unwrap();
-      toast.success("Subject name updated successfully");
+      toast.success("Subject name updated");
       setEditingSubject(null);
       dispatch(fetchCourseById(id));
     } catch (error) {
-      toast.error(error.message || "Failed to update subject name");
-      console.error("Failed to update subject name:", error);
+      toast.error(error.message || "Failed to update");
     }
-  };
+  }, [dispatch, id, newSubjectName]);
 
-  const handleDeleteSubject = async (e,subjectId) => {
+  const handleDeleteSubject = useCallback(async (subjectId) => {
     try {
       await dispatch(deleteSubjectById(subjectId)).unwrap();
-      toast.success("Subject deleted successfully");
+      toast.success("Subject deleted");
       dispatch(fetchCourseById(id));
     } catch (error) {
-      toast.error(error.message || "Failed to delete subject");
-      console.error("Failed to delete subject:", error);
+      toast.error(error.message || "Failed to delete");
     }
-  };
-
-  const showModal = () => {
-    setIsModalVisible(true);
-  };
-
-  const handleCancel = () => {
-    setIsModalVisible(false);
-  };
+  }, [dispatch, id]);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-full">
-        <Spin size="large" />
+      <div style={styles.container}>
+        <div style={styles.loadingContainer}>
+          <Spin size="large" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
+    <div style={styles.container}>
+      {/* Header */}
+      <div style={styles.header}>
         <Button
           icon={<ArrowLeftOutlined />}
           onClick={() => window.history.back()}
         >
           Back
         </Button>
-        <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>
           Add Subject
         </Button>
       </div>
 
-      <Title className="text-white" level={2}>
-        Subjects for {course?.title}
-      </Title>
+      <h1 style={styles.title}>📚 Subjects for {course?.title}</h1>
 
-      <div className="grid grid-cols-3 gap-4">
+      {/* Subject Grid */}
+      <div style={styles.grid}>
         {course?.subjects?.length > 0 ? (
           course.subjects.map((subject) => (
-            <Card
+            <SubjectCard
               key={subject._id}
-              className="flex flex-col items-center justify-center"
-              hoverable
-              onClick={(e) => handleCardClick(e, subject._id)}
-              style={{ cursor: "pointer", textAlign: "center" }}
-            >
-              <FolderOutlined style={{ fontSize: "64px", color: "#000000" }} />
-
-              {editingSubject === subject._id ? (
-                <div onClick={(e) => {
-                  if (e && typeof e.stopPropagation === 'function') {
-                    e.stopPropagation();
-                  }
-                }} className="flex items-center">
-                  <Input
-                    value={newSubjectName}
-                    onChange={(e) => setNewSubjectName(e.target.value)}
-                    onClick={(e) => {
-                      if (e && typeof e.stopPropagation === 'function') {
-                        e.stopPropagation();
-                      }
-                    }} // Stops card click during edit
-                    style={{ marginRight: "8px", width: "70%" }}
-                  />
-                  <Button
-                    icon={<SaveOutlined />}
-                    onClick={(e) => handleSaveEdit(e,subject._id)}
-                  />
-                </div>
-              ) : (
-                <div onClick={(e) => {
-                  if (e && typeof e.stopPropagation === 'function') {
-                    e.stopPropagation();
-                  }
-                }} className="flex items-center justify-between w-full">
-                  <Title level={4}>{subject.name}</Title>
-                  <Dropdown
-                  className="absolute right-0 top-0 p-2"
-                    overlay={
-                      <Menu>
-                        <Menu.Item
-                          key="1"
-                          icon={<SaveOutlined />}
-                          onClick={(e) => handleRenameSubject(e, subject)}
-                        >
-                          Rename
-                        </Menu.Item>
-                        <Menu.Item
-                          key="2"
-                          icon={<DeleteOutlined />}
-                          onClick={(e) => handleDeleteSubject(e,subject._id)}
-                        >
-                          Delete
-                        </Menu.Item>
-                      </Menu>
-                    }
-                    trigger={["click"]}
-                    onClick={(e) => {
-                      if (e && typeof e.stopPropagation === 'function') {
-                        e.stopPropagation();
-                      }
-                    }}
-                  >
-                    <MoreOutlined
-                      style={{ fontSize: "24px", cursor: "pointer" }}
-                      onClick={(e) => {
-                        if (e && typeof e.stopPropagation === 'function') {
-                          e.stopPropagation();
-                        }
-                      }} // Prevent card navigation on dropdown icon click
-                    />
-                  </Dropdown>
-                </div>
-              )}
-            </Card>
+              subject={subject}
+              isEditing={editingSubject === subject._id}
+              editName={newSubjectName}
+              onEditChange={setNewSubjectName}
+              onSaveEdit={handleSaveEdit}
+              onRename={handleRenameSubject}
+              onDelete={handleDeleteSubject}
+              onClick={handleCardClick}
+            />
           ))
         ) : (
-          <Paragraph>No subjects found for this course.</Paragraph>
+          <div style={styles.emptyState}>No subjects found for this course.</div>
         )}
       </div>
 
+      {/* Add Subject Modal */}
       <Modal
-        title="Add Subject"
-        visible={isModalVisible}
-        onCancel={handleCancel}
+        title={<span style={{ color: '#fff' }}>Add Subject</span>}
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
         footer={null}
       >
         <Form form={form} layout="vertical" onFinish={handleAddSubject}>
           <Form.Item
             name="name"
-            label="Subject Name"
+            label={<span style={{ color: '#d4d4d4' }}>Subject Name</span>}
             rules={[{ required: true, message: "Please enter the subject name" }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             name="description"
-            label="Description"
+            label={<span style={{ color: '#d4d4d4' }}>Description</span>}
             rules={[{ required: true, message: "Please enter the description" }]}
           >
             <Input.TextArea rows={4} />
           </Form.Item>
-          <Form.Item name="professor" label="Professor">
+          <Form.Item name="professor" label={<span style={{ color: '#d4d4d4' }}>Professor</span>}>
             <Input />
           </Form.Item>
-          {/* <Form.Item name="duration" label="Duration">
-            <Input />
-          </Form.Item> */}
           <Form.Item
             name="courseId"
-            label="Select Course"
+            label={<span style={{ color: '#d4d4d4' }}>Select Course</span>}
             rules={[{ required: true, message: "Please select the course" }]}
           >
             <Select placeholder="Select a course">
@@ -267,7 +322,7 @@ const SubjectsFolder = () => {
             </Select>
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
               Add Subject
             </Button>
           </Form.Item>

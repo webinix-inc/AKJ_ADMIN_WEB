@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, notification, Popconfirm } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { Table, Button, Modal, Form, Input, notification, Popconfirm, Tooltip, Space } from 'antd';
+import { EditOutlined, DeleteOutlined, PlusOutlined, DatabaseOutlined, LinkOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import HOC from '../../Component/HOC/HOC';
 import api from '../../api/axios';
+import './SelfService.css';
+
+const { confirm } = Modal;
 
 const ImportantLink = () => {
   const [links, setLinks] = useState([]);
@@ -26,6 +29,21 @@ const ImportantLink = () => {
   useEffect(() => {
     fetchLinks();
   }, []);
+
+  const showDeleteConfirm = (id) => {
+    confirm({
+      title: 'Are you sure you want to delete this link?',
+      icon: <ExclamationCircleOutlined />,
+      content: 'This action cannot be undone.',
+      okText: 'Yes, Delete',
+      okType: 'danger',
+      cancelText: 'No',
+      className: 'dark-modal',
+      onOk() {
+        handleDelete(id);
+      },
+    });
+  };
 
   const handleDelete = async (id) => {
     try {
@@ -52,7 +70,10 @@ const ImportantLink = () => {
       setEditingLink(null);
       form.resetFields();
     } catch (error) {
-      notification.error({ message: 'Failed to save link', description: error.message });
+      // Form validation error or API error
+      if (error.message) {
+        notification.error({ message: 'Failed to save link', description: error.message });
+      }
     }
   };
 
@@ -62,19 +83,26 @@ const ImportantLink = () => {
     setIsModalOpen(true);
   };
 
+  const handleCreate = () => {
+    setEditingLink(null);
+    form.resetFields();
+    setIsModalOpen(true);
+  }
+
   const columns = [
     {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
+      render: (text) => <span className="font-semibold text-white">{text}</span>
     },
     {
       title: 'URL',
       dataIndex: 'url',
       key: 'url',
       render: (url) => (
-        <a href={url} target="_blank" rel="noopener noreferrer">
-          {url}
+        <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 flex items-center gap-1">
+          <LinkOutlined /> {url}
         </a>
       ),
     },
@@ -82,43 +110,52 @@ const ImportantLink = () => {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
-        <>
-          <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
-            Edit
-          </Button>
-          <Popconfirm
-            title="Are you sure you want to delete this link?"
-            onConfirm={() => handleDelete(record._id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button type="link" icon={<DeleteOutlined />} danger>
-              Delete
-            </Button>
-          </Popconfirm>
-        </>
+        <Space>
+          <Tooltip title="Edit">
+            <Button
+              type="primary"
+              shape="circle"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+            />
+          </Tooltip>
+          <Tooltip title="Delete">
+            <Button
+              type="primary"
+              danger
+              shape="circle"
+              icon={<DeleteOutlined />}
+              onClick={() => showDeleteConfirm(record._id)}
+            />
+          </Tooltip>
+        </Space>
       ),
     },
   ];
 
   return (
-    <div>
-      <div style={{ marginBottom: 16, textAlign: 'right' }}>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setIsModalOpen(true)}
-        >
-          Add Link
-        </Button>
+    <div className="self-service-container">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">🔗 Important Links</h1>
+          <p className="page-subtitle">Manage external links and resources.</p>
+        </div>
+        <button className="primary-btn flex items-center gap-2" onClick={handleCreate}>
+          <PlusOutlined /> Add Link
+        </button>
       </div>
-      <Table
-        columns={columns}
-        dataSource={links}
-        rowKey="_id"
-        loading={loading}
-        bordered
-      />
+
+      <div className="glass-card p-6">
+        <Table
+          columns={columns}
+          dataSource={links}
+          rowKey="_id"
+          loading={loading}
+          className="dark-table"
+          pagination={{ pageSize: 8 }}
+        />
+      </div>
+
       <Modal
         title={editingLink ? 'Edit Link' : 'Add Link'}
         visible={isModalOpen}
@@ -129,21 +166,34 @@ const ImportantLink = () => {
         }}
         onOk={handleSubmit}
         okText="Save"
+        className="dark-modal"
+        destroyOnClose
+        footer={[
+          <Button key="back" className="secondary-btn" onClick={() => setIsModalOpen(false)}>
+            Cancel
+          </Button>,
+          <Button key="submit" type="primary" className="primary-btn" onClick={handleSubmit}>
+            Save
+          </Button>,
+        ]}
       >
         <Form form={form} layout="vertical">
           <Form.Item
             name="name"
-            label="Name"
+            label={<span className="dark-label">Name</span>}
             rules={[{ required: true, message: 'Please enter the name' }]}
           >
-            <Input placeholder="Enter name" />
+            <Input placeholder="Enter link name" className="dark-input" />
           </Form.Item>
           <Form.Item
             name="url"
-            label="URL"
-            rules={[{ required: true, message: 'Please enter the URL' }]}
+            label={<span className="dark-label">URL</span>}
+            rules={[
+              { required: true, message: 'Please enter the URL' },
+              { type: 'url', message: 'Please enter a valid URL' }
+            ]}
           >
-            <Input placeholder="Enter URL" />
+            <Input placeholder="https://example.com" className="dark-input" />
           </Form.Item>
         </Form>
       </Modal>

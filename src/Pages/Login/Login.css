@@ -1,153 +1,225 @@
-.login {
-  background: #141414;
-  width: 100%;
-  height: 100vh;
+/* Login Page Revamp - Dark Theme */
+.login-container {
+    background-color: #000;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    background: radial-gradient(circle at 10% 20%, rgb(0, 0, 0) 0%, rgb(20, 20, 20) 90.2%);
 }
 
-.login1 {
+/* Glassmorphism Card */
+.login-card {
+    background: rgba(30, 30, 30, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 1200px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
-.login2 {
-  padding: 30px;
+/* Left Side - Brand/Hero */
+.brand-section {
+    position: relative;
+    background: #111;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    min-height: 600px;
 }
 
-.login2 h3 {
-  font-family: "Inter", sans-serif;
-  font-weight: 900;
-  font-size: 24px;
-  line-height: 29.05px;
-  color: #ffffff;
-  margin: 0;
+.brand-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.8;
+    transition: transform 0.8s ease;
 }
 
-.login3 {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 60px;
-  width: 1100px;
-  max-width: 100%;
-  height: 100%; 
-  position: relative;
-  margin: auto;
+.brand-section:hover .brand-image {
+    transform: scale(1.05);
 }
 
-.login4 {
-  width: 40%;
+.brand-overlay-text {
+    position: absolute;
+    bottom: 40px;
+    left: 40px;
+    z-index: 2;
 }
 
-.login5 {
-  text-align: center;
+.brand-title {
+    font-size: 32px;
+    font-weight: 800;
+    background: linear-gradient(to right, #fff, #999);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
 }
 
-.login5 h5 {
-  font-family: "Roboto", sans-serif;
-  font-weight: 700;
-  font-size: 30px;
-  line-height: 42.19px;
-  color: #1a85ff;
-  margin: 0;
+/* Right Side - Form */
+.form-section {
+    padding: 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
-.login6 {
-  width: auto;
-  height: auto;
-  border-radius: 50px;
-  border: 3px solid #1a85ff;
-  padding: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  cursor: pointer;
-  margin-top: 30px;
+.form-header {
+    margin-bottom: 32px;
+    text-align: center;
 }
 
-.login6 p {
-  font-family: "Roboto", sans-serif;
-  font-weight: 600;
-  font-size: 20px;
-  line-height: 28.13px;
-  color: #ffffff;
-  margin: 0;
+.welcome-text {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
 }
 
-.login7 {
-  text-align: center;
-  margin-top: 20px;
+.subtitle-text {
+    color: #888;
+    font-size: 16px;
 }
 
-.login7 p {
-  font-family: "Roboto", sans-serif;
-  font-weight: 400;
-  font-size: 18px;
-  line-height: 23.44px;
-  color: #a8a6a6;
-  margin: 0;
+/* Google Button */
+.google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: #1f1f1f;
+    border: 1px solid #333;
+    padding: 12px;
+    border-radius: 50px !important;
+    color: #fff !important;
+    font-weight: 500;
+    margin-bottom: 24px;
+    transition: all 0.3s ease;
+    height: auto !important;
 }
 
-.login8 {
+.google-btn:hover {
+    background: #2a2a2a;
+    border-color: #555;
+    transform: translateY(-2px);
 }
 
-.login9 {
-  display: flex;
-  flex-direction: column;
-  margin-top: 20px;
+.divider {
+    color: #555;
+    margin: 24px 0;
+    position: relative;
+    text-align: center;
 }
 
-.login9 input {
-  width: 100%;
-  border: none;
-  border-bottom: 1px solid #d9d9d9;
-  outline: none;
-  font-weight: 700;
-  font-size: 16px;
-  color: #ffffff;
-  line-height: 23.44px;
-  background-color: #141414;
+.divider::before,
+.divider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: #333;
 }
 
-.login9 input::placeholder {
-  font-family: "Roboto", sans-serif;
-  font-weight: 600;
-  font-size: 17px;
-  color: #ffffff;
-  line-height: 23.44px;
+.divider::before {
+    left: 0;
 }
 
-.login9 label {
-  font-family: "Roboto", sans-serif;
-  font-weight: 600;
-  font-size: 17px;
-  color: #ffffff;
-  line-height: 23.44px;
+.divider::after {
+    right: 0;
 }
 
-.login10 {
-  margin-top: 30px;
+/* Form Inputs */
+.login-form .ant-form-item-label>label {
+    color: #a3a3a3 !important;
 }
 
-.login10 button {
-  width: 100%;
-  height: auto;
-  border: none;
-  outline: none;
-  padding: 17px 0px 17px 0px;
-  border-radius: 50px;
-  font-family: "Roboto", sans-serif;
-  font-weight: 700;
-  font-size: 24px;
-  color: #ffffff;
-  line-height: 28.13px;
-  cursor: pointer;
-  background: #1a85ff;
+/* Restore static border */
+.dark-input {
+    background-color: #171717 !important;
+    border: 1px solid #333 !important;
+    color: #fff !important;
+    padding: 12px 16px !important;
+    border-radius: 8px !important;
 }
 
-.login11 {
-  height: 450px
+/* Remove Blue Focus Glow (Inner Border) but keep Static Border */
+.dark-input:focus,
+.dark-input:hover,
+.ant-input-affix-wrapper:focus,
+.ant-input-affix-wrapper:hover {
+    border-color: #333 !important;
+    box-shadow: none !important;
 }
 
-.login11 img {
-  width: 100%;
-  height: 100%;
+.ant-input-affix-wrapper.dark-input {
+    padding: 12px 16px !important;
+}
+
+/* Fix for Browser Autofill Background */
+.login-form input:-webkit-autofill,
+.login-form input:-webkit-autofill:hover,
+.login-form input:-webkit-autofill:focus,
+.login-form input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #171717 inset !important;
+    -webkit-text-fill-color: white !important;
+    background-color: #171717 !important;
+    transition: background-color 999999s ease-in-out 0s;
+    color: white !important;
+    caret-color: white !important;
+}
+
+/* Specific targeted fix for Ant Design Password Input Wrapper */
+.ant-input-password input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px #171717 inset !important;
+    -webkit-text-fill-color: white !important;
+    caret-color: white !important;
+}
+
+.ant-input-password-icon {
+    color: #666 !important;
+}
+
+.ant-input-password-icon:hover {
+    color: #fff !important;
+}
+
+/* Submit Button */
+.submit-btn {
+    background: linear-gradient(135deg, #1a85ff 0%, #0062cc 100%);
+    border: none;
+    height: 50px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    border-radius: 50px !important;
+    box-shadow: 0 4px 14px 0 rgba(26, 133, 255, 0.4);
+    margin-top: 16px;
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px 0 rgba(26, 133, 255, 0.6);
+}
+
+.error-text {
+    color: #ff4d4f;
+    text-align: center;
+    margin-top: 12px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .brand-section {
+        display: none;
+    }
+
+    .login-card {
+        max-width: 500px;
+    }
 }

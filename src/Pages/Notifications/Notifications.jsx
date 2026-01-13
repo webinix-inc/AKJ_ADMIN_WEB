@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { IoMdClose } from "react-icons/io";
 import { MdArrowDropDown } from "react-icons/md";
+import { FaBell } from "react-icons/fa";
 import img from "../../Image/img28.png"; // Placeholder image
+import "./Notifications.css";
 import api from "../../api/axios";
+import { io } from "socket.io-client";
+import { useSelector } from "react-redux";
 
 const Notifications = ({ handleClose }) => {
   const [notifications, setNotifications] = useState([]);
@@ -14,6 +18,10 @@ const Notifications = ({ handleClose }) => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Get User ID from Redux for Socket Room
+  const adminData = useSelector((state) => state.admin.adminData);
+  const userId = adminData?.data?._id;
 
   const fetchNotifications = async (page = 1, filterType = "all") => {
     setLoading(true);
@@ -38,6 +46,37 @@ const Notifications = ({ handleClose }) => {
   useEffect(() => {
     fetchNotifications();
   }, []);
+
+  // 🔥 Real-time updates via Socket.IO
+  useEffect(() => {
+    if (!userId) return;
+
+    // Initialize socket connection
+    const socketUrl = process.env.REACT_APP_API_BASE_URL ? process.env.REACT_APP_API_BASE_URL.replace('/api/v1', '') : 'http://localhost:8890';
+
+    const newSocket = io(socketUrl, {
+      transports: ['websocket'],
+      query: { userId }
+    });
+
+    console.log("🔌 Connecting to socket for Admin Notifications...", socketUrl);
+
+    newSocket.on("connect", () => {
+      console.log("✅ Socket connected:", newSocket.id);
+      newSocket.emit("joinNotificationRoom", userId);
+    });
+
+    newSocket.on("notification", (newNotification) => {
+      console.log("🔔 New Admin Notification Received:", newNotification);
+
+      // Update state immediately
+      setNotifications(prev => [newNotification, ...prev]);
+    });
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, [userId]);
 
   const loadMoreNotifications = () => {
     if (currentPage < totalPages) {
@@ -76,53 +115,55 @@ const Notifications = ({ handleClose }) => {
   };
 
   return (
-    <div className="relative w-full bg-[#141414] text-gray-200 overflow-hidden">
+    <div className="notifications-page">
       {/* Header */}
-      <div className="flex items-center justify-between bg-[#0d0d0d] px-4 py-3 border-b border-gray-600">
-        <h6 className="text-lg font-bold">Notifications</h6>
-        <button onClick={handleClose}>
-          <IoMdClose size={24} className="text-gray-400 hover:text-gray-200" />
+      <div className="notifications-header">
+        <h6 className="header-title">Notifications</h6>
+        <button className="close-btn" onClick={handleClose}>
+          <IoMdClose size={24} />
         </button>
       </div>
 
       {/* Filter Dropdown */}
-      <div className="relative px-4 py-2">
-        <button
-          onClick={() => setShowDropdown(!showDropdown)}
-          className="flex items-center bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600"
-        >
-          {filter.charAt(0).toUpperCase() + filter.slice(1)}
-          <MdArrowDropDown size={24} className="ml-2" />
-        </button>
-        {showDropdown && (
-          <div className="absolute top-full mt-2 left-4 bg-[#0d0d0d] border border-gray-600 rounded-lg w-40 z-20">
-            <ul>
-              <li
-                className="px-4 py-2 hover:bg-gray-600 cursor-pointer"
-                onClick={() => handleFilterChange("all")}
-              >
-                All
-              </li>
-              <li
-                className="px-4 py-2 hover:bg-gray-600 cursor-pointer"
-                onClick={() => handleFilterChange("broadcast")}
-              >
-                Broadcast
-              </li>
-              <li
-                className="px-4 py-2 hover:bg-gray-600 cursor-pointer"
-                onClick={() => handleFilterChange("courseSpecific")}
-              >
-                Course Specific
-              </li>
-            </ul>
-          </div>
-        )}
+      <div className="filter-section">
+        <div className="filter-dropdown-wrapper">
+          <button
+            onClick={() => setShowDropdown(!showDropdown)}
+            className="filter-toggle-btn"
+          >
+            {filter.charAt(0).toUpperCase() + filter.slice(1)}
+            <MdArrowDropDown size={24} className="dropdown-icon" />
+          </button>
+          {showDropdown && (
+            <div className="filter-dropdown-menu">
+              <ul>
+                <li
+                  className={`filter-option ${filter === "all" ? "active" : ""}`}
+                  onClick={() => handleFilterChange("all")}
+                >
+                  All
+                </li>
+                <li
+                  className={`filter-option ${filter === "broadcast" ? "active" : ""}`}
+                  onClick={() => handleFilterChange("broadcast")}
+                >
+                  Broadcast
+                </li>
+                <li
+                  className={`filter-option ${filter === "courseSpecific" ? "active" : ""}`}
+                  onClick={() => handleFilterChange("courseSpecific")}
+                >
+                  Course Specific
+                </li>
+              </ul>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Notifications List */}
       <div
-        className="p-4 space-y-4 max-h-[94vh] overflow-y-auto"
+        className="notifications-list"
         onScroll={(e) => {
           const { scrollTop, scrollHeight, clientHeight } = e.target;
           if (scrollTop + clientHeight >= scrollHeight && !loading) {
@@ -131,64 +172,85 @@ const Notifications = ({ handleClose }) => {
         }}
       >
         {loading && !notifications.length ? (
-          <p className="text-center text-gray-400">Loading notifications...</p>
+          <div className="loading-state">
+            <div className="spinner"></div>
+            <p>Loading notifications...</p>
+          </div>
         ) : error ? (
-          <p className="text-center text-red-500">{error}</p>
+          <p className="error-message">{error}</p>
         ) : notifications.length > 0 ? (
           notifications.map((notif, index) => (
             <div
               key={notif._id || index}
-              className="flex items-start space-x-4 bg-[#0d0d0d] border border-gray-600 rounded-lg p-4 hover:bg-gray-600 transition cursor-pointer"
+              className="notification-card"
               onClick={() => handleNotificationClick(notif)}
             >
-              <img
-                src={img}
-                alt={`Notification from ${notif.title}`}
-                className="w-12 h-12 rounded-full"
-              />
-              <div className="flex-1">
-                <h4 className="text-sm font-semibold">{notif.title}</h4>
-                <p className="text-sm text-gray-400 truncate">
+              <div className="notification-icon-wrapper">
+                <div className="notification-icon-container">
+                  <FaBell size={16} className="notification-icon-svg" />
+                </div>
+              </div>
+              <div className="notification-content">
+                <div className="notification-header-row">
+                  <h4 className="notification-title">{notif.title}</h4>
+                  <span className="notification-time">
+                    {formatTime(notif.createdAt)}
+                  </span>
+                </div>
+                <p className="notification-message">
                   {notif.message || notif.content}
                 </p>
-                <span className="text-xs text-gray-500">
-                  {formatTime(notif.createdAt)}
-                </span>
               </div>
             </div>
           ))
         ) : (
-          <div className="flex flex-col items-center text-center space-y-2">
-            <img src={img} alt="No Notifications" className="w-16 h-16" />
-            <h4 className="text-gray-400 font-medium">
-              There are no new notifications in the admin panel
+          <div className="empty-state">
+            <img src={img} alt="No Notifications" className="empty-img" />
+            <h4 className="empty-text">
+              There are no new notifications
             </h4>
+          </div>
+        )}
+        {loading && notifications.length > 0 && (
+          <div className="loading-more">
+            <div className="spinner-small"></div>
           </div>
         )}
       </div>
 
       {/* Notification Details Modal */}
       {selectedNotification && (
-        <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center z-10">
-          <div className="bg-[#141414] w-4/5 max-w-2xl rounded-lg p-6 space-y-4">
-            <h4 className="text-lg font-bold">{selectedNotification.title}</h4>
-            <p className="text-gray-400">
-              {selectedNotification.message || selectedNotification.content}
-            </p>
-            <span className="text-xs text-gray-500">
-              {formatTime(selectedNotification.createdAt)}
-            </span>
-            <button
-              onClick={() => setSelectedNotification(null)}
-              className="bg-red-600 px-4 py-2 rounded-lg text-white hover:bg-red-500"
-            >
-              Close
-            </button>
+        <div className="notification-modal-overlay">
+          <div className="notification-modal">
+            <div className="modal-header">
+              <h4 className="modal-title">{selectedNotification.title}</h4>
+              <button
+                onClick={() => setSelectedNotification(null)}
+                className="modal-close-btn"
+              >
+                <IoMdClose size={20} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p className="modal-message">
+                {selectedNotification.message || selectedNotification.content}
+              </p>
+              <span className="modal-time">
+                {formatTime(selectedNotification.createdAt)}
+              </span>
+            </div>
+            <div className="modal-footer">
+              <button
+                onClick={() => setSelectedNotification(null)}
+                className="modal-action-btn"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
     </div>
   );
 };
-
 export default Notifications;

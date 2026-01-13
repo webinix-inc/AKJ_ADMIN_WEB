@@ -60,7 +60,6 @@ import api from "../../api/axios";
 import HOC from "../../Component/HOC/HOC";
 import ImportModal from "./ImportModal";
 
-// ✅ Redux Slices
 import {
   addSubfolder,
   deleteFileFromFolder,
@@ -70,6 +69,9 @@ import {
   updateFileOrder,
   updateFolder
 } from "../../redux/slices/contentSlice";
+
+// ✅ Dark Theme Styles
+import "./Content.css";
 
 const { Dragger } = Upload;
 
@@ -115,9 +117,9 @@ const getFileIcon = (fileName, fileUrl, fileType) => {
   if (fileType === 'youtube' || (fileUrl && (fileUrl.includes('youtube.com') || fileUrl.includes('youtu.be')))) {
     return { icon: FaVideo, color: '#ff0000', bgColor: '#ffe0e0' }; // YouTube red
   }
-  
+
   const extension = fileName?.split('.').pop()?.toLowerCase() || fileUrl?.split('.').pop()?.toLowerCase() || '';
-  
+
   const iconConfig = {
     // Video files
     mp4: { icon: FaFileVideo, color: '#ff6b6b', bgColor: '#ffe0e0' },
@@ -125,35 +127,35 @@ const getFileIcon = (fileName, fileUrl, fileType) => {
     mkv: { icon: FaFileVideo, color: '#ff6b6b', bgColor: '#ffe0e0' },
     mov: { icon: FaFileVideo, color: '#ff6b6b', bgColor: '#ffe0e0' },
     webm: { icon: FaFileVideo, color: '#ff6b6b', bgColor: '#ffe0e0' },
-    
+
     // PDF files
     pdf: { icon: FaFilePdf, color: '#e74c3c', bgColor: '#fdf2f2' },
-    
+
     // Image files
     jpg: { icon: FaFileImage, color: '#3498db', bgColor: '#e8f4fd' },
     jpeg: { icon: FaFileImage, color: '#3498db', bgColor: '#e8f4fd' },
     png: { icon: FaFileImage, color: '#3498db', bgColor: '#e8f4fd' },
     gif: { icon: FaFileImage, color: '#3498db', bgColor: '#e8f4fd' },
     svg: { icon: FaFileImage, color: '#3498db', bgColor: '#e8f4fd' },
-    
+
     // Document files
     doc: { icon: FaFileWord, color: '#2980b9', bgColor: '#e8f1f8' },
     docx: { icon: FaFileWord, color: '#2980b9', bgColor: '#e8f1f8' },
     txt: { icon: FaFileAlt, color: '#7f8c8d', bgColor: '#f8f9fa' },
-    
+
     // Spreadsheet files
     xls: { icon: FaFileExcel, color: '#27ae60', bgColor: '#e8f5e8' },
     xlsx: { icon: FaFileExcel, color: '#27ae60', bgColor: '#e8f5e8' },
-    
+
     // Presentation files
     ppt: { icon: FaFilePowerpoint, color: '#e67e22', bgColor: '#fef4e8' },
     pptx: { icon: FaFilePowerpoint, color: '#e67e22', bgColor: '#fef4e8' },
-    
+
     // Archive files
     zip: { icon: FaFileArchive, color: '#8e44ad', bgColor: '#f4e8f7' },
     rar: { icon: FaFileArchive, color: '#8e44ad', bgColor: '#f4e8f7' },
     '7z': { icon: FaFileArchive, color: '#8e44ad', bgColor: '#f4e8f7' },
-    
+
     // Code files
     js: { icon: FaFileCode, color: '#f39c12', bgColor: '#fef9e8' },
     jsx: { icon: FaFileCode, color: '#f39c12', bgColor: '#fef9e8' },
@@ -161,32 +163,32 @@ const getFileIcon = (fileName, fileUrl, fileType) => {
     css: { icon: FaFileCode, color: '#f39c12', bgColor: '#fef9e8' },
     json: { icon: FaFileCode, color: '#f39c12', bgColor: '#fef9e8' }
   };
-  
+
   return iconConfig[extension] || { icon: FaFile, color: '#95a5a6', bgColor: '#f8f9fa' };
 };
 
 // Helper function to check if a file is a video
 const isVideoFile = (file) => {
   if (!file) return false;
-  
+
   // Check file type
   if (file.type === 'youtube' || file.fileType === 'youtube') {
     return true;
   }
-  
+
   // Check URL for video extensions
   const url = file.url || file.fileUrl || '';
   const videoExtensions = ['mp4', 'webm', 'avi', 'mkv', 'mov', 'flv', 'wmv', 'm4v', '3gp'];
   const extension = url.split('.').pop()?.toLowerCase();
-  
+
   if (videoExtensions.includes(extension)) {
     return true;
   }
-  
+
   // Check filename
   const fileName = file.name || '';
   const fileNameExtension = fileName.split('.').pop()?.toLowerCase();
-  
+
   return videoExtensions.includes(fileNameExtension);
 };
 
@@ -205,18 +207,18 @@ const filterVideoFiles = (files) => {
 // Helper function to check if folder contains only videos (for copy operation)
 const folderContainsOnlyVideos = (folder) => {
   if (!folder) return false;
-  
+
   // Check files
   if (folder.files && folder.files.length > 0) {
     const allFilesAreVideos = folder.files.every(file => isVideoFile(file));
     if (!allFilesAreVideos) return false;
   }
-  
+
   // Recursively check subfolders
   if (folder.folders && folder.folders.length > 0) {
     return folder.folders.every(subfolder => folderContainsOnlyVideos(subfolder));
   }
-  
+
   return true;
 };
 
@@ -224,15 +226,15 @@ const FolderContents = () => {
   const { folderId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
+
   const folder = useSelector(
     (state) => selectFolderById(state, folderId),
     shallowEqual
   );
-  
+
   // Check if current folder is Live Videos folder
   const isLiveVideos = useMemo(() => isLiveVideosFolder(folder), [folder]);
-  
+
   // Filter files to show only videos if in Live Videos folder
   const displayFiles = useMemo(() => {
     if (!folder?.files) return [];
@@ -279,7 +281,7 @@ const FolderContents = () => {
     name: "",
   });
   const [isRenameFileModalVisible, setRenameFileModalVisible] = useState(false);
-  
+
   // Free Class states
   const [isFreeClassModalVisible, setIsFreeClassModalVisible] = useState(false);
   const [freeClassName, setFreeClassName] = useState("");
@@ -342,13 +344,13 @@ const FolderContents = () => {
       const isVideoFile = ['mp4', 'webm', 'mkv', 'avi', 'mov'].includes(fileExtension);
       const isPdfFile = fileExtension === 'pdf';
       const isImageFile = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(fileExtension);
-      
+
       if (isVideoFile || isPdfFile) {
         // Generate secure token for video and PDF files
         const response = await api.post("/stream/generate-token", {
           fileId: file._id,
         });
-        
+
         // Check if we got a direct signed URL or streaming token
         if (response.data.isDirectUrl && response.data.signedUrl) {
           // Use the signed URL directly for videos and PDFs
@@ -364,7 +366,7 @@ const FolderContents = () => {
           const response = await api.post("/stream/generate-token", {
             fileId: file._id,
           });
-          
+
           if (response.data.isDirectUrl && response.data.signedUrl) {
             setSecurePreviewUrl(response.data.signedUrl);
           } else {
@@ -559,13 +561,13 @@ const FolderContents = () => {
     (id) => {
       // Ensure we have a valid string ID
       const folderId = typeof id === 'object' ? id._id || id.id : id;
-      
+
       if (!folderId) {
         console.error('❌ [ERROR] Invalid folder ID:', id);
         message.error('Invalid folder ID');
         return;
       }
-      
+
       navigate(`/folder/${folderId}`);
     },
     [navigate]
@@ -775,7 +777,7 @@ const FolderContents = () => {
       await dispatch(
         updateFolder({
           id: folder._id,
-          folderData: { 
+          folderData: {
             isDownloadable: newDownloadableState,
             downloadType: newDownloadableState ? "both" : "web"
           }
@@ -792,7 +794,7 @@ const FolderContents = () => {
     // 🗂️ NEW: Check if folder is a system folder that cannot be deleted
     const isSystemFolder = folder.isMasterFolder || (folder.isSystemFolder && !folder.isDeletable);
     const canEdit = !folder.isMasterFolder; // Master folder name cannot be edited
-    
+
     return (
       <Menu>
         {canEdit && (
@@ -860,15 +862,15 @@ const FolderContents = () => {
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <p className="text-red-500 text-lg mb-4">Error loading folder</p>
           <p className="text-gray-500">{renderError()}</p>
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             onClick={() => dispatch(getFolderContents(folderId))}
             className="mt-4"
           >
@@ -884,8 +886,8 @@ const FolderContents = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <p className="text-gray-500 text-lg mb-4">No folder data available</p>
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             onClick={() => dispatch(getFolderContents(folderId))}
             className="mt-4"
           >
@@ -988,546 +990,544 @@ const FolderContents = () => {
             </div>
           </div>
         )} */}
-        
+
         <div className="flex justify-between items-center">
-        {/* Back Button */}
-        <Button
-          type="default"
-          icon={<FaArrowLeft />}
-          onClick={() => navigate(-1)} // Navigate back to the previous page
-          className="flex items-center"
-        >
-          Back
-        </Button>
-        <div className="flex gap-2">
-          {!isLiveVideos && (
-            <Button type="primary" icon={<FaPlus />} onClick={showModal}>
-              Add Folder
-            </Button>
-          )}
-          {/* <Button type="primary" icon={<FaPlus />} onClick={showUploadModal}>
-            Upload Video
-          </Button> */}
-          {!isLiveVideos && (
-            <Button
-              type="primary"
-              icon={<FaPlus />}
-              onClick={showUploadNotesModal}
-            >
-              Upload Notes
-            </Button>
-          )}
-          {!isLiveVideos && (
-            <Button
-              type="primary"
-              icon={<FaFileImport />}
-              onClick={toggleImportModal}
-              // style={{ backgroundColor: '#1890ff', borderColor: '#1890ff' }}
-            >
-              Copy Content
-            </Button>
-          )}
-          {!isLiveVideos && (
-            <Button
-              type="primary"
-              icon={<FaPlus />}
-              onClick={showFreeClassModal}
-              // style={{ backgroundColor: '#1890ff', borderColor: '#52c41a' }}
-            >
-              Add Free Class
-            </Button>
-          )}
+          {/* Back Button */}
           <Button
             type="default"
-            icon={viewMode === "gallery" ? <FaList /> : <FaTh />}
-            onClick={toggleViewMode}
+            icon={<FaArrowLeft />}
+            onClick={() => navigate(-1)} // Navigate back to the previous page
+            className="flex items-center"
           >
-            {viewMode === "gallery" ? "List View" : "Gallery View"}
+            Back
           </Button>
-        </div>
-      </div>
-      {/* Modal for Add Folder */}
-      <Modal
-        title="Add New Folder"
-        visible={isModalVisible}
-        onOk={handleAddFolder}
-        onCancel={handleCancel}
-      >
-        <Input
-          placeholder="Folder Name"
-          type="text"
-          value={newFolderName}
-          onChange={(e) => setNewFolderName(e.target.value)}
-        />
-      </Modal>
-      {/* Modal for Upload Video */}
-      <Modal
-        title="Upload Video"
-        visible={isUploadModalVisible}
-        onOk={handleUpload}
-        onCancel={() => setIsUploadModalVisible(false)}
-        confirmLoading={uploadLoading}
-        okText="Upload"
-      >
-        <Input
-          placeholder="Video Title"
-          type="text"
-          value={videoTitle}
-          onChange={(e) => setVideoTitle(e.target.value)}
-          style={{ marginBottom: "8px" }}
-        />
-        <TextArea
-          placeholder="Video Description"
-          value={videoDescription}
-          onChange={(e) => setVideoDescription(e.target.value)}
-          style={{ marginBottom: "16px" }}
-        />
-        <Dragger
-          accept="video/*"
-          multiple={true}
-          beforeUpload={(file) => {
-            setVideoFiles([...videoFiles, file]);
-            return false;
-          }}
-          showUploadList={true}
-        >
-          <p className="ant-upload-drag-icon">
-            <InboxOutlined />
-          </p>
-          <p className="ant-upload-text">
-            Click or drag video files to this area to upload
-          </p>
-        </Dragger>
-      </Modal>
-      {/* Modal for Upload Notes */}
-      <Modal
-        title="Upload Notes"
-        visible={isUploadNotesModalVisible}
-        onOk={handleUploadNotes}
-        onCancel={() => setIsUploadNotesModalVisible(false)}
-        confirmLoading={uploadLoading}
-        okText="Upload"
-      >
-        <Input
-          placeholder="Notes Title"
-          type="text"
-          value={notesTitle}
-          onChange={(e) => setNotesTitle(e.target.value)}
-          style={{ marginBottom: "8px" }}
-        />
-        <TextArea
-          placeholder="Notes Description"
-          value={notesDescription}
-          onChange={(e) => setNotesDescription(e.target.value)}
-          style={{ marginBottom: "16px" }}
-        />
-        <Dragger
-          accept=".pdf,.doc,.docx,.txt"
-          multiple={true}
-          beforeUpload={(file) => {
-            setNoteFiles([...noteFiles, file]);
-            return false;
-          }}
-          showUploadList={true}
-        >
-          <p className="ant-upload-drag-icon">
-            <InboxOutlined />
-          </p>
-          <p className="ant-upload-text">
-            Click or drag notes files to this area to upload
-          </p>
-        </Dragger>
-      </Modal>
-      {/* Render Folder and File Contents */}
-      {viewMode === "gallery" ? (
-        <div className="flex flex-wrap gap-6">
-          {folder?.folders.map((folderObject) => (
-            <div
-              key={folderObject._id}
-              onClick={() => handleFolderClick(folderObject._id)}
-              className="flex flex-col items-center gap-2"
+          <div className="flex gap-2">
+            {!isLiveVideos && (
+              <Button type="primary" icon={<FaPlus />} onClick={showModal}>
+                Add Folder
+              </Button>
+            )}
+            {/* <Button type="primary" icon={<FaPlus />} onClick={showUploadModal}>
+            Upload Video
+          </Button> */}
+            {!isLiveVideos && (
+              <Button
+                type="primary"
+                icon={<FaPlus />}
+                onClick={showUploadNotesModal}
+              >
+                Upload Notes
+              </Button>
+            )}
+            {!isLiveVideos && (
+              <Button
+                type="primary"
+                icon={<FaFileImport />}
+                onClick={toggleImportModal}
+              // style={{ backgroundColor: '#1890ff', borderColor: '#1890ff' }}
+              >
+                Copy Content
+              </Button>
+            )}
+            {!isLiveVideos && (
+              <Button
+                type="primary"
+                icon={<FaPlus />}
+                onClick={showFreeClassModal}
+              // style={{ backgroundColor: '#1890ff', borderColor: '#52c41a' }}
+              >
+                Add Free Class
+              </Button>
+            )}
+            <Button
+              type="default"
+              icon={viewMode === "gallery" ? <FaList /> : <FaTh />}
+              onClick={toggleViewMode}
             >
-              <FaFolder className="text-blue-600" size={50} />
-              <span className="text-center">{folderObject.name}</span>
-            </div>
-          ))}
-          {displayFiles.map((file) => (
-            <div key={file._id} className="flex flex-col items-center gap-2">
-              <FaFile size={50} />
-              <a target="_blank" rel="noreferrer" href={file.url}>
-                {file.name || "File"}
-              </a>
-            </div>
-          ))}
-          {!folder?.folders?.length && !displayFiles.length && (
-            <p className="text-red-500">
-              {isLiveVideos 
-                ? "No video files found. Upload videos or copy video files/folders from other locations."
-                : "No files or folders"
-              }
-            </p>
-          )}
-        </div>
-      ) : (
-        <div className="w-full bg-white rounded-lg overflow-hidden shadow-sm">
-          <table className="table-auto w-full text-left border-collapse">
-            <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-              <tr className="border-b border-gray-200">
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Preview</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Name</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Actions</th>
-              </tr>
-            </thead>
-            <DragDropContext onDragEnd={handleDragEnd}>
-              <Droppable droppableId="fileList">
-                {(provided) => (
-                  <tbody
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className="w-full"
-                  >
-                    {/* Render Folders */}
-                    {folder?.folders?.map((folderObject) => (
-                      <tr key={folderObject._id} className="border-b border-gray-100 hover:bg-blue-50 transition-colors duration-200">
-                        <td className="px-6 py-4">
-                          <div 
-                            className={`flex items-center justify-center w-16 h-16 rounded-xl cursor-pointer transition-all duration-300 hover:scale-105 shadow-sm ${
-                              folderObject.isMasterFolder 
-                                ? 'bg-gradient-to-br from-purple-100 to-purple-200 hover:from-purple-200 hover:to-purple-300' 
-                                : folderObject.isSystemFolder 
-                                ? 'bg-gradient-to-br from-orange-100 to-orange-200 hover:from-orange-200 hover:to-orange-300'
-                                : 'bg-gradient-to-br from-blue-100 to-blue-200 hover:from-blue-200 hover:to-blue-300'
-                            }`}
-                            onClick={() => handleFolderClick(folderObject._id)}
-                          >
-                            {folderObject.isMasterFolder ? (
-                              <div className="flex flex-col items-center">
-                                <FaFolder className="text-purple-600 text-xl" />
-                                <span className="text-xs text-purple-600 mt-1">👑</span>
-                              </div>
-                            ) : folderObject.isSystemFolder ? (
-                              <div className="flex flex-col items-center">
-                                <FaFolder className="text-orange-600 text-xl" />
-                                <FaLock className="text-orange-600 text-xs mt-1" />
-                              </div>
-                            ) : (
-                              <FaFolder className="text-blue-600 text-2xl" />
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={`font-medium cursor-pointer transition-colors duration-200 ${
-                                  folderObject.isMasterFolder 
-                                    ? 'text-purple-800 hover:text-purple-600' 
-                                    : folderObject.isSystemFolder 
-                                    ? 'text-orange-800 hover:text-orange-600'
-                                    : 'text-gray-800 hover:text-blue-600'
-                                }`}
-                                onClick={(e) => {
-                                  if (!folderObject.isMasterFolder) {
-                                    startEditing(e, folderObject._id, folderObject.name);
-                                  }
-                                }}
-                              >
-                                {folderObject.name}
-                              </span>
-                              {folderObject.isMasterFolder && (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                  👑 Master
-                                </span>
-                              )}
-                              {folderObject.isSystemFolder && !folderObject.isMasterFolder && (
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                                  🔒 System
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-sm text-gray-500 mt-1">
-                              {(folderObject.files?.length || 0) + (folderObject.folders?.length || 0)} items
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            <FaFolder className="w-3 h-3 mr-1 text-blue-600" />
-                            Folder
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <Dropdown
-                            overlay={menuForFolders(folderObject)}
-                            trigger={["click"]}
-                            placement="bottomRight"
-                          >
-                            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200">
-                              <FaEllipsisV className="text-gray-600" />
-                            </button>
-                          </Dropdown>
-                        </td>
-                      </tr>
-                    ))}
-
-                    {/* Render Files with Drag and Drop */}
-                    {displayFiles.map((file, index) => {
-                      const { icon: FileIcon, color, bgColor } = getFileIcon(file.name, file.url, file.type);
-                      return (
-                        <Draggable
-                          key={file._id}
-                          draggableId={file._id}
-                          index={index}
-                        >
-                          {(provided) => (
-                            <tr
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200"
-                            >
-                              <td className="px-6 py-4">
-                                <div 
-                                  className="flex items-center justify-center w-16 h-16 rounded-xl cursor-pointer hover:scale-105 transition-all duration-300 shadow-sm relative group"
-                                  style={{ backgroundColor: bgColor }}
-                                  onClick={() => handlePreview(file)}
-                                >
-                                  <FileIcon 
-                                    className="text-2xl" 
-                                    style={{ color: color }}
-                                  />
-                                  {/* Lock/Unlock indicator */}
-                                  <div className="absolute -top-1 -right-1">
-                                    {file.isViewable ? (
-                                      <FaUnlock className="w-3 h-3 text-green-500 bg-white rounded-full p-0.5 shadow-sm" />
-                                    ) : (
-                                      <FaLock className="w-3 h-3 text-red-500 bg-white rounded-full p-0.5 shadow-sm" />
-                                    )}
-                                  </div>
-                                  {/* Play button for videos */}
-                                  {(file.url?.includes('.mp4') || file.url?.includes('.webm') || file.url?.includes('.avi')) && (
-                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                      <FaPlay className="text-white text-sm bg-black bg-opacity-70 rounded-full p-2 w-8 h-8" />
-                                    </div>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="flex flex-col">
-                                  <span 
-                                    className="font-medium text-gray-800 cursor-pointer hover:text-blue-600 transition-colors duration-200 line-clamp-1"
-                                    onClick={() => handlePreview(file)}
-                                    title={file.name}
-                                  >
-                                    {file.name || "File"}
-                                  </span>
-                                  <span className="text-sm text-gray-500 mt-1">
-                                    {file.url?.split('.').pop()?.toUpperCase()} file
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="flex items-center gap-2">
-                                  {file.isViewable ? (
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                      <FaUnlock className="w-3 h-3 mr-1" />
-                                      Unlocked
-                                    </span>
-                                  ) : (
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                      <FaLock className="w-3 h-3 mr-1" />
-                                      Locked
-                                    </span>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4">
-                                <Dropdown
-                                  overlay={menuForFiles(file)}
-                                  trigger={["click"]}
-                                  placement="bottomRight"
-                                >
-                                  <button className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200">
-                                    <FaEllipsisV className="text-gray-600" />
-                                  </button>
-                                </Dropdown>
-                              </td>
-                            </tr>
-                          )}
-                        </Draggable>
-                      );
-                    })}
-                    {provided.placeholder}
-
-                    {/* No files or folders message */}
-                    {!folder?.folders?.length && !folder?.files?.length && (
-                      <tr>
-                        <td colSpan="4" className="text-center py-16">
-                          <div className="flex flex-col items-center justify-center text-gray-500">
-                            <AiOutlineFile className="text-6xl mb-4 opacity-50" />
-                            <p className="text-lg font-medium text-gray-600">No files or folders</p>
-                            <p className="text-sm text-gray-500 mt-1">Upload some files or create folders to get started</p>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                )}
-              </Droppable>
-            </DragDropContext>
-          </table>
-        </div>
-      )}
-
-      <Modal
-        title={previewContent?.name}
-        visible={isPreviewModalVisible}
-        footer={null}
-        onCancel={closePreviewModal}
-        centered
-        width="80%"
-        style={{ maxWidth: "1200px" }}
-      >
-        {loadingPreview ? (
-          <div className="flex items-center justify-center p-8">
-            <Spin size="large" />
-            <span className="ml-4">Loading preview...</span>
-          </div>
-        ) : previewError ? (
-          <div className="flex flex-col items-center justify-center p-8">
-            <p className="text-red-500 mb-4">{previewError}</p>
-            <Button onClick={() => handlePreview(previewContent)} type="primary">
-              Retry
+              {viewMode === "gallery" ? "List View" : "Gallery View"}
             </Button>
           </div>
-        ) : securePreviewUrl ? (
-          (() => {
-            const fileExtension = previewContent?.url?.split('.').pop()?.toLowerCase() || '';
-            const isImageFile = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(fileExtension);
-            const isPdfFile = fileExtension === 'pdf';
-            const isVideoFile = ['mp4', 'webm', 'mkv', 'avi', 'mov'].includes(fileExtension);
-            
-            if (isPdfFile) {
-              return (
-                <iframe
-                  src={securePreviewUrl}
-                  className="w-full h-96"
-                  title={previewContent.name}
-                />
-              );
-            } else if (isVideoFile) {
-              return (
-                <video 
-                  src={securePreviewUrl} 
-                  controls 
-                  className="w-full" 
-                  controlsList="nodownload noremoteplayback"
-                  disablePictureInPicture
-                  style={{ maxHeight: "70vh" }}
-                  onError={(e) => {
-                    console.error("Video playback error:", e);
-                    setPreviewError("Video playback failed. The file might be corrupted or unsupported.");
-                  }}
-                />
-              );
-            } else if (isImageFile) {
-              return (
-                <div className="flex justify-center items-center p-4">
-                  <img 
-                    src={securePreviewUrl} 
-                    alt={previewContent.name}
-                    className="max-w-full max-h-96 object-contain rounded-lg shadow-lg"
-                    onError={(e) => {
-                      console.error("Image load error:", e);
-                      setPreviewError("Image failed to load. The file might be corrupted or unsupported.");
-                    }}
-                  />
-                </div>
-              );
-            } else {
-              return (
-                <div className="flex flex-col items-center justify-center p-8">
-                  <div className="text-6xl mb-4">📄</div>
-                  <p className="text-gray-600 mb-4">Preview not available for this file type</p>
-                  <a 
-                    href={securePreviewUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                  >
-                    Open File
-                  </a>
-                </div>
-              );
-            }
-          })()
+        </div>
+        {/* Modal for Add Folder */}
+        <Modal
+          title="Add New Folder"
+          visible={isModalVisible}
+          onOk={handleAddFolder}
+          onCancel={handleCancel}
+        >
+          <Input
+            placeholder="Folder Name"
+            type="text"
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+          />
+        </Modal>
+        {/* Modal for Upload Video */}
+        <Modal
+          title="Upload Video"
+          visible={isUploadModalVisible}
+          onOk={handleUpload}
+          onCancel={() => setIsUploadModalVisible(false)}
+          confirmLoading={uploadLoading}
+          okText="Upload"
+        >
+          <Input
+            placeholder="Video Title"
+            type="text"
+            value={videoTitle}
+            onChange={(e) => setVideoTitle(e.target.value)}
+            style={{ marginBottom: "8px" }}
+          />
+          <TextArea
+            placeholder="Video Description"
+            value={videoDescription}
+            onChange={(e) => setVideoDescription(e.target.value)}
+            style={{ marginBottom: "16px" }}
+          />
+          <Dragger
+            accept="video/*"
+            multiple={true}
+            beforeUpload={(file) => {
+              setVideoFiles([...videoFiles, file]);
+              return false;
+            }}
+            showUploadList={true}
+          >
+            <p className="ant-upload-drag-icon">
+              <InboxOutlined />
+            </p>
+            <p className="ant-upload-text">
+              Click or drag video files to this area to upload
+            </p>
+          </Dragger>
+        </Modal>
+        {/* Modal for Upload Notes */}
+        <Modal
+          title="Upload Notes"
+          visible={isUploadNotesModalVisible}
+          onOk={handleUploadNotes}
+          onCancel={() => setIsUploadNotesModalVisible(false)}
+          confirmLoading={uploadLoading}
+          okText="Upload"
+        >
+          <Input
+            placeholder="Notes Title"
+            type="text"
+            value={notesTitle}
+            onChange={(e) => setNotesTitle(e.target.value)}
+            style={{ marginBottom: "8px" }}
+          />
+          <TextArea
+            placeholder="Notes Description"
+            value={notesDescription}
+            onChange={(e) => setNotesDescription(e.target.value)}
+            style={{ marginBottom: "16px" }}
+          />
+          <Dragger
+            accept=".pdf,.doc,.docx,.txt"
+            multiple={true}
+            beforeUpload={(file) => {
+              setNoteFiles([...noteFiles, file]);
+              return false;
+            }}
+            showUploadList={true}
+          >
+            <p className="ant-upload-drag-icon">
+              <InboxOutlined />
+            </p>
+            <p className="ant-upload-text">
+              Click or drag notes files to this area to upload
+            </p>
+          </Dragger>
+        </Modal>
+        {/* Render Folder and File Contents */}
+        {viewMode === "gallery" ? (
+          <div className="flex flex-wrap gap-6">
+            {folder?.folders.map((folderObject) => (
+              <div
+                key={folderObject._id}
+                onClick={() => handleFolderClick(folderObject._id)}
+                className="flex flex-col items-center gap-2"
+              >
+                <FaFolder className="text-blue-600" size={50} />
+                <span className="text-center">{folderObject.name}</span>
+              </div>
+            ))}
+            {displayFiles.map((file) => (
+              <div key={file._id} className="flex flex-col items-center gap-2">
+                <FaFile size={50} />
+                <a target="_blank" rel="noreferrer" href={file.url}>
+                  {file.name || "File"}
+                </a>
+              </div>
+            ))}
+            {!folder?.folders?.length && !displayFiles.length && (
+              <p className="text-red-500">
+                {isLiveVideos
+                  ? "No video files found. Upload videos or copy video files/folders from other locations."
+                  : "No files or folders"
+                }
+              </p>
+            )}
+          </div>
         ) : (
-          <div className="flex items-center justify-center p-8">
-            <p>No preview available</p>
+          <div className="w-full bg-white rounded-lg overflow-hidden shadow-sm">
+            <table className="table-auto w-full text-left border-collapse">
+              <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                <tr className="border-b border-gray-200">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Preview</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Name</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Actions</th>
+                </tr>
+              </thead>
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="fileList">
+                  {(provided) => (
+                    <tbody
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className="w-full"
+                    >
+                      {/* Render Folders */}
+                      {folder?.folders?.map((folderObject) => (
+                        <tr key={folderObject._id} className="border-b border-gray-100 hover:bg-blue-50 transition-colors duration-200">
+                          <td className="px-6 py-4">
+                            <div
+                              className={`flex items-center justify-center w-16 h-16 rounded-xl cursor-pointer transition-all duration-300 hover:scale-105 shadow-sm ${folderObject.isMasterFolder
+                                  ? 'bg-gradient-to-br from-purple-100 to-purple-200 hover:from-purple-200 hover:to-purple-300'
+                                  : folderObject.isSystemFolder
+                                    ? 'bg-gradient-to-br from-orange-100 to-orange-200 hover:from-orange-200 hover:to-orange-300'
+                                    : 'bg-gradient-to-br from-blue-100 to-blue-200 hover:from-blue-200 hover:to-blue-300'
+                                }`}
+                              onClick={() => handleFolderClick(folderObject._id)}
+                            >
+                              {folderObject.isMasterFolder ? (
+                                <div className="flex flex-col items-center">
+                                  <FaFolder className="text-purple-600 text-xl" />
+                                  <span className="text-xs text-purple-600 mt-1">👑</span>
+                                </div>
+                              ) : folderObject.isSystemFolder ? (
+                                <div className="flex flex-col items-center">
+                                  <FaFolder className="text-orange-600 text-xl" />
+                                  <FaLock className="text-orange-600 text-xs mt-1" />
+                                </div>
+                              ) : (
+                                <FaFolder className="text-blue-600 text-2xl" />
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={`font-medium cursor-pointer transition-colors duration-200 ${folderObject.isMasterFolder
+                                      ? 'text-purple-800 hover:text-purple-600'
+                                      : folderObject.isSystemFolder
+                                        ? 'text-orange-800 hover:text-orange-600'
+                                        : 'text-gray-800 hover:text-blue-600'
+                                    }`}
+                                  onClick={(e) => {
+                                    if (!folderObject.isMasterFolder) {
+                                      startEditing(e, folderObject._id, folderObject.name);
+                                    }
+                                  }}
+                                >
+                                  {folderObject.name}
+                                </span>
+                                {folderObject.isMasterFolder && (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                    👑 Master
+                                  </span>
+                                )}
+                                {folderObject.isSystemFolder && !folderObject.isMasterFolder && (
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                    🔒 System
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-sm text-gray-500 mt-1">
+                                {(folderObject.files?.length || 0) + (folderObject.folders?.length || 0)} items
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              <FaFolder className="w-3 h-3 mr-1 text-blue-600" />
+                              Folder
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <Dropdown
+                              overlay={menuForFolders(folderObject)}
+                              trigger={["click"]}
+                              placement="bottomRight"
+                            >
+                              <button className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200">
+                                <FaEllipsisV className="text-gray-600" />
+                              </button>
+                            </Dropdown>
+                          </td>
+                        </tr>
+                      ))}
+
+                      {/* Render Files with Drag and Drop */}
+                      {displayFiles.map((file, index) => {
+                        const { icon: FileIcon, color, bgColor } = getFileIcon(file.name, file.url, file.type);
+                        return (
+                          <Draggable
+                            key={file._id}
+                            draggableId={file._id}
+                            index={index}
+                          >
+                            {(provided) => (
+                              <tr
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className="border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200"
+                              >
+                                <td className="px-6 py-4">
+                                  <div
+                                    className="flex items-center justify-center w-16 h-16 rounded-xl cursor-pointer hover:scale-105 transition-all duration-300 shadow-sm relative group"
+                                    style={{ backgroundColor: bgColor }}
+                                    onClick={() => handlePreview(file)}
+                                  >
+                                    <FileIcon
+                                      className="text-2xl"
+                                      style={{ color: color }}
+                                    />
+                                    {/* Lock/Unlock indicator */}
+                                    <div className="absolute -top-1 -right-1">
+                                      {file.isViewable ? (
+                                        <FaUnlock className="w-3 h-3 text-green-500 bg-white rounded-full p-0.5 shadow-sm" />
+                                      ) : (
+                                        <FaLock className="w-3 h-3 text-red-500 bg-white rounded-full p-0.5 shadow-sm" />
+                                      )}
+                                    </div>
+                                    {/* Play button for videos */}
+                                    {(file.url?.includes('.mp4') || file.url?.includes('.webm') || file.url?.includes('.avi')) && (
+                                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        <FaPlay className="text-white text-sm bg-black bg-opacity-70 rounded-full p-2 w-8 h-8" />
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="flex flex-col">
+                                    <span
+                                      className="font-medium text-gray-800 cursor-pointer hover:text-blue-600 transition-colors duration-200 line-clamp-1"
+                                      onClick={() => handlePreview(file)}
+                                      title={file.name}
+                                    >
+                                      {file.name || "File"}
+                                    </span>
+                                    <span className="text-sm text-gray-500 mt-1">
+                                      {file.url?.split('.').pop()?.toUpperCase()} file
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center gap-2">
+                                    {file.isViewable ? (
+                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <FaUnlock className="w-3 h-3 mr-1" />
+                                        Unlocked
+                                      </span>
+                                    ) : (
+                                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        <FaLock className="w-3 h-3 mr-1" />
+                                        Locked
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <Dropdown
+                                    overlay={menuForFiles(file)}
+                                    trigger={["click"]}
+                                    placement="bottomRight"
+                                  >
+                                    <button className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200">
+                                      <FaEllipsisV className="text-gray-600" />
+                                    </button>
+                                  </Dropdown>
+                                </td>
+                              </tr>
+                            )}
+                          </Draggable>
+                        );
+                      })}
+                      {provided.placeholder}
+
+                      {/* No files or folders message */}
+                      {!folder?.folders?.length && !folder?.files?.length && (
+                        <tr>
+                          <td colSpan="4" className="text-center py-16">
+                            <div className="flex flex-col items-center justify-center text-gray-500">
+                              <AiOutlineFile className="text-6xl mb-4 opacity-50" />
+                              <p className="text-lg font-medium text-gray-600">No files or folders</p>
+                              <p className="text-sm text-gray-500 mt-1">Upload some files or create folders to get started</p>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            </table>
           </div>
         )}
-      </Modal>
-      <ImportModal
-        isVisible={isImportModalVisible}
-        onClose={toggleImportModal}
-        destinationFolderId={folderId}
-        id={folderId}
-        isLiveVideosFolder={isLiveVideos}
-      />
 
-      {/* Modal for Add Free Class */}
-      <Modal
-        title="Add Free Class"
-        visible={isFreeClassModalVisible}
-        onOk={handleAddFreeClass}
-        onCancel={handleFreeClassCancel}
-        confirmLoading={freeClassLoading}
-        okText="Add Free Class"
-        cancelText="Cancel"
-        width={600}
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Class Name *
-            </label>
-            <Input
-              placeholder="Enter class name (e.g., Introduction to React)"
-              value={freeClassName}
-              onChange={(e) => setFreeClassName(e.target.value)}
-              size="large"
-            />
+        <Modal
+          title={previewContent?.name}
+          visible={isPreviewModalVisible}
+          footer={null}
+          onCancel={closePreviewModal}
+          centered
+          width="80%"
+          style={{ maxWidth: "1200px" }}
+        >
+          {loadingPreview ? (
+            <div className="flex items-center justify-center p-8">
+              <Spin size="large" />
+              <span className="ml-4">Loading preview...</span>
+            </div>
+          ) : previewError ? (
+            <div className="flex flex-col items-center justify-center p-8">
+              <p className="text-red-500 mb-4">{previewError}</p>
+              <Button onClick={() => handlePreview(previewContent)} type="primary">
+                Retry
+              </Button>
+            </div>
+          ) : securePreviewUrl ? (
+            (() => {
+              const fileExtension = previewContent?.url?.split('.').pop()?.toLowerCase() || '';
+              const isImageFile = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(fileExtension);
+              const isPdfFile = fileExtension === 'pdf';
+              const isVideoFile = ['mp4', 'webm', 'mkv', 'avi', 'mov'].includes(fileExtension);
+
+              if (isPdfFile) {
+                return (
+                  <iframe
+                    src={securePreviewUrl}
+                    className="w-full h-96"
+                    title={previewContent.name}
+                  />
+                );
+              } else if (isVideoFile) {
+                return (
+                  <video
+                    src={securePreviewUrl}
+                    controls
+                    className="w-full"
+                    controlsList="nodownload noremoteplayback"
+                    disablePictureInPicture
+                    style={{ maxHeight: "70vh" }}
+                    onError={(e) => {
+                      console.error("Video playback error:", e);
+                      setPreviewError("Video playback failed. The file might be corrupted or unsupported.");
+                    }}
+                  />
+                );
+              } else if (isImageFile) {
+                return (
+                  <div className="flex justify-center items-center p-4">
+                    <img
+                      src={securePreviewUrl}
+                      alt={previewContent.name}
+                      className="max-w-full max-h-96 object-contain rounded-lg shadow-lg"
+                      onError={(e) => {
+                        console.error("Image load error:", e);
+                        setPreviewError("Image failed to load. The file might be corrupted or unsupported.");
+                      }}
+                    />
+                  </div>
+                );
+              } else {
+                return (
+                  <div className="flex flex-col items-center justify-center p-8">
+                    <div className="text-6xl mb-4">📄</div>
+                    <p className="text-gray-600 mb-4">Preview not available for this file type</p>
+                    <a
+                      href={securePreviewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                    >
+                      Open File
+                    </a>
+                  </div>
+                );
+              }
+            })()
+          ) : (
+            <div className="flex items-center justify-center p-8">
+              <p>No preview available</p>
+            </div>
+          )}
+        </Modal>
+        <ImportModal
+          isVisible={isImportModalVisible}
+          onClose={toggleImportModal}
+          destinationFolderId={folderId}
+          id={folderId}
+          isLiveVideosFolder={isLiveVideos}
+        />
+
+        {/* Modal for Add Free Class */}
+        <Modal
+          title="Add Free Class"
+          visible={isFreeClassModalVisible}
+          onOk={handleAddFreeClass}
+          onCancel={handleFreeClassCancel}
+          confirmLoading={freeClassLoading}
+          okText="Add Free Class"
+          cancelText="Cancel"
+          width={600}
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Class Name *
+              </label>
+              <Input
+                placeholder="Enter class name (e.g., Introduction to React)"
+                value={freeClassName}
+                onChange={(e) => setFreeClassName(e.target.value)}
+                size="large"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                YouTube URL *
+              </label>
+              <Input
+                placeholder="https://www.youtube.com/watch?v=..."
+                value={freeClassUrl}
+                onChange={(e) => setFreeClassUrl(e.target.value)}
+                size="large"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Paste the full YouTube video URL here
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description (Optional)
+              </label>
+              <TextArea
+                placeholder="Brief description of the class content..."
+                value={freeClassDescription}
+                onChange={(e) => setFreeClassDescription(e.target.value)}
+                rows={3}
+              />
+            </div>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              YouTube URL *
-            </label>
-            <Input
-              placeholder="https://www.youtube.com/watch?v=..."
-              value={freeClassUrl}
-              onChange={(e) => setFreeClassUrl(e.target.value)}
-              size="large"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Paste the full YouTube video URL here
-            </p>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Description (Optional)
-            </label>
-            <TextArea
-              placeholder="Brief description of the class content..."
-              value={freeClassDescription}
-              onChange={(e) => setFreeClassDescription(e.target.value)}
-              rows={3}
-            />
-          </div>
-        </div>
-      </Modal>
+        </Modal>
       </>
     </div>
   );

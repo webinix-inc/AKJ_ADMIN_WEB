@@ -3,32 +3,39 @@ import { useDispatch, useSelector } from "react-redux";
 import { updateCoupon, fetchCouponById } from "../../redux/slices/couponSlice";
 import { fetchCourses } from "../../redux/slices/courseSlice";
 import { useNavigate, useParams } from "react-router-dom";
-
 import {
-  Modal,
-  Button,
+  Form,
   Input,
-  Checkbox,
   Select,
+  Button,
   DatePicker,
   TimePicker,
-  Spin,
+  Checkbox,
+  Row,
+  Col,
+  notification,
+  Spin
 } from "antd";
-
-import img5 from "../../Image/img30.png";
+import {
+  ArrowLeftOutlined,
+  SaveOutlined,
+  TagOutlined,
+  BookOutlined,
+  ClockCircleOutlined,
+  DollarOutlined
+} from "@ant-design/icons";
 import HOC from "../../Component/HOC/HOC";
 import dayjs from "dayjs";
+import './SelfService.css';
 
 const { Option } = Select;
 
 const EditCoupon = () => {
-  const [formData, setFormData] = useState({});
-  const [modalShow, setModalShow] = useState(false);
-
   const { id } = useParams();
-  console.log("Print the id:", id);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
 
   const { courses, loading: coursesLoading } = useSelector(
     (state) => state.courses
@@ -43,344 +50,237 @@ const EditCoupon = () => {
   }, [dispatch, id]);
 
   useEffect(() => {
-    if (coupon) setFormData(coupon);
-  }, [coupon]);
+    if (coupon) {
+      // Pre-fill form
+      const initialValues = {
+        ...coupon,
+        startDate: coupon.startDate ? dayjs(coupon.startDate) : undefined,
+        endDate: coupon.endDate ? dayjs(coupon.endDate) : undefined,
+        startTime: coupon.startTime ? dayjs(coupon.startTime, 'HH:mm') : undefined,
+        endTime: coupon.endTime ? dayjs(coupon.endTime, 'HH:mm') : undefined,
+        assignedUserIds: coupon.assignedUserIds ? coupon.assignedUserIds.join(', ') : '',
+      };
+      form.setFieldsValue(initialValues);
+    }
+  }, [coupon, form]);
 
-  const handleChange = (field, value) =>
-    setFormData({ ...formData, [field]: value });
+  const onFinish = async (values) => {
+    setLoading(true);
+    try {
+      const formattedValues = {
+        ...values,
+        startDate: values.startDate ? values.startDate.format('YYYY-MM-DD') : undefined,
+        endDate: values.endDate ? values.endDate.format('YYYY-MM-DD') : undefined,
+        startTime: values.startTime ? values.startTime.format('HH:mm') : undefined,
+        endTime: values.endTime ? values.endTime.format('HH:mm') : undefined,
+      };
 
-  const handleSubmit = (e) => {
-    console.log("New formData is here :", formData);
-    e.preventDefault();
-    dispatch(updateCoupon({ id, couponData: formData }))
-      .unwrap()
-      .then(() => {
-        setModalShow(true);
-        setTimeout(() => {
-          setModalShow(false);
-          navigate("/selfservice/manage-coupons");
-        }, 2000);
-      })
-      .catch((err) => console.error("Error updating coupon:", err));
+      if (typeof formattedValues.assignedUserIds === 'string') {
+        formattedValues.assignedUserIds = formattedValues.assignedUserIds.split(',').map(id => id.trim());
+      }
+
+      await dispatch(updateCoupon({ id, couponData: formattedValues })).unwrap();
+      notification.success({ message: "Coupon updated successfully!" });
+      setTimeout(() => {
+        navigate("/selfservice/manage-coupons");
+      }, 1500);
+    } catch (error) {
+      console.error("Error updating coupon:", error);
+      notification.error({ message: "Failed to update coupon" });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (couponLoading)
-    return (
-      <Spin
-        size="large"
-        className="flex justify-center items-center h-screen"
-      />
-    );
+  // Watchers
+  const couponType = Form.useWatch('couponType', form);
+  const courseSelectionType = Form.useWatch('courseSelectionType', form);
+  const discountType = Form.useWatch('discountType', form);
+  const isLifetime = Form.useWatch('isLifetime', form);
+
+  if (couponLoading) {
+    return <div className="flex justify-center items-center h-screen"><Spin size="large" /></div>;
+  }
 
   return (
-    <>
-      {/* Success Modal */}
-      <Modal
-        open={modalShow}
-        centered
-        footer={null}
-        onCancel={() => navigate("/selfservice/manage-coupons")}
-      >
-        <div className="text-center">
-          <img src={img5} alt="Success" className="w-20 h-20 mx-auto" />
-          <p className="text-lg font-medium text-gray-800">
-            Coupon Updated Successfully
-          </p>
-        </div>
-      </Modal>
-
-      {/* Coupon Form */}
-      <div className="max-w-4xl mx-auto bg-white shadow-md rounded-md p-8 mt-6">
-        <div className="flex justify-between items-center mb-6">
+    <div className="self-service-container">
+      <div className="page-header">
+        <div>
           <Button
-            onClick={() => navigate("/selfservice")}
-            className="bg-blue-500 text-white"
+            type="text"
+            icon={<ArrowLeftOutlined />}
+            className="text-white hover:text-blue-400 p-0 mr-2"
+            onClick={() => navigate("/selfservice/manage-coupons")}
           >
             Back
           </Button>
-          <h2 className="text-xl font-semibold text-gray-800">Edit Coupon</h2>
+          <span className="page-title align-middle">✏️ Edit Coupon</span>
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <CustomInput
-            label="Offer Name"
-            field="offerName"
-            formData={formData}
-            handleChange={handleChange}
-            required
-          />
-          <CustomInput
-            label="Coupon Code"
-            field="couponCode"
-            formData={formData}
-            handleChange={handleChange}
-            required
-          />
-
-          {/* Coupon Type */}
-          <CustomSelect
-            label="Coupon Type"
-            field="couponType"
-            formData={formData}
-            handleChange={handleChange}
-            options={["Public", "Private"]}
-          />
-          {formData.couponType === "Private" && (
-            <CustomInput
-              label="Assigned Users (comma separated)"
-              field="assignedUserIds"
-              formData={formData}
-              handleChange={handleChange}
-              isArray
-            />
-          )}
-
-          {/* Course Selection */}
-          <CustomSelect
-            label="Course Selection Type"
-            field="courseSelectionType"
-            formData={formData}
-            handleChange={handleChange}
-            options={["All", "Specific"]}
-          />
-          {formData.courseSelectionType === "Specific" && (
-            <CustomMultiSelect
-              label="Assigned Courses"
-              field="assignedCourseIds"
-              formData={formData}
-              handleChange={handleChange}
-              options={courses}
-              loading={coursesLoading}
-            />
-          )}
-
-          {/* Discount Settings */}
-          {/* <div className="grid grid-cols-2 gap-4">
-            <CustomSelect
-              label="Discount Type"
-              field="discountType"
-              formData={formData}
-              handleChange={handleChange}
-              options={["Flat", "Percentage"]}
-            />
-            <CustomInput
-              label="Discount Amount"
-              field="discountAmount"
-              formData={formData}
-              handleChange={handleChange}
-              type="number"
-            />
-          </div> */}
-          <div className="grid grid-cols-2 gap-4">
-            <CustomSelect
-              label="Discount Type"
-              field="discountType"
-              formData={formData}
-              handleChange={handleChange}
-              options={["Flat", "Percentage"]}
-            />
-            {formData.discountType === "Flat" ? (
-              <CustomInput
-                label="Discount Amount"
-                field="discountAmount"
-                formData={formData}
-                handleChange={handleChange}
-                type="number"
-              />
-            ) : (
-              <CustomInput
-                label="Discount Percentage"
-                field="discountPercentage"
-                formData={formData}
-                handleChange={handleChange}
-                type="number"
-              />
-            )}
-          </div>
-
-          {/* Date & Time */}
-          <div className="grid grid-cols-2 gap-4">
-            <CustomDatePicker
-              label="Start Date"
-              field="startDate"
-              formData={formData}
-              handleChange={handleChange}
-            />
-            <CustomTimePicker
-              label="Start Time"
-              field="startTime"
-              formData={formData}
-              handleChange={handleChange}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <CustomDatePicker
-              label="End Date"
-              field="endDate"
-              formData={formData}
-              handleChange={handleChange}
-              disabled={!formData.isLifetime}
-            />
-            <CustomTimePicker
-              label="End Time"
-              field="endTime"
-              formData={formData}
-              handleChange={handleChange}
-              disabled={!formData.isLifetime}
-            />
-          </div>
-
-          {/* Other Settings */}
-          <CustomInput
-            label="Minimum Order Value"
-            field="minimumOrderValue"
-            formData={formData}
-            handleChange={handleChange}
-            type="number"
-          />
-          <CustomCheckbox
-            label="Make Coupon Visible"
-            field="visibility"
-            formData={formData}
-            handleChange={handleChange}
-          />
-          {/* <CustomCheckbox
-            label="Set as Unlimited"
-            field="isUnlimited"
-            formData={formData}
-            handleChange={handleChange}
-          /> */}
-
-          <Button
-            type="primary"
-            htmlType="submit"
-            className="w-full bg-blue-500 text-white"
-          >
-            Update Coupon
-          </Button>
-        </form>
       </div>
-    </>
+
+      <div className="glass-card max-w-5xl mx-auto">
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+            {/* Left Column */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-blue-400 mb-4 border-b border-gray-700 pb-2">
+                <TagOutlined /> Basic Information
+              </h3>
+
+              <Form.Item label={<span className="dark-label">Offer Name</span>} name="offerName" rules={[{ required: true }]}>
+                <Input className="dark-input" />
+              </Form.Item>
+
+              <Form.Item label={<span className="dark-label">Coupon Code</span>} name="couponCode" rules={[{ required: true }]}>
+                <Input className="dark-input font-mono uppercase" />
+              </Form.Item>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item label={<span className="dark-label">Coupon Type</span>} name="couponType">
+                    <Select className="dark-select" dropdownClassName="dark-dropdown">
+                      <Option value="Public">Public</Option>
+                      <Option value="Private">Private</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item label={<span className="dark-label">Visibility</span>} name="visibility" valuePropName="checked">
+                    <Checkbox className="text-gray-300">Visible</Checkbox>
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              {couponType === 'Private' && (
+                <Form.Item label={<span className="dark-label">Assigned User IDs</span>} name="assignedUserIds">
+                  <Input.TextArea className="dark-input" rows={2} />
+                </Form.Item>
+              )}
+
+              <h3 className="text-lg font-semibold text-blue-400 mt-8 mb-4 border-b border-gray-700 pb-2">
+                <BookOutlined /> Course Applicability
+              </h3>
+
+              <Form.Item label={<span className="dark-label">Course Selection</span>} name="courseSelectionType">
+                <Select className="dark-select" dropdownClassName="dark-dropdown">
+                  <Option value="All">All Courses</Option>
+                  <Option value="Specific">Specific Courses</Option>
+                </Select>
+              </Form.Item>
+
+              {courseSelectionType === 'Specific' && (
+                <Form.Item
+                  label={<span className="dark-label">Select Courses</span>}
+                  name="assignedCourseIds"
+                  rules={[{ required: true }]}
+                >
+                  <Select
+                    mode="multiple"
+                    className="dark-select"
+                    dropdownClassName="dark-dropdown"
+                    loading={coursesLoading}
+                    optionFilterProp="children"
+                  >
+                    {courses.map(course => (
+                      <Option key={course._id} value={course._id}>{course.title}</Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              )}
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-blue-400 mb-4 border-b border-gray-700 pb-2">
+                <DollarOutlined /> Discount & Usage
+              </h3>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item label={<span className="dark-label">Discount Type</span>} name="discountType">
+                    <Select className="dark-select" dropdownClassName="dark-dropdown">
+                      <Option value="Flat">Flat Amount (₹)</Option>
+                      <Option value="Percentage">Percentage (%)</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label={<span className="dark-label">{discountType === 'Flat' ? 'Amount (₹)' : 'Percentage (%)'}</span>}
+                    name={discountType === 'Flat' ? 'discountAmount' : 'discountPercentage'}
+                    rules={[{ required: true }]}
+                  >
+                    <Input type="number" className="dark-input" min={0} />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Form.Item label={<span className="dark-label">Minimum Order Value (₹)</span>} name="minimumOrderValue">
+                <Input type="number" className="dark-input" min={0} />
+              </Form.Item>
+
+              <h3 className="text-lg font-semibold text-blue-400 mt-8 mb-4 border-b border-gray-700 pb-2">
+                <ClockCircleOutlined /> Validity Period
+              </h3>
+
+              <Form.Item name="isLifetime" valuePropName="checked">
+                <Checkbox className="text-gray-300">Lifetime Validity</Checkbox>
+              </Form.Item>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item label={<span className="dark-label">Start Date</span>} name="startDate" rules={[{ required: true }]}>
+                    <DatePicker className="w-full dark-input" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item label={<span className="dark-label">Start Time</span>} name="startTime">
+                    <TimePicker className="w-full dark-input" format="HH:mm" />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              {!isLifetime && (
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item label={<span className="dark-label">End Date</span>} name="endDate" rules={[{ required: true }]}>
+                      <DatePicker className="w-full dark-input" />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item label={<span className="dark-label">End Time</span>} name="endTime">
+                      <TimePicker className="w-full dark-input" format="HH:mm" />
+                    </Form.Item>
+                  </Col>
+                </Row>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-gray-700 flex justify-end gap-4">
+            <Button className="secondary-btn" size="large" onClick={() => navigate("/selfservice/manage-coupons")}>
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="primary-btn"
+              size="large"
+              icon={<SaveOutlined />}
+              loading={loading}
+            >
+              Update Coupon
+            </Button>
+          </div>
+        </Form>
+      </div>
+    </div>
   );
 };
 
 export default HOC(EditCoupon);
-
-/* ------------------ Reusable Components ------------------ */
-
-const CustomInput = ({
-  label,
-  field,
-  formData,
-  handleChange,
-  type = "text",
-  required = false,
-  isArray = false,
-}) => (
-  <div>
-    <label className="block mb-2 text-sm font-medium text-gray-600">
-      {label}
-    </label>
-    <Input
-      type={type}
-      value={isArray ? formData[field]?.join(",") : formData[field]}
-      onChange={(e) =>
-        handleChange(
-          field,
-          isArray
-            ? e.target.value.split(",").map((id) => id.trim())
-            : e.target.value
-        )
-      }
-      placeholder={`Enter ${label.toLowerCase()}`}
-      required={required}
-    />
-  </div>
-);
-
-const CustomSelect = ({ label, field, formData, handleChange, options }) => (
-  <div>
-    <label className="block mb-2 text-sm font-medium text-gray-600">
-      {label}
-    </label>
-    <Select
-      value={formData[field]}
-      onChange={(value) => handleChange(field, value)}
-      className="w-full"
-    >
-      {options.map((option) => (
-        <Option key={option} value={option}>
-          {option}
-        </Option>
-      ))}
-    </Select>
-  </div>
-);
-
-const CustomMultiSelect = ({
-  label,
-  field,
-  formData,
-  handleChange,
-  options,
-  loading,
-}) => (
-  <div>
-    <label className="block mb-2 text-sm font-medium text-gray-600">
-      {label}
-    </label>
-    <Select
-      mode="multiple"
-      value={formData[field]}
-      onChange={(value) => handleChange(field, value)}
-      className="w-full"
-      loading={loading}
-    >
-      {options.map((option) => (
-        <Option key={option._id} value={option._id}>
-          {option.title}
-        </Option>
-      ))}
-    </Select>
-  </div>
-);
-
-const CustomDatePicker = ({
-  label,
-  field,
-  formData,
-  handleChange,
-  disabled = false,
-}) => (
-  <DatePicker
-    className="w-full"
-    value={formData[field] ? dayjs(formData[field]) : null}
-    onChange={(date, dateString) => handleChange(field, dateString)}
-    disabled={disabled}
-  />
-);
-
-const CustomTimePicker = ({
-  label,
-  field,
-  formData,
-  handleChange,
-  disabled = false,
-}) => (
-  <TimePicker
-    className="w-full"
-    value={formData[field] ? dayjs(formData[field], "HH:mm") : null}
-    onChange={(time, timeString) => handleChange(field, timeString)}
-    disabled={disabled}
-  />
-);
-
-const CustomCheckbox = ({ label, field, formData, handleChange }) => (
-  <Checkbox
-    checked={formData[field]}
-    onChange={(e) => handleChange(field, e.target.checked)}
-  >
-    {label}
-  </Checkbox>
-);

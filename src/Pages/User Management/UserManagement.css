@@ -1,0 +1,196 @@
+/* UserManagement.css */
+.user-management-container {
+    padding: 24px;
+    min-height: 100vh;
+    background-color: #000000;
+    color: #ffffff;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Embedded Mode - Removes Page level spacing */
+.assignment-embedded-container {
+    width: 100%;
+}
+
+.assignment-embedded-container .glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    padding: 16px;
+    /* Reduced padding for embedded view */
+    margin: 0;
+}
+
+/* Glassmorphism Card Reference */
+.user-management-container .glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.user-management-container .glass-card:hover {
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Page Header */
+.user-management-container .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.user-management-container .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(135deg, #fff 0%, #a5a5a5 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.user-management-container .page-subtitle {
+    color: #888;
+    margin-top: 4px;
+    font-size: 14px;
+}
+
+/* Ant Design Table Overrides */
+.user-management-container .dark-table .ant-table,
+.assignment-embedded-container .dark-table .ant-table {
+    background: transparent;
+    color: #e5e5e5;
+}
+
+.user-management-container .dark-table .ant-table-thead>tr>th,
+.assignment-embedded-container .dark-table .ant-table-thead>tr>th {
+    background: rgba(255, 255, 255, 0.05);
+    color: #a0a0a0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+.user-management-container .dark-table .ant-table-tbody>tr>td,
+.assignment-embedded-container .dark-table .ant-table-tbody>tr>td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+}
+
+.user-management-container .dark-table .ant-table-tbody>tr:hover>td,
+.assignment-embedded-container .dark-table .ant-table-tbody>tr:hover>td {
+    background: rgba(255, 255, 255, 0.02) !important;
+}
+
+.user-management-container .dark-table .ant-empty-description,
+.assignment-embedded-container .dark-table .ant-empty-description {
+    color: #666;
+}
+
+/* Form & Inputs */
+.user-management-container .dark-label {
+    color: #cfcfcf;
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.user-management-container .dark-input,
+.user-management-container .dark-select .ant-select-selector {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    height: 40px;
+}
+
+.user-management-container .dark-input:focus,
+.user-management-container .dark-select.ant-select-focused .ant-select-selector {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+}
+
+.user-management-container .dark-input::placeholder {
+    color: #444;
+}
+
+/* Modals */
+.dark-modal .ant-modal-content {
+    background: #1a1a1a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    border-radius: 16px;
+}
+
+.dark-modal .ant-modal-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark-modal .ant-modal-title {
+    color: #fff;
+}
+
+.dark-modal .ant-modal-close {
+    color: #888;
+}
+
+.dark-modal .ant-modal-close:hover {
+    color: #fff;
+}
+
+.dark-modal .ant-modal-body {
+    color: #ccc;
+}
+
+/* Buttons */
+.user-management-container .primary-btn,
+.assignment-embedded-container .primary-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border: none;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.user-management-container .primary-btn:hover,
+.assignment-embedded-container .primary-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+    background: linear-gradient(135deg, #4f93f6 0%, #3b76f6 100%);
+}
+
+.user-management-container .secondary-btn,
+.assignment-embedded-container .secondary-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.user-management-container .secondary-btn:hover,
+.assignment-embedded-container .secondary-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+/* List Items in Review Modal */
+.dark-modal .ant-list-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ddd;
+}
+
+.dark-modal .ant-list-split .ant-list-item:last-child {
+    border-bottom: none;
+}

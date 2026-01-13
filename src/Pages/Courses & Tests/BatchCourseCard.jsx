@@ -1,200 +1,222 @@
-import React, { useState } from "react";
-import { Card, Badge, Button, Tag, Tooltip, Space, Avatar, message } from "antd";
+import React, { useState, memo, useCallback, lazy, Suspense } from "react";
+import { message } from "antd";
 import {
   CalendarOutlined,
   TeamOutlined,
   UserOutlined,
-  EditOutlined,
   FolderOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
-import BatchUserManager from "./BatchUserManager";
 import CourseActions from "./CourseActions";
 
-const BatchCourseCard = ({ course, onRefresh }) => {
+const BatchUserManager = lazy(() => import("./BatchUserManager"));
+
+const BatchCourseCard = memo(({ course, onRefresh }) => {
   const navigate = useNavigate();
   const [userManagerVisible, setUserManagerVisible] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
-  const getStatusColor = (startDate, endDate) => {
+  const status = (() => {
     const now = moment();
-    const start = moment(startDate);
-    const end = moment(endDate);
+    if (!course.batchStartDate) return { label: "Not Set", color: "#fbbf24" };
+    if (now.isBefore(moment(course.batchStartDate))) return { label: "Upcoming", color: "#3b82f6" };
+    if (course.batchEndDate && now.isAfter(moment(course.batchEndDate))) return { label: "Ended", color: "#ef4444" };
+    return { label: "Active", color: "#22c55e" };
+  })();
 
-    if (!startDate) return "default";
-    if (now.isBefore(start)) return "blue"; // Upcoming
-    if (now.isAfter(end)) return "red"; // Ended
-    return "green"; // Active
-  };
+  const handleViewFolder = useCallback((e) => {
+    e?.stopPropagation?.();
+    const folderId = typeof course.rootFolder === 'object' ? course.rootFolder._id : course.rootFolder;
+    if (folderId) navigate(`/folder/${folderId}`);
+    else message.error("No folder found");
+  }, [course.rootFolder, navigate]);
 
-  const getStatusText = (startDate, endDate) => {
-    const now = moment();
-    const start = moment(startDate);
-    const end = moment(endDate);
-
-    if (!startDate) return "Not Scheduled";
-    if (now.isBefore(start)) return "Upcoming";
-    if (now.isAfter(end)) return "Ended";
-    return "Active";
-  };
-
-  const handleViewFolder = () => {
-    // Navigate to the root folder associated with this course
-    if (course.rootFolder) {
-      // 🔧 FIX: Ensure we always get a valid folder ID string
-      const folderId = typeof course.rootFolder === 'object' 
-        ? course.rootFolder._id || course.rootFolder.id 
-        : course.rootFolder;
-      
-      if (folderId && typeof folderId === 'string') {
-        console.log('✅ [DEBUG] Navigating to folder:', folderId);
-        navigate(`/folder/${folderId}`);
-      } else {
-        console.error('❌ [ERROR] Invalid folder ID:', { rootFolder: course.rootFolder, folderId });
-        message.error("Invalid folder ID found for this course");
-      }
-    } else {
-      message.error("No folder found for this course");
-      console.error("Course does not have a rootFolder:", course);
-    }
-  };
-
-  const handleManageUsers = () => {
+  const handleManageUsers = useCallback((e) => {
+    e?.stopPropagation?.();
     setUserManagerVisible(true);
-  };
+  }, []);
 
-  const handleTogglePublish = async (courseId, isPublished) => {
-    try {
-      // Add batch course publish/unpublish logic here
-      // For now, just show a message
-      message.success(`Batch course ${isPublished ? 'published' : 'unpublished'} successfully!`);
-      if (onRefresh) onRefresh();
-    } catch (error) {
-      message.error("Error updating batch course status: " + error);
-    }
-  };
+  const handleTogglePublish = useCallback(async (courseId, isPublished) => {
+    message.success(`Batch ${isPublished ? 'published' : 'unpublished'}`);
+    onRefresh?.();
+  }, [onRefresh]);
 
-  const handleDelete = () => {
-    // Add batch course delete logic here
-    message.info("Batch course deletion not implemented yet");
-  };
+  const handleDelete = useCallback(() => {
+    message.info("Delete not implemented");
+  }, []);
 
-  const enrolledCount = course.manualEnrollments?.length || 0;
+  const enrolled = course.manualEnrollments?.length || 0;
   const batchSize = course.batchSize || 50;
-  const fillPercentage = (enrolledCount / batchSize) * 100;
+  const progress = Math.round((enrolled / batchSize) * 100);
 
   return (
     <>
-      <Card
-        hoverable
-        style={{ marginBottom: 16 }}
-        actions={[
-          <Tooltip title="View Folder Contents">
-            <Button 
-              type="text" 
-              icon={<FolderOutlined />} 
-              onClick={handleViewFolder}
-            >
-              Folder
-            </Button>
-          </Tooltip>,
-          <Tooltip title="Manage Users">
-            <Button 
-              type="text" 
-              icon={<TeamOutlined />} 
-              onClick={handleManageUsers}
-            >
-              Users ({enrolledCount})
-            </Button>
-          </Tooltip>,
-          <CourseActions
-            courseId={course._id}
-            rootFolderId={course.rootFolder?._id || course.rootFolder}
-            isPublished={course.isPublished}
-            onTogglePublish={handleTogglePublish}
-            onDelete={handleDelete}
-          />,
-        ]}
+      <div
+        onClick={() => navigate(`/courses_tests/courses/edit/${course._id}`)}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          borderRadius: '12px',
+          overflow: 'hidden',
+          background: '#171717',
+          border: '1px solid #262626',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          transform: hovered ? 'translateY(-4px)' : 'none',
+          boxShadow: hovered ? '0 12px 24px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.2)',
+        }}
       >
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-            <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600" }}>
-              {course.title}
-            </h3>
-            <Tag color={getStatusColor(course.batchStartDate, course.batchEndDate)}>
-              {getStatusText(course.batchStartDate, course.batchEndDate)}
-            </Tag>
-          </div>
-          
-          <div style={{ marginBottom: 8 }}>
-            <Tag color="purple" style={{ marginBottom: 4 }}>
+        {/* Header */}
+        <div style={{
+          padding: '16px',
+          background: '#1f1f1f',
+          borderBottom: '1px solid #262626',
+        }}>
+          {/* Top Row */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <span style={{
+              padding: '4px 10px',
+              borderRadius: '6px',
+              fontSize: '11px',
+              fontWeight: '600',
+              color: '#fff',
+              background: '#7c3aed',
+            }}>
               {course.batchName}
-            </Tag>
-            {course.category?.name && (
-              <Tag color="blue" style={{ marginBottom: 4 }}>
-                {course.category.name}
-              </Tag>
-            )}
+            </span>
+            <span style={{
+              padding: '4px 10px',
+              borderRadius: '6px',
+              fontSize: '11px',
+              fontWeight: '600',
+              color: status.color,
+              background: `${status.color}20`,
+              border: `1px solid ${status.color}40`,
+            }}>
+              {status.label}
+            </span>
           </div>
 
-          <Space direction="vertical" size={8} style={{ width: "100%" }}>
-            {/* Enrollment Count */}
-            {enrolledCount > 0 && (
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <UserOutlined style={{ color: "#1890ff" }} />
-                <span style={{ fontSize: "14px", fontWeight: "500" }}>
-                  {enrolledCount} student{enrolledCount !== 1 ? 's' : ''} enrolled
-                </span>
-              </div>
-            )}
+          {/* Title */}
+          <h3 style={{
+            margin: 0,
+            fontSize: '15px',
+            fontWeight: '600',
+            color: '#fafafa',
+            lineHeight: 1.4,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {course.title}
+          </h3>
 
-            {/* Batch Dates */}
-            {course.batchStartDate && (
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <CalendarOutlined style={{ color: "#52c41a" }} />
-                <span style={{ fontSize: "14px" }}>
-                  Start Date: {moment(course.batchStartDate).format("MMM DD, YYYY")}
-                </span>
-              </div>
-            )}
-
-            {/* Course Details */}
-            <div style={{ display: "flex", gap: 16, fontSize: "12px", color: "#666" }}>
-              {course.duration && <span>📅 {course.duration}</span>}
-              {course.lessons && <span>📚 {course.lessons}</span>}
-              {course.price && <span>💰 ₹{course.price}</span>}
-            </div>
-
-            {/* Teachers */}
-            {course.teacher && course.teacher.length > 0 && (
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: "14px", color: "#666" }}>Teachers:</span>
-                <Avatar.Group maxCount={3} size="small">
-                  {course.teacher.map((teacher) => (
-                    <Tooltip 
-                      key={teacher._id} 
-                      title={`${teacher.firstName} ${teacher.lastName}`}
-                    >
-                      <Avatar size="small">
-                        {teacher.firstName?.[0]}{teacher.lastName?.[0]}
-                      </Avatar>
-                    </Tooltip>
-                  ))}
-                </Avatar.Group>
-              </div>
-            )}
-          </Space>
+          {course.category?.name && (
+            <span style={{
+              display: 'inline-block',
+              marginTop: '8px',
+              padding: '3px 8px',
+              borderRadius: '4px',
+              fontSize: '11px',
+              color: '#a3a3a3',
+              background: '#262626',
+            }}>
+              {course.category.name}
+            </span>
+          )}
         </div>
-      </Card>
 
-      <BatchUserManager
-        visible={userManagerVisible}
-        onCancel={() => setUserManagerVisible(false)}
-        course={course}
-        onRefresh={onRefresh}
-      />
+        {/* Content */}
+        <div style={{ padding: '16px' }}>
+          {/* Progress */}
+          <div style={{ marginBottom: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+              <span style={{ fontSize: '13px', color: '#a3a3a3', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <UserOutlined style={{ fontSize: '12px' }} />
+                {enrolled} / {batchSize}
+              </span>
+              <span style={{ fontSize: '13px', color: '#a3a3a3', fontWeight: '600' }}>{progress}%</span>
+            </div>
+            <div style={{ height: '6px', background: '#262626', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{
+                height: '100%',
+                width: `${Math.min(progress, 100)}%`,
+                background: '#7c3aed',
+                borderRadius: '3px',
+                transition: 'width 0.3s',
+              }} />
+            </div>
+          </div>
+
+          {/* Meta */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#a3a3a3' }}>
+              <CalendarOutlined style={{ fontSize: '12px' }} />
+              {course.batchStartDate ? moment(course.batchStartDate).format("MMM DD") : "No date"}
+            </span>
+            <span style={{ fontSize: '18px', fontWeight: '700', color: '#a78bfa' }}>
+              {course.price ? `₹${course.price}` : 'Free'}
+            </span>
+          </div>
+
+          {/* Buttons */}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={handleViewFolder} style={btnStyle}>
+              <FolderOutlined /> Folder
+            </button>
+            <button onClick={handleManageUsers} style={{
+              ...btnStyle,
+              flex: 1.5,
+              background: '#7c3aed',
+              borderColor: '#7c3aed',
+              color: '#fff',
+            }}>
+              <TeamOutlined /> Users ({enrolled})
+            </button>
+            <div onClick={(e) => e.stopPropagation()}>
+              <CourseActions
+                courseId={course._id}
+                rootFolderId={course.rootFolder?._id || course.rootFolder}
+                isPublished={course.isPublished}
+                onTogglePublish={handleTogglePublish}
+                onDelete={handleDelete}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {userManagerVisible && (
+        <Suspense fallback={null}>
+          <BatchUserManager
+            visible={userManagerVisible}
+            onCancel={() => setUserManagerVisible(false)}
+            course={course}
+            onRefresh={onRefresh}
+          />
+        </Suspense>
+      )}
     </>
   );
+});
+
+const btnStyle = {
+  flex: 1,
+  padding: '8px 0',
+  borderRadius: '8px',
+  border: '1px solid #404040',
+  background: 'transparent',
+  color: '#d4d4d4',
+  fontSize: '12px',
+  fontWeight: '500',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '4px',
+  transition: 'all 0.15s',
 };
 
+BatchCourseCard.displayName = 'BatchCourseCard';
 export default BatchCourseCard;

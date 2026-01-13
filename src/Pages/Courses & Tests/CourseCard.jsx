@@ -4,267 +4,312 @@ import {
   EyeInvisibleOutlined,
   EyeOutlined,
   FolderOutlined,
-  GlobalOutlined,
-  UserOutlined
+  UserOutlined,
+  BookOutlined
 } from "@ant-design/icons";
-import { Avatar, Button, Card, Modal, Space, Tag, Tooltip, message } from "antd";
+import { Modal, message } from "antd";
 import moment from "moment";
-import React, { useState } from "react";
+import React, { useState, memo, useCallback, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import img from "../../Image/img9.png";
 import { deleteCourse, togglePublishCourse } from "../../redux/slices/courseSlice";
 import { getOptimizedCourseImage } from "../../utils/imageUtils";
 import CourseActions from "./CourseActions";
 
-const CourseCard = ({ course, onRefresh }) => {
+// Gradient colors for placeholder
+const gradients = [
+  'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+  'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+  'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+  'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+  'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
+  'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+  'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+];
+
+const CourseCard = memo(({ course, onRefresh, index = 0 }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [shouldLoadImage, setShouldLoadImage] = useState(false);
 
-  const getStatusColor = (startDate, endDate, isPublished) => {
-    if (!isPublished) return "default";
+  // Progressive loading: Wait for page to be ready, then start loading images
+  useEffect(() => {
+    // Use requestIdleCallback if available, otherwise setTimeout
+    const loadImage = () => setShouldLoadImage(true);
 
-    const now = moment();
-    const start = moment(startDate);
-    const end = moment(endDate);
-
-    if (!startDate) return "blue";
-    if (now.isBefore(start)) return "blue"; // Upcoming
-    if (end && now.isAfter(end)) return "red"; // Ended
-    return "green"; // Active
-  };
-
-  const getStatusText = (startDate, endDate, isPublished) => {
-    if (!isPublished) return "Draft";
-
-    const now = moment();
-    const start = moment(startDate);
-    const end = moment(endDate);
-
-    if (!startDate) return "Published";
-    if (now.isBefore(start)) return "Upcoming";
-    if (end && now.isAfter(end)) return "Ended";
-    return "Active";
-  };
-
-  const handleViewFolder = (e) => {
-    if (e && typeof e.stopPropagation === 'function') {
-      e.stopPropagation(); // Prevent card click event
-    }
-    // Navigate to the root folder associated with this course
-    if (course.rootFolder) {
-      // 🔧 FIX: Ensure we always get a valid folder ID string
-      const folderId = typeof course.rootFolder === 'object'
-        ? course.rootFolder._id || course.rootFolder.id
-        : course.rootFolder;
-
-      if (folderId && typeof folderId === 'string') {
-        console.log('✅ [DEBUG] Navigating to folder:', folderId);
-        navigate(`/folder/${folderId}`);
-      } else {
-        console.error('❌ [ERROR] Invalid folder ID:', { rootFolder: course.rootFolder, folderId });
-        message.error("Invalid folder ID found for this course");
-      }
+    if ('requestIdleCallback' in window) {
+      const id = window.requestIdleCallback(loadImage, { timeout: 2000 });
+      return () => window.cancelIdleCallback(id);
     } else {
-      message.error("No folder found for this course");
-      console.error("Course does not have a rootFolder:", course);
+      const timer = setTimeout(loadImage, 500);
+      return () => clearTimeout(timer);
     }
-  };
+  }, []);
 
-  const handleEdit = (e) => {
-    if (e && typeof e.stopPropagation === 'function') {
-      e.stopPropagation(); // Prevent card click event
+  const status = (() => {
+    if (!course.isPublished) return { label: "Draft", color: "#fbbf24" };
+    const now = moment();
+    if (course.startDate && now.isBefore(moment(course.startDate))) return { label: "Upcoming", color: "#3b82f6" };
+    if (course.endDate && now.isAfter(moment(course.endDate))) return { label: "Ended", color: "#ef4444" };
+    return { label: "Active", color: "#22c55e" };
+  })();
+
+  const handleViewFolder = useCallback((e) => {
+    e?.stopPropagation?.();
+    const folderId = typeof course.rootFolder === 'object' ? course.rootFolder._id : course.rootFolder;
+    if (folderId) navigate(`/folder/${folderId}`);
+    else message.error("No folder found");
+  }, [course.rootFolder, navigate]);
+
+  const handleEdit = useCallback((e) => {
+    e?.stopPropagation?.();
+    navigate(`/courses_tests/courses/edit/${course._id}`);
+  }, [course._id, navigate]);
+
+  const handleTogglePublish = useCallback(async (courseId, isPublished) => {
+    try {
+      await dispatch(togglePublishCourse({ courseId: courseId || course._id, isPublished })).unwrap();
+      message.success(`Course ${isPublished ? "published" : "unpublished"}`);
+      onRefresh?.();
+    } catch (error) {
+      message.error("Error: " + error);
     }
-    navigate(`/courses_tests/courses/edit/${course._id}`);
-  };
+  }, [course._id, dispatch, onRefresh]);
 
-  const handleCardClick = () => {
-    navigate(`/courses_tests/courses/edit/${course._id}`);
-  };
-
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     try {
       await dispatch(deleteCourse(course._id)).unwrap();
-      message.success("Course deleted successfully!");
+      message.success("Course deleted");
       setDeleteModalVisible(false);
-      if (onRefresh) onRefresh();
+      onRefresh?.();
     } catch (error) {
-      message.error("Error deleting course: " + error);
+      message.error("Error: " + error);
     }
-  };
+  }, [course._id, dispatch, onRefresh]);
 
-  const handleTogglePublish = async (courseId, isPublished) => {
-    try {
-      await dispatch(togglePublishCourse({
-        courseId: courseId || course._id,
-        isPublished: isPublished
-      })).unwrap();
-      message.success(
-        `Course "${course.title}" successfully ${isPublished ? "published" : "unpublished"}!`
-      );
-      if (onRefresh) onRefresh();
-    } catch (error) {
-      message.error("Error updating course publish status: " + error);
-    }
-  };
-
-  // Calculate enrollment count (this would need to be provided by the API)
-  const enrolledCount = course.enrolledStudents?.length || course.studentsEnrolled || 0;
+  const enrolled = course.enrolledStudents?.length || course.studentsEnrolled || 0;
+  const imgSrc = getOptimizedCourseImage(course);
+  const gradient = gradients[index % gradients.length];
 
   return (
     <>
-      <Card
-        hoverable
-        style={{ marginBottom: 8, cursor: 'pointer', display: 'flex', flexDirection: 'column', height: '100%' }}
-        onClick={handleCardClick}
-        cover={
-          <div className="overflow-hidden h-40">
-            <img
-              alt={course?.title || "Course"}
-              src={getOptimizedCourseImage(course) || img}
-              onError={(e) => { e.target.src = img; }}
-              className="object-cover h-full w-full transition-transform duration-300 hover:scale-105"
-              crossOrigin="anonymous"
-            />
+      <div
+        onClick={() => navigate(`/courses_tests/courses/edit/${course._id}`)}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          borderRadius: '12px',
+          overflow: 'hidden',
+          background: '#171717',
+          border: '1px solid #262626',
+          cursor: 'pointer',
+          transition: 'transform 0.2s, box-shadow 0.2s',
+          transform: hovered ? 'translateY(-4px)' : 'none',
+          boxShadow: hovered ? '0 12px 24px rgba(0,0,0,0.4)' : '0 2px 8px rgba(0,0,0,0.2)',
+        }}
+      >
+        {/* Image Container */}
+        <div style={{
+          position: 'relative',
+          height: '140px',
+          background: gradient,
+          overflow: 'hidden',
+        }}>
+          {/* Placeholder - shows gradient with icon until image loads */}
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: imageLoaded ? 0 : 1,
+            transition: 'opacity 0.3s',
+          }}>
+            <div style={{
+              width: '50px',
+              height: '50px',
+              borderRadius: '12px',
+              background: 'rgba(255,255,255,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <BookOutlined style={{ fontSize: '24px', color: '#fff' }} />
+            </div>
           </div>
-        }
-        bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column' }}
-        actions={[
-          <Tooltip title="View Course Folder Contents" key="folder">
-            <Button
-              type="text"
-              icon={<FolderOutlined />}
-              onClick={handleViewFolder}
-              style={{ width: '100%' }}
-            >
-              Folder
-            </Button>
-          </Tooltip>,
-          <Tooltip title="Edit Course" key="edit">
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              onClick={handleEdit}
-              style={{ width: '100%' }}
-            >
-              Edit
-            </Button>
-          </Tooltip>,
-          <Tooltip title={course.isPublished ? "Unpublish Course" : "Publish Course"} key="publish">
-            <Button
-              type="text"
-              icon={course.isPublished ? <EyeInvisibleOutlined /> : <EyeOutlined />}
-              onClick={() => handleTogglePublish(course._id, !course.isPublished)}
+
+          {/* Actual Image - loads after page is ready */}
+          {shouldLoadImage && imgSrc && (
+            <img
+              src={imgSrc}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setImageLoaded(false)}
               style={{
-                color: course.isPublished ? "#ff4d4f" : "#52c41a",
-                width: '100%'
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                opacity: imageLoaded ? 1 : 0,
+                transition: 'opacity 0.3s',
+              }}
+            />
+          )}
+
+          {/* Gradient overlay for text readability */}
+          <div style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: '50%',
+            background: 'linear-gradient(to top, rgba(23,23,23,0.9) 0%, transparent 100%)',
+            pointerEvents: 'none',
+          }} />
+
+          {/* Status Badge */}
+          <span style={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+            padding: '4px 10px',
+            borderRadius: '6px',
+            fontSize: '11px',
+            fontWeight: '600',
+            color: status.color,
+            background: 'rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(4px)',
+          }}>
+            {status.label}
+          </span>
+
+          {/* Category Badge */}
+          {course.category?.name && (
+            <span style={{
+              position: 'absolute',
+              top: '10px',
+              left: '10px',
+              padding: '4px 10px',
+              borderRadius: '6px',
+              fontSize: '11px',
+              fontWeight: '600',
+              color: '#fff',
+              background: 'rgba(59,130,246,0.8)',
+            }}>
+              {course.category.name}
+            </span>
+          )}
+        </div>
+
+        {/* Content */}
+        <div style={{ padding: '16px' }}>
+          <h3 style={{
+            margin: '0 0 12px',
+            fontSize: '15px',
+            fontWeight: '600',
+            color: '#fafafa',
+            lineHeight: 1.4,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {course.title}
+          </h3>
+
+          <div style={{ display: 'flex', gap: '16px', marginBottom: '12px' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#a3a3a3' }}>
+              <CalendarOutlined style={{ fontSize: '12px' }} />
+              {course.startDate ? moment(course.startDate).format("MMM DD") : "No date"}
+            </span>
+            {enrolled > 0 && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#a3a3a3' }}>
+                <UserOutlined style={{ fontSize: '12px' }} />
+                {enrolled}
+              </span>
+            )}
+          </div>
+
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '14px',
+          }}>
+            <span style={{ fontSize: '12px', color: '#737373' }}>
+              {course.duration || ""}
+            </span>
+            <span style={{ fontSize: '18px', fontWeight: '700', color: '#22c55e' }}>
+              {course.price ? `₹${course.price}` : 'Free'}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={handleViewFolder} style={btnStyle}>
+              <FolderOutlined /> Folder
+            </button>
+            <button onClick={handleEdit} style={btnStyle}>
+              <EditOutlined /> Edit
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); handleTogglePublish(course._id, !course.isPublished); }}
+              style={{
+                ...btnStyle,
+                background: course.isPublished ? '#dc2626' : '#16a34a',
+                borderColor: course.isPublished ? '#dc2626' : '#16a34a',
+                color: '#fff',
               }}
             >
-              {course.isPublished ? "Unpublish" : "Publish"}
-            </Button>
-          </Tooltip>,
-        ]}
-      >
-        <div style={{ marginBottom: 8, flex: 1 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-            <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "600" }}>
-              {course.title}
-            </h3>
-            <Tag color={getStatusColor(course.startDate, course.endDate, course.isPublished)}>
-              {getStatusText(course.startDate, course.endDate, course.isPublished)}
-            </Tag>
+              {course.isPublished ? <><EyeInvisibleOutlined /> Hide</> : <><EyeOutlined /> Show</>}
+            </button>
+            <div onClick={(e) => e.stopPropagation()}>
+              <CourseActions
+                courseId={course._id}
+                rootFolderId={course.rootFolder?._id || course.rootFolder}
+                isPublished={course.isPublished}
+                onTogglePublish={handleTogglePublish}
+                onDelete={() => setDeleteModalVisible(true)}
+              />
+            </div>
           </div>
-
-          <Space direction="vertical" size={8} style={{ width: "100%", flex: 1 }}>
-            {/* Enrollment Count */}
-            {enrolledCount > 0 && (
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <UserOutlined style={{ color: "#1890ff" }} />
-                <span style={{ fontSize: "14px", fontWeight: "500" }}>
-                  {enrolledCount} student{enrolledCount !== 1 ? 's' : ''} enrolled
-                </span>
-              </div>
-            )}
-            <div style={{ display: "flex", gap: 8, justifyContent: "space-between", alignItems: "center" }}>
-              {/* Dates */}
-              {course.startDate && (
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <CalendarOutlined style={{ color: "#52c41a" }} />
-                  <span style={{ fontSize: "12px" }}>
-                    Start: {moment(course.startDate).format("MMM DD, YYYY")}
-                    {course.endDate && ` - ${moment(course.endDate).format("MMM DD, YYYY")}`}
-                  </span>
-                </div>
-              )}
-              <div>
-                {course.category?.name && (
-                  <Tag color="blue" style={{ marginBottom: 4, fontSize: "12px" }}>
-                    {course.category.name}
-                  </Tag>
-                )}
-                {course.isPublished && (
-                  <Tag color="green" style={{ marginBottom: 4, fontSize: "12px" }}>
-                    <GlobalOutlined /> Published
-                  </Tag>
-                )}
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 8, justifyContent: "space-between", alignItems: "center" }}>
-              {/* Course Details */}
-              <div style={{ display: "flex", gap: 16, fontSize: "12px", color: "#666" }}>
-                {course.duration && <span>📅 {course.duration}</span>}
-                {course.lessons && <span>📚 {course.lessons} lessons</span>}
-                {course.price && <span>💰 ₹{course.price}</span>}
-              </div>
-              {/* Course Actions Menu */}
-              <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-                <CourseActions
-                  courseId={course._id}
-                  rootFolderId={course.rootFolder?._id || course.rootFolder}
-                  isPublished={course.isPublished}
-                  onTogglePublish={handleTogglePublish}
-                  onDelete={() => setDeleteModalVisible(true)}
-                />
-              </div>
-            </div>
-            {/* Teachers */}
-            {course.teacher && course.teacher.length > 0 && (
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: "14px", color: "#666" }}>Teachers:</span>
-                <Avatar.Group maxCount={3} size="small">
-                  {course.teacher.map((teacher, index) => (
-                    <Tooltip
-                      key={teacher._id || index}
-                      title={`${teacher.firstName || teacher.name || 'Teacher'} ${teacher.lastName || ''}`}
-                    >
-                      <Avatar size="small">
-                        {(teacher.firstName?.[0] || teacher.name?.[0] || 'T')}{(teacher.lastName?.[0] || '')}
-                      </Avatar>
-                    </Tooltip>
-                  ))}
-                </Avatar.Group>
-              </div>
-            )}
-          </Space>
         </div>
-      </Card>
+      </div>
 
-      {/* Delete Confirmation Modal */}
       <Modal
-        title="Confirm Deletion"
+        title="Delete Course"
         open={deleteModalVisible}
         onCancel={() => setDeleteModalVisible(false)}
         onOk={handleDelete}
         okText="Delete"
         okButtonProps={{ danger: true }}
-        cancelText="Cancel"
       >
-        <p>Are you sure you want to delete the course "{course.title}"?</p>
-        <p style={{ color: "#ff4d4f", fontSize: "12px" }}>This action cannot be undone.</p>
+        <p>Delete "{course.title}"? This cannot be undone.</p>
       </Modal>
     </>
   );
+});
+
+const btnStyle = {
+  flex: 1,
+  padding: '8px 0',
+  borderRadius: '8px',
+  border: '1px solid #404040',
+  background: 'transparent',
+  color: '#d4d4d4',
+  fontSize: '12px',
+  fontWeight: '500',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: '4px',
 };
 
+CourseCard.displayName = 'CourseCard';
 export default CourseCard;

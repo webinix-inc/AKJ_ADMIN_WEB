@@ -1,0 +1,211 @@
+/* BookStore Dark Theme Styles */
+.bookstore-container {
+    padding: 24px;
+    background-color: #141414;
+    min-height: 100vh;
+    color: #fff;
+}
+
+.bookstore-header {
+    /* Layout handled by Tailwind classes in JSX */
+    margin-bottom: 24px;
+    border-bottom: 1px solid #262626;
+    padding-bottom: 16px;
+}
+
+.bookstore-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(to right, #fff, #a3a3a3);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Grid Layout */
+.books-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+.book-card {
+    background: #171717;
+    border: 1px solid #262626;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.book-card:hover {
+    transform: translateY(-5px);
+    border-color: #3b82f6;
+    box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.2);
+}
+
+.book-image-container {
+    height: 200px;
+    overflow: hidden;
+    position: relative;
+    background: #1f1f1f;
+}
+
+.book-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.book-card:hover .book-image {
+    transform: scale(1.05);
+}
+
+.book-content {
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.book-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.book-author {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 12px;
+}
+
+.book-price-row {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid #262626;
+}
+
+.book-price {
+    font-size: 20px;
+    font-weight: 700;
+    color: #3b82f6;
+}
+
+.original-price {
+    font-size: 14px;
+    color: #666;
+    text-decoration: line-through;
+    margin-left: 8px;
+}
+
+/* Modal Styling */
+.dark-modal .ant-modal-content {
+    background-color: #1f1f1f;
+    border: 1px solid #333;
+}
+
+.dark-modal .ant-modal-header {
+    background-color: #1f1f1f;
+    border-bottom: 1px solid #333;
+}
+
+.dark-modal .ant-modal-title {
+    color: #fff;
+}
+
+.dark-modal .ant-modal-close {
+    color: #aaa;
+}
+
+/* Form Inputs */
+.dark-input {
+    background-color: #171717 !important;
+    border-color: #333 !important;
+    color: #fff !important;
+}
+
+.dark-input:focus {
+    border-color: #3b82f6 !important;
+}
+
+/* Upload */
+.dark-upload .ant-upload-drag {
+    background: #171717 !important;
+    border: 1px dashed #333 !important;
+}
+
+.dark-upload .ant-upload-drag:hover {
+    border-color: #3b82f6 !important;
+}
+
+.dark-upload p.ant-upload-text {
+    color: #fff !important;
+}
+
+.dark-upload p.ant-upload-hint {
+    color: #888 !important;
+}
+
+/* --- Modal Text & Alignment Fixes --- */
+.ant-modal-confirm-title,
+.ant-modal-confirm-content {
+    color: #fff !important;
+}
+
+.ant-modal-confirm-body .anticon {
+    color: #faad14 !important;
+    /* Warning icon color */
+}
+
+/* Ensure modal buttons are visible */
+.ant-btn-primary {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.ant-btn-default {
+    background-color: transparent;
+    border-color: #333;
+    color: #fff;
+}
+
+.ant-btn-default:hover {
+    color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+/* --- Action Button Hover Fixes --- */
+.ant-btn-text:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.ant-btn-text.ant-btn-dangerous:hover {
+    background-color: rgba(220, 38, 38, 0.15) !important;
+    color: #ef4444 !important;
+}
+
+/* Edit button specific hover override if unrelated to danger */
+.ant-tooltip-open {
+    display: inline-block;
+    /* Fix for tooltip sometimes causing layout shift */
+}
+
+.dark-btn-secondary {
+    background-color: transparent;
+    border: 1px solid #333;
+    color: #fff;
+}
+
+.dark-btn-secondary:hover {
+    color: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+}

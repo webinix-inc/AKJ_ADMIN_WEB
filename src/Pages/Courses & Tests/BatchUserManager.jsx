@@ -31,6 +31,46 @@ import moment from "moment";
 const { Option } = Select;
 const { Search } = Input;
 
+// Dark theme styles
+const darkStyles = {
+  card: {
+    background: '#1a1a1a',
+    borderColor: '#333',
+    borderRadius: '12px',
+  },
+  cardTitle: {
+    color: '#fff',
+    fontSize: '15px',
+    fontWeight: '600',
+  },
+  label: {
+    color: '#e5e5e5',
+    fontSize: '14px',
+    fontWeight: '500',
+    marginBottom: '8px',
+    display: 'block',
+  },
+  input: {
+    background: '#252525',
+    borderColor: '#404040',
+    color: '#fff',
+  },
+  text: {
+    color: '#d4d4d4',
+  },
+  mutedText: {
+    color: '#888',
+  },
+  statNumber: {
+    fontSize: '28px',
+    fontWeight: '700',
+  },
+  statLabel: {
+    color: '#a3a3a3',
+    fontSize: '13px',
+  },
+};
+
 const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
   const dispatch = useDispatch();
   const { loading } = useSelector((state) => state.courses);
@@ -69,11 +109,11 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
       const response = await api.get("/chat/getUsersBasedOnRoles", {
         params: { page: 1, limitOnUser: 100 },
       });
-      
+
       if (response.data && response.data.users) {
         // Filter out users who are already enrolled in this batch
         const enrolledUserIds = course.manualEnrollments?.map(enrollment => enrollment.user._id) || [];
-        const availableUsers = response.data.users.filter(user => 
+        const availableUsers = response.data.users.filter(user =>
           !enrolledUserIds.includes(user._id)
         );
         setUsers(availableUsers);
@@ -94,11 +134,11 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
     }
 
     try {
-      const response = await dispatch(addUserToBatch({ 
-        courseId: course._id, 
-        userId: selectedUserId 
+      const response = await dispatch(addUserToBatch({
+        courseId: course._id,
+        userId: selectedUserId
       }));
-      
+
       if (response.type === 'batchCourses/addUserToBatch/fulfilled') {
         message.success("User added to batch course successfully!");
         setSelectedUserId(null);
@@ -140,13 +180,13 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
 
       const response = await api.post("/admin/courses/access", payload);
       message.success(response.data.message || `Access ${action.toLowerCase()}ed successfully!`);
-      
+
       // Reset form
       setSelectedUserIds([]);
       setExpiresIn("");
       fetchUsers(); // Refresh available users
       onRefresh(); // Refresh parent component
-      
+
     } catch (error) {
       console.error("Error managing access:", error);
       message.error(error.response?.data?.message || `Failed to ${action.toLowerCase()} access`);
@@ -157,11 +197,11 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
 
   const handleRemoveUser = async (userId) => {
     try {
-      const response = await dispatch(removeUserFromBatch({ 
-        courseId: course._id, 
-        userId 
+      const response = await dispatch(removeUserFromBatch({
+        courseId: course._id,
+        userId
       }));
-      
+
       if (response.type === 'batchCourses/removeUserFromBatch/fulfilled') {
         message.success("User removed from batch course successfully!");
         fetchUsers(); // Refresh available users
@@ -177,18 +217,24 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
 
   const enrolledColumns = [
     {
-      title: "User",
+      title: <span style={{ color: '#fff' }}>User</span>,
       key: "user",
       render: (_, record) => (
         <Space>
-          <Avatar size="small">
+          <Avatar
+            size="small"
+            style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              fontWeight: '600',
+            }}
+          >
             {record.user.firstName?.[0]}{record.user.lastName?.[0]}
           </Avatar>
           <div>
-            <div style={{ fontWeight: 500 }}>
+            <div style={{ fontWeight: 600, color: '#fff' }}>
               {record.user.firstName} {record.user.lastName}
             </div>
-            <div style={{ fontSize: "12px", color: "#666" }}>
+            <div style={{ fontSize: "12px", color: "#888" }}>
               {record.user.email}
             </div>
           </div>
@@ -196,32 +242,37 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
       ),
     },
     {
-      title: "Status",
+      title: <span style={{ color: '#fff' }}>Status</span>,
       dataIndex: "status",
       key: "status",
       render: (status) => (
-        <Tag color={status === "Active" ? "green" : status === "Inactive" ? "red" : "blue"}>
+        <Tag
+          color={status === "Active" ? "success" : status === "Inactive" ? "error" : "processing"}
+          style={{ borderRadius: '10px', fontWeight: '600' }}
+        >
           {status}
         </Tag>
       ),
     },
     {
-      title: "Enrolled Date",
+      title: <span style={{ color: '#fff' }}>Enrolled Date</span>,
       dataIndex: "enrolledDate",
       key: "enrolledDate",
-      render: (date) => moment(date).format("MMM DD, YYYY"),
+      render: (date) => <span style={{ color: '#d4d4d4' }}>{moment(date).format("MMM DD, YYYY")}</span>,
     },
     {
-      title: "Enrolled By",
+      title: <span style={{ color: '#fff' }}>Enrolled By</span>,
       key: "enrolledBy",
       render: (_, record) => (
-        record.enrolledBy ? 
-        `${record.enrolledBy.firstName} ${record.enrolledBy.lastName}` : 
-        "System"
+        <span style={{ color: '#d4d4d4' }}>
+          {record.enrolledBy ?
+            `${record.enrolledBy.firstName} ${record.enrolledBy.lastName}` :
+            "LMS Admin"}
+        </span>
       ),
     },
     {
-      title: "Action",
+      title: <span style={{ color: '#fff' }}>Action</span>,
       key: "action",
       render: (_, record) => (
         <Popconfirm
@@ -230,9 +281,9 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
           okText="Yes"
           cancelText="No"
         >
-          <Button 
-            type="text" 
-            danger 
+          <Button
+            type="text"
+            danger
             icon={<DeleteOutlined />}
             size="small"
           >
@@ -249,9 +300,24 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
   return (
     <Modal
       title={
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <TeamOutlined />
-          <span>Manage Batch Users - {course.batchName}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{
+            width: '44px',
+            height: '44px',
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <TeamOutlined style={{ color: '#fff', fontSize: '20px' }} />
+          </div>
+          <div>
+            <div style={{ color: '#fff', fontSize: '18px', fontWeight: '700' }}>
+              Manage Batch Users - {course.batchName}
+            </div>
+            <div style={{ color: '#888', fontSize: '13px' }}>{course.title}</div>
+          </div>
         </div>
       }
       open={visible}
@@ -259,13 +325,24 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
       width={1000}
       footer={null}
       destroyOnClose
+      styles={{
+        content: { background: '#0f0f0f', borderRadius: '16px', border: '1px solid #333' },
+        header: { background: '#0f0f0f', borderBottom: '1px solid #333', padding: '20px 24px' },
+        body: { padding: '24px', background: '#0f0f0f' },
+      }}
     >
       <Row gutter={16}>
         {/* Advanced Access Management Section */}
         <Col span={24} style={{ marginBottom: 16 }}>
-          <Card size="small" title="Advanced Access Management">
+          <Card
+            size="small"
+            title={<span style={darkStyles.cardTitle}>Advanced Access Management</span>}
+            style={darkStyles.card}
+            headStyle={{ background: '#1a1a1a', borderBottom: '1px solid #333' }}
+            bodyStyle={{ background: '#1a1a1a' }}
+          >
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>Select Users:</label>
+              <label style={darkStyles.label}>Select Users:</label>
               <Select
                 mode="multiple"
                 style={{ width: "100%" }}
@@ -274,6 +351,7 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
                 onChange={setSelectedUserIds}
                 loading={loadingUsers}
                 showSearch
+                size="large"
                 filterOption={(input, option) =>
                   option.children.toLowerCase().includes(input.toLowerCase())
                 }
@@ -288,8 +366,8 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 500 }}>
-                Access Duration (Days) <small style={{ color: '#666' }}>(Optional)</small>:
+              <label style={darkStyles.label}>
+                Access Duration (Days) <small style={{ color: '#888', fontWeight: '400' }}>(Optional)</small>:
               </label>
               <Input
                 type="number"
@@ -297,7 +375,9 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
                 placeholder="Enter number of days (leave empty for permanent access)"
                 value={expiresIn}
                 onChange={(e) => setExpiresIn(e.target.value)}
-                suffix={<ClockCircleOutlined />}
+                suffix={<ClockCircleOutlined style={{ color: '#888' }} />}
+                size="large"
+                style={darkStyles.input}
               />
             </div>
 
@@ -308,6 +388,8 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
                 onClick={() => handleBatchAccess("ASSIGN")}
                 loading={accessLoading}
                 disabled={!selectedUserIds.length}
+                size="large"
+                style={{ fontWeight: '600' }}
               >
                 Grant Access
               </Button>
@@ -316,18 +398,21 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
                 onClick={() => handleBatchAccess("REVOKE")}
                 loading={accessLoading}
                 disabled={!selectedUserIds.length}
+                size="large"
+                style={{ fontWeight: '600' }}
               >
                 Revoke Access
               </Button>
             </div>
 
-            <div style={{ marginTop: 12 }}>
+            <div style={{ marginTop: 16 }}>
               <Search
                 placeholder="Search available users..."
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 style={{ width: "100%" }}
                 allowClear
+                size="large"
               />
             </div>
           </Card>
@@ -335,7 +420,13 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
 
         {/* Simple Add User Section */}
         <Col span={24} style={{ marginBottom: 16 }}>
-          <Card size="small" title="Quick Add Single User">
+          <Card
+            size="small"
+            title={<span style={darkStyles.cardTitle}>Quick Add Single User</span>}
+            style={darkStyles.card}
+            headStyle={{ background: '#1a1a1a', borderBottom: '1px solid #333' }}
+            bodyStyle={{ background: '#1a1a1a' }}
+          >
             <Space.Compact style={{ width: "100%" }}>
               <Select
                 placeholder="Select a user to grant batch access"
@@ -343,6 +434,7 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
                 onChange={setSelectedUserId}
                 style={{ flex: 1 }}
                 showSearch
+                size="large"
                 filterOption={(input, option) =>
                   option.children.toLowerCase().includes(input.toLowerCase())
                 }
@@ -354,45 +446,51 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
                   </Option>
                 ))}
               </Select>
-              <Button 
-                type="primary" 
+              <Button
+                type="primary"
                 icon={<UserAddOutlined />}
                 onClick={handleAddUser}
                 loading={loading}
                 disabled={!selectedUserId}
-                                >
-                    Grant Access
-                  </Button>
+                size="large"
+                style={{ fontWeight: '600' }}
+              >
+                Grant Access
+              </Button>
             </Space.Compact>
           </Card>
         </Col>
 
         {/* Batch Statistics */}
         <Col span={24} style={{ marginBottom: 16 }}>
-          <Card size="small">
+          <Card
+            size="small"
+            style={darkStyles.card}
+            bodyStyle={{ background: '#1a1a1a', padding: '24px' }}
+          >
             <Row gutter={16}>
               <Col span={8}>
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: "24px", fontWeight: "bold", color: "#1890ff" }}>
+                  <div style={{ ...darkStyles.statNumber, color: "#3b82f6" }}>
                     {enrolledCount}
                   </div>
-                  <div style={{ color: "#666" }}>Users with Access</div>
+                  <div style={darkStyles.statLabel}>Users with Access</div>
                 </div>
               </Col>
               <Col span={8}>
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: "24px", fontWeight: "bold", color: "#52c41a" }}>
+                  <div style={{ ...darkStyles.statNumber, color: "#22c55e" }}>
                     {batchSize}
                   </div>
-                  <div style={{ color: "#666" }}>Batch Capacity</div>
+                  <div style={darkStyles.statLabel}>Batch Capacity</div>
                 </div>
               </Col>
               <Col span={8}>
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: "24px", fontWeight: "bold", color: "#fa8c16" }}>
+                  <div style={{ ...darkStyles.statNumber, color: "#f97316" }}>
                     {batchSize - enrolledCount}
                   </div>
-                  <div style={{ color: "#666" }}>Available Spots</div>
+                  <div style={darkStyles.statLabel}>Available Spots</div>
                 </div>
               </Col>
             </Row>
@@ -401,7 +499,13 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
 
         {/* Users with Batch Access Table */}
         <Col span={24}>
-          <Card size="small" title={`Users with Batch Access (${enrolledCount})`}>
+          <Card
+            size="small"
+            title={<span style={darkStyles.cardTitle}>Users with Batch Access ({enrolledCount})</span>}
+            style={darkStyles.card}
+            headStyle={{ background: '#1a1a1a', borderBottom: '1px solid #333' }}
+            bodyStyle={{ background: '#1a1a1a', padding: 0 }}
+          >
             <Table
               columns={enrolledColumns}
               dataSource={course.manualEnrollments || []}
@@ -410,13 +514,14 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
                 pageSize: 10,
                 showSizeChanger: true,
                 showQuickJumper: true,
-                showTotal: (total) => `Total ${total} users`,
+                showTotal: (total) => <span style={{ color: '#888' }}>Total {total} users</span>,
               }}
-              size="small"
+              size="middle"
               loading={loading}
               locale={{
-                emptyText: "No users have batch access yet"
+                emptyText: <span style={{ color: '#888' }}>No users have batch access yet</span>
               }}
+              style={{ background: 'transparent' }}
             />
           </Card>
         </Col>

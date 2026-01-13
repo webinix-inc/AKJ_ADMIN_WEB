@@ -1,96 +1,124 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { fetchAllCoupons, deleteCoupon } from "../../redux/slices/couponSlice";
+import { Table, Button, Space, Tag, Modal, Tooltip } from "antd";
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  ExclamationCircleOutlined
+} from "@ant-design/icons";
 import HOC from "../../Component/HOC/HOC";
+import './SelfService.css';
+
+const { confirm } = Modal;
 
 const ManageCoupons = () => {
   const dispatch = useDispatch();
-  const { coupons, loading, error } = useSelector((state) => state.coupons);
+  const navigate = useNavigate();
+  const { coupons, loading } = useSelector((state) => state.coupons);
 
   useEffect(() => {
     dispatch(fetchAllCoupons());
   }, [dispatch]);
 
   const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this coupon?")) {
-      dispatch(deleteCoupon(id));
-    }
+    confirm({
+      title: 'Are you sure you want to delete this coupon?',
+      icon: <ExclamationCircleOutlined />,
+      content: 'This action cannot be undone.',
+      okText: 'Yes, Delete',
+      okType: 'danger',
+      cancelText: 'No',
+      className: 'dark-modal',
+      onOk() {
+        dispatch(deleteCoupon(id));
+      },
+    });
   };
 
+  const columns = [
+    {
+      title: 'Offer Name',
+      dataIndex: 'offerName',
+      key: 'offerName',
+      render: (text) => <span className="font-semibold">{text}</span>,
+    },
+    {
+      title: 'Coupon Code',
+      dataIndex: 'couponCode',
+      key: 'couponCode',
+      render: (text) => <Tag color="blue" className="text-base px-3 py-1">{text}</Tag>,
+    },
+    {
+      title: 'Type',
+      dataIndex: 'couponType',
+      key: 'couponType',
+      render: (type) => (
+        <Tag color={type === 'Public' ? 'green' : 'gold'}>
+          {type}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Discount',
+      key: 'discount',
+      render: (_, record) => (
+        <span className="text-green-400 font-medium">
+          {record.discountType === "Percentage"
+            ? `${record.discountPercentage}% OFF`
+            : `₹${record.discountAmount} OFF`}
+        </span>
+      ),
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record) => (
+        <Space size="middle">
+          <Tooltip title="Edit">
+            <Link to={`/selfservice/editcoupon/${record._id}`}>
+              <Button type="primary" shape="circle" icon={<EditOutlined />} />
+            </Link>
+          </Tooltip>
+          <Tooltip title="Delete">
+            <Button
+              type="primary"
+              danger
+              shape="circle"
+              icon={<DeleteOutlined />}
+              onClick={() => handleDelete(record._id)}
+            />
+          </Tooltip>
+        </Space>
+      ),
+    },
+  ];
+
   return (
-    <div className="manage-coupons min-h-screen py-8">
-      <div className="flex justify-between items-center px-4">
-        <h1 className="text-2xl font-bold text-white">Manage Coupons</h1>
-        <Link
-          to="/selfservice/addcoupon"
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-        >
-          Add Coupon
+    <div className="self-service-container">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">🎟️ Manage Coupons</h1>
+          <p className="page-subtitle">Create and manage discount codes for your courses.</p>
+        </div>
+        <Link to="/selfservice/addcoupon">
+          <button className="primary-btn flex items-center gap-2">
+            <PlusOutlined /> Create Coupon
+          </button>
         </Link>
       </div>
 
-      {loading && <p className="text-center mt-4">Loading coupons...</p>}
-
-      {/* Fix for error rendering */}
-      {error && (
-        <p className="text-center mt-4 text-red-500">
-          {typeof error === "string"
-            ? error
-            : error.message || "An unknown error occurred."}
-        </p>
-      )}
-
-      <div className="mt-6 px-4 text-white">
-        {coupons && coupons.length > 0 ? (
-          <table className="w-full border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-100 text-black">
-                <th className="border border-gray-300 px-4 py-2">Name</th>
-                <th className="border border-gray-300 px-4 py-2">Code</th>
-                <th className="border border-gray-300 px-4 py-2">Type</th>
-                <th className="border border-gray-300 px-4 py-2">Discount</th>
-                <th className="border border-gray-300 px-4 py-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {coupons.map((coupon) => (
-                <tr key={coupon._id}>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {coupon.offerName}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {coupon.couponCode}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {coupon.couponType}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    {coupon.discountType === "Percentage"
-                      ? `${coupon.discountPercentage}%`
-                      : `₹${coupon.discountAmount}`}
-                  </td>
-                  <td className="border border-gray-300 px-4 py-2">
-                    <button
-                      className="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600 mr-2"
-                      onClick={() => handleDelete(coupon._id)}
-                    >
-                      Delete
-                    </button>
-                    <Link
-                      to={`/selfservice/editcoupon/${coupon._id}`}
-                      className="bg-yellow-500 text-white px-2 py-1 rounded-lg hover:bg-yellow-600"
-                    >
-                      Edit
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p className="text-center mt-4">No coupons available.</p>
-        )}
+      <div className="glass-card p-6">
+        <Table
+          columns={columns}
+          dataSource={coupons}
+          rowKey="_id"
+          loading={loading}
+          pagination={{ pageSize: 10 }}
+          className="dark-table"
+        />
       </div>
     </div>
   );

@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Table, Typography, Spin, Alert, Tooltip } from "antd";
+import { Table, Typography, Spin, Alert, Tooltip, Avatar, Space } from "antd";
+import { ShoppingOutlined, UserOutlined, BookOutlined } from "@ant-design/icons";
 import api from "../../api/axios";
 import HOC from "../../Component/HOC/HOC";
+import "./Orders.css";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const BookOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -29,122 +31,114 @@ const BookOrders = () => {
 
   const truncateWithTooltip = (text, length = 20) => (
     <Tooltip title={text}>
-      <div className="truncate-text">{text}</div>
+      <div className="truncate-text" style={{ maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{text}</div>
     </Tooltip>
   );
 
   const columns = [
     {
-      title: "Transaction ID",
-      dataIndex: "transactionId",
-      key: "transactionId",
-      render: (text) => truncateWithTooltip(text, 18),
+      title: "ORDER INFO",
+      key: "orderInfo",
+      render: (_, record) => (
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <Text type="secondary" style={{ fontSize: '12px' }}>Txn: {record.transactionId?.substring(0, 10)}...</Text>
+          <Text className="text-white" strong>{record.orderId}</Text>
+        </div>
+      )
     },
     {
-      title: "Order ID",
-      dataIndex: "orderId",
-      key: "orderId",
-      render: (text) => truncateWithTooltip(text, 18),
-    },
-    {
-      title: "Book Image",
-      dataIndex: ["book", "imageUrl"],
-      key: "bookName",
-      render: (imageUrl) => (
-        <Tooltip title="Book Image">
-          <img
-            src={imageUrl}
-            alt="Book"
-            style={{ width: 50, height: 50, borderRadius: 5 }}
-          />
-        </Tooltip>
+      title: "CUSTOMER",
+      key: "customer",
+      render: (_, record) => (
+        <Space>
+          <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#2563eb' }} />
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <Text strong className="text-white">{record.user.firstName} {record.user.lastName}</Text>
+            <Text type="secondary" style={{ fontSize: '12px' }}>{record.user.email}</Text>
+          </div>
+        </Space>
       ),
     },
     {
-      title: "Customer",
-      key: "customer",
-      render: (_, record) =>
-        truncateWithTooltip(`${record.user.firstName} ${record.user.lastName}`),
+      title: "BOOK",
+      key: "book",
+      render: (_, record) => (
+        <Space>
+          {record.book?.imageUrl ? (
+            <img
+              src={record.book.imageUrl}
+              alt="Book"
+              style={{ width: 40, height: 50, borderRadius: 4, objectFit: 'cover' }}
+            />
+          ) : (
+            <div style={{ width: 40, height: 50, background: '#333', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <BookOutlined style={{ color: '#888' }} />
+            </div>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <Text className="text-white">{record.book?.name || "Unknown Book"}</Text>
+            <Text type="secondary" style={{ fontSize: '12px' }}>Qty: {record.quantity}</Text>
+          </div>
+        </Space>
+      ),
     },
     {
-      title: "Email",
-      dataIndex: ["user", "email"],
-      key: "email",
-      render: (text) => truncateWithTooltip(text),
-    },
-    {
-      title: "Phone",
-      dataIndex: ["user", "phone"],
-      key: "phone",
-      render: (text) => truncateWithTooltip(text),
-    },
-    {
-      title: "Address",
-      dataIndex: ["user", "address"],
-      key: "address",
-      render: (text) => truncateWithTooltip(text),
-    },
-    {
-      title: "Book",
-      dataIndex: ["book", "name"],
-      key: "bookName",
-      render: (text) => truncateWithTooltip(text),
-    },
-    {
-      title: "Qty",
-      dataIndex: "quantity",
-      key: "quantity",
-      align: "center",
-    },
-    {
-      title: "Amount",
+      title: "AMOUNT",
       dataIndex: "totalAmount",
       key: "totalAmount",
       align: "right",
-      render: (amount) => `₹${amount.toFixed(2)}`,
+      render: (amount) => <Text strong className="text-green-400">₹{amount.toFixed(2)}</Text>,
     },
     {
-      title: "Date",
+      title: "DATE",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (date) => new Date(date).toLocaleString(),
+      render: (date) => <Text className="text-gray-300">{new Date(date).toLocaleString()}</Text>,
     },
+    {
+      title: "ADDRESS",
+      dataIndex: ["user", "address"],
+      key: "address",
+      render: (text) => truncateWithTooltip(text || "N/A"),
+      width: 150
+    }
   ];
 
   return (
-    <div
-      style={{
-        padding: 24,
-        backgroundColor: "#1f1f1f",
-        minHeight: "100vh",
-        color: "#fff",
-      }}
-    >
-      <Title level={3} style={{ color: "#fff" }}>
-        📦 All Book Orders
-      </Title>
+    <div className="orders-container">
+      {/* Page Header */}
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Book Orders</h1>
+          <p style={{ color: '#888', marginTop: '4px' }}>Track and manage physical book shipments</p>
+        </div>
+      </div>
 
-      {error && (
-        <Alert
-          type="error"
-          message={error}
-          showIcon
-          style={{ marginBottom: 16 }}
-        />
-      )}
+      <div className="glass-card">
+        {error && (
+          <Alert
+            type="error"
+            message={error}
+            showIcon
+            style={{ marginBottom: 24, background: 'rgba(255,0,0,0.1)', border: '1px solid rgba(255,0,0,0.2)', color: '#ffccc7' }}
+          />
+        )}
 
-      {loading ? (
-        <Spin size="large" />
-      ) : (
-        <Table
-          rowKey="_id"
-          dataSource={orders}
-          columns={columns}
-          pagination={{ pageSize: 10 }}
-          bordered
-          style={{ backgroundColor: "#141414", color: "#fff" }}
-        />
-      )}
+        {loading ? (
+          <div className="flex justify-center items-center p-12">
+            <Spin size="large" />
+          </div>
+        ) : (
+          <Table
+            rowKey="_id"
+            dataSource={orders}
+            columns={columns}
+            pagination={{ pageSize: 10, position: ['bottomCenter'] }}
+            className="dark-table"
+            scroll={{ x: 1000 }}
+          />
+        )}
+      </div>
     </div>
   );
 };

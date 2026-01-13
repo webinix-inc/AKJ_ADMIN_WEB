@@ -1,56 +1,210 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, memo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Button,
-  Card,
-  Typography,
-  Spin,
-  Upload,
-  Modal,
   Form,
   Input,
-  Tabs,
+  Modal,
   Popconfirm,
+  Tabs,
+  Upload,
 } from "antd";
 import {
   ArrowLeftOutlined,
   DeleteOutlined,
   UploadOutlined,
+  FileTextOutlined,
+  PlayCircleOutlined,
+  InboxOutlined
 } from "@ant-design/icons";
-import axios from "axios";
 import { toast } from "react-toastify";
 import HOC from "../../Component/HOC/HOC";
 import api from "../../api/axios";
 
-const { Title } = Typography;
+import "./Content.css";
+
 const { TabPane } = Tabs;
 
+// Styles
+const styles = {
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '24px',
+    flexWrap: 'wrap',
+    gap: '16px',
+  },
+  title: {
+    margin: 0,
+    fontSize: '24px',
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+    gap: '24px',
+  },
+  card: {
+    background: '#171717',
+    borderRadius: '16px',
+    border: '1px solid #262626',
+    overflow: 'hidden',
+    transition: 'all 0.2s ease',
+  },
+  cardContent: {
+    padding: '16px',
+  },
+  cardTitle: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: '8px',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  cardDesc: {
+    fontSize: '13px',
+    color: '#888',
+    marginBottom: '16px',
+    height: '40px',
+    overflow: 'hidden',
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
+  },
+  videoContainer: {
+    position: 'relative',
+    paddingTop: '56.25%', // 16:9 aspect ratio
+    background: '#000',
+  },
+  video: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+  },
+  notePreview: {
+    height: '200px',
+    background: '#262626',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#666',
+  },
+  actions: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '8px',
+    marginTop: '12px',
+    borderTop: '1px solid #262626',
+    paddingTop: '12px',
+  },
+  skeleton: {
+    background: '#262626',
+    borderRadius: '16px',
+    height: '300px',
+    animation: 'pulse 1.5s ease-in-out infinite',
+  },
+  emptyState: {
+    gridColumn: '1 / -1',
+    textAlign: 'center',
+    padding: '64px',
+    color: '#666',
+  },
+  tabBar: {
+    color: 'white',
+    fontSize: '16px',
+    marginBottom: '24px',
+  },
+};
+
+// Video Card Component
+const VideoCard = memo(({ video, onDelete }) => (
+  <div style={styles.card} className="hover:shadow-lg hover:-translate-y-1">
+    <div style={styles.videoContainer}>
+      <video
+        style={styles.video}
+        controls
+        src={video.url}
+        className="object-cover"
+      />
+    </div>
+    <div style={styles.cardContent}>
+      <h3 style={styles.cardTitle} title={video.title}>{video.title}</h3>
+      <p style={styles.cardDesc} title={video.description}>{video.description || "No description available"}</p>
+
+      <div style={styles.actions}>
+        <Popconfirm
+          title="Delete this video?"
+          onConfirm={() => onDelete(video.url)}
+          okText="Yes"
+          cancelText="No"
+        >
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined />}
+            size="small"
+          >
+            Delete
+          </Button>
+        </Popconfirm>
+      </div>
+    </div>
+  </div>
+));
+
+// Note Card Component
+const NoteCard = memo(({ note }) => (
+  <div
+    style={styles.card}
+    className="hover:shadow-lg hover:-translate-y-1 cursor-pointer group"
+    onClick={() => window.open(note.fileUrl, "_blank")}
+  >
+    <div style={styles.notePreview} className="group-hover:bg-[#333] transition-colors">
+      <FileTextOutlined style={{ fontSize: '48px', marginBottom: '16px', color: '#3b82f6' }} />
+      <span className="text-gray-400">Click to Preview</span>
+    </div>
+    <div style={styles.cardContent}>
+      <h3 style={styles.cardTitle} title={note.title}>{note.title}</h3>
+      <p style={styles.cardDesc} title={note.description}>{note.description || "No description available"}</p>
+    </div>
+  </div>
+));
+
+// Skeleton Loader
+const ContentSkeleton = memo(() => (
+  <div style={styles.skeleton} />
+));
+
 const ChapterContent = () => {
-  const { id, chapterId } = useParams(); // Extract subjectId and chapterId from URL params
-  const [chapterVideos, setChapterVideos] = useState([]); // Holds videos for the chapter
-  const [chapterNotes, setChapterNotes] = useState([]); // Holds notes for the chapter
+  const { id, chapterId } = useParams();
+  const navigate = useNavigate();
+  const [chapterVideos, setChapterVideos] = useState([]);
+  const [chapterNotes, setChapterNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState("videos"); // State for active tab
-  const [uploading, setUploading] = useState(false); // State for upload loading
-  const [previewFile, setPreviewFile] = useState(null); // State for previewing files
-  const [fileList, setFileList] = useState([]); // For handling the list of files in Upload
+  const [activeTab, setActiveTab] = useState("videos");
+  const [uploading, setUploading] = useState(false);
+  const [fileList, setFileList] = useState([]);
   const [form] = Form.useForm();
+  const [chapterName, setChapterName] = useState("");
 
-  // Fetch subject data, get chapters, and retrieve videos and notes for the specific chapter
-  useEffect(() => {
-    fetchChapterContent();
-  }, [id, chapterId]);
-
-  const fetchChapterContent = async () => {
+  const fetchChapterContent = useCallback(async () => {
     setLoading(true);
     try {
       const response = await api.get(`/admin/subjects/${id}`);
       const subject = response.data.data;
       const chapter = subject[0].chapters.find((ch) => ch._id === chapterId);
       if (chapter) {
-        setChapterVideos(chapter.videos);
-        setChapterNotes(chapter.notes);
+        setChapterName(chapter.name);
+        setChapterVideos(chapter.videos || []);
+        setChapterNotes(chapter.notes || []);
       } else {
         toast.error("Chapter not found");
       }
@@ -59,7 +213,11 @@ const ChapterContent = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, chapterId]);
+
+  useEffect(() => {
+    fetchChapterContent();
+  }, [fetchChapterContent]);
 
   const handleDelete = async (videoUrl) => {
     try {
@@ -67,275 +225,177 @@ const ChapterContent = () => {
         data: { videoUrls: [videoUrl] },
       });
       toast.success("Video deleted successfully");
-      fetchChapterContent(); // Refresh videos after deletion
+      fetchChapterContent();
     } catch (error) {
       toast.error("Failed to delete video");
     }
   };
-  // Handle video or note upload based on active tab
+
   const handleUpload = async (values) => {
-    setUploading(true); // Show loading on upload button
+    setUploading(true);
     const formData = new FormData();
     formData.append("title", values.title);
     formData.append("description", values.description || "");
 
-    if (activeTab === "videos") {
-      values.file.fileList.forEach((file) => {
-        formData.append("courseVideo", file.originFileObj);
-      });
-      try {
+    try {
+      if (activeTab === "videos") {
+        if (values.file?.fileList) {
+          values.file.fileList.forEach((file) => {
+            formData.append("courseVideo", file.originFileObj);
+          });
+        }
         await api.post(
           `/admin/uploadCourseVideo/${id}/${chapterId}`,
           formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
+          { headers: { "Content-Type": "multipart/form-data" } }
         );
         toast.success("Videos uploaded successfully");
-        form.resetFields();
-        setIsModalVisible(false);
-        setFileList(null);
-        setPreviewFile(null);
-        setUploading(false); // Hide loading on upload button
-
-        // Refresh chapter videos after upload
-        const response = await api.get(`/admin/subjects/${id}`);
-        const updatedChapter = response.data.data[0].chapters.find(
-          (ch) => ch._id === chapterId
-        );
-        if (updatedChapter) {
-          setChapterVideos(updatedChapter.videos);
+      } else {
+        if (values.file?.fileList) {
+          values.file.fileList.forEach((file) => {
+            formData.append("courseNotes", file.originFileObj);
+          });
         }
-      } catch (error) {
-        console.error("Failed to upload videos:", error);
-        toast.error("Failed to upload videos");
-        setUploading(false); // Hide loading on upload button
-      }
-    } else if (activeTab === "notes") {
-      values.file.fileList.forEach((file) => {
-        formData.append("courseNotes", file.originFileObj); // Append each file to formData
-      });
-
-      // Append title and content to formData
-      formData.append("title", values.title); // Append title
-      formData.append("content", values.description || ""); // Append content (optional)
-
-      try {
+        formData.append("content", values.description || "");
         await api.put(`/admin/uploadCourseNotes/${id}/${chapterId}`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         });
-
         toast.success("Notes uploaded successfully");
-        form.resetFields();
-        setIsModalVisible(false);
-        setPreviewFile(null);
-        setFileList(null);
-        setUploading(false); // Hide loading on upload button
-
-        // Refresh chapter notes after upload
-        const response = await api.get(`/admin/subjects/${id}`);
-        console.log(response.data.data);
-        const updatedChapter = response.data.data[0].chapters.find(
-          (ch) => ch._id === chapterId
-        );
-        if (updatedChapter) {
-          setChapterNotes(updatedChapter.notes); // Update notes in the state
-        }
-      } catch (error) {
-        console.error("Failed to upload notes:", error);
-        toast.error("Failed to upload notes");
-        setUploading(false); // Hide loading on upload button
       }
-    }
-  };
-  // Handle file preview
-  const handlePreview = async (file) => {
-    if (activeTab === "videos") {
-      const videoUrl = URL.createObjectURL(file.originFileObj);
-      setPreviewFile(videoUrl); // Set the file to preview
-    } else if (activeTab === "notes") {
-      setPreviewFile(file.thumbUrl); // Set preview for notes (PDF, DOCX, etc.)
-    }
-  };
 
-  const showUploadModal = () => {
-    setIsModalVisible(true);
+      form.resetFields();
+      setIsModalVisible(false);
+      setFileList([]);
+      fetchChapterContent();
+    } catch (error) {
+      console.error("Upload failed:", error);
+      toast.error(`Failed to upload ${activeTab}`);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleCancel = () => {
     setIsModalVisible(false);
     form.resetFields();
-    setPreviewFile(null);
-    setFileList(null);
+    setFileList([]);
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-full">
-        <Spin size="large" />
-      </div>
-    );
-  }
-
   return (
-    <div className="p-4">
-      {/* Header with back arrow and upload button */}
-      <div className="flex justify-between items-center mb-4">
-        <Button
-          icon={<ArrowLeftOutlined />}
-          onClick={() => window.history.back()}
-        >
-          Back
-        </Button>
+    <div style={styles.container}>
+      {/* Header */}
+      <div style={styles.header}>
+        <div>
+          <Button
+            icon={<ArrowLeftOutlined />}
+            onClick={() => window.history.back()}
+            style={{ marginBottom: '16px' }}
+          >
+            Back to Chapters
+          </Button>
+          <h2 style={styles.title}>
+            {loading ? "Loading..." : chapterName || "Chapter Content"}
+          </h2>
+        </div>
         <Button
           type="primary"
           icon={<UploadOutlined />}
-          onClick={showUploadModal}
+          onClick={() => setIsModalVisible(true)}
+          size="large"
         >
           Upload {activeTab === "videos" ? "Video" : "Note"}
         </Button>
       </div>
 
-      <Title className="text-white" level={2}>
-        Content for Chapter
-      </Title>
-
-      {/* Tabs for switching between videos and notes */}
+      {/* Content Tabs */}
       <Tabs
         activeKey={activeTab}
         onChange={setActiveTab}
-        tabBarStyle={{ color: "white", fontSize: "18px", textAlign: "center" }} // Adjust text color and font size
-        centered // Center the tabs
-      >
-        <TabPane
-          tab={<span style={{ fontSize: "20px" }}>Videos</span>}
-          key="videos"
-        >
-          <div className="grid grid-cols-3 gap-4">
-            {chapterVideos.map((video) => (
-              <Card
-                key={video._id}
-                className="flex flex-col items-center justify-center"
-                hoverable
-                style={{ textAlign: "center" }}
-              >
-                <video width="100%" controls src={video.url}></video>
-                <Title level={4}>{video.title}</Title>
-                <Popconfirm
-                  title="Are you sure to delete this video?"
-                  onConfirm={() => handleDelete(video.url)}
-                  okText="Yes"
-                  cancelText="No"
-                >
-                  <Button icon={<DeleteOutlined />} type="danger">
-                    Delete
-                  </Button>
-                </Popconfirm>
-              </Card>
-            ))}
-          </div>
-        </TabPane>
-
-        <TabPane
-          tab={<span style={{ color: "white", fontSize: "20px" }}>Notes</span>}
-          key="notes"
-        >
-          {/* Display notes with hover preview and click-to-open in a new tab */}
-          <div className="grid grid-cols-3 gap-4">
-            {chapterNotes.length > 0 ? (
-              chapterNotes.map((note) => (
-                <Card
-                  key={note._id}
-                  className="custom-card relative flex flex-col items-center justify-center" // Custom class for additional styling
-                  hoverable
-                  style={{
-                    cursor: "pointer",
-                    textAlign: "center",
-                    overflow: "hidden",
-                    position: "relative",
-                  }}
-                  onClick={() => window.open(note.fileUrl, "_blank")} // Opens in a new tab on click
-                >
-                  {/* Note Preview (assuming PDF) */}
-                  <iframe
-                    src={note.fileUrl}
-                    title={note.title}
-                    style={{
-                      width: "100%",
-                      height: "300px",
-                      border: "none",
-                    }}
-                  ></iframe>
-
-                  {/* Overlay that appears on hover */}
-                  <div
-                    className="note-overlay absolute inset-0 bg-black bg-opacity-50 transition-opacity duration-300 flex flex-col justify-center items-center text-white p-4"
-                    style={{
-                      opacity: 0,
-                      backdropFilter: "blur(5px)",
-                    }}
-                  >
-                    <h3 style={{ fontSize: "18px", fontWeight: "bold" }}>
-                      {note.title}
-                    </h3>
-                    <p style={{ color: "#ccc" }}>{note.description}</p>
+        className="custom-tabs"
+        items={[
+          {
+            key: "videos",
+            label: (
+              <span className="text-lg flex items-center gap-2 px-4 py-2">
+                <PlayCircleOutlined /> Videos
+              </span>
+            ),
+            children: (
+              <div style={styles.grid}>
+                {loading ? (
+                  [1, 2, 3].map(i => <ContentSkeleton key={i} />)
+                ) : chapterVideos.length > 0 ? (
+                  chapterVideos.map((video) => (
+                    <VideoCard
+                      key={video._id}
+                      video={video}
+                      onDelete={handleDelete}
+                    />
+                  ))
+                ) : (
+                  <div style={styles.emptyState}>
+                    <PlayCircleOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
+                    <p>No videos uploaded yet</p>
                   </div>
+                )}
+              </div>
+            ),
+          },
+          {
+            key: "notes",
+            label: (
+              <span className="text-lg flex items-center gap-2 px-4 py-2">
+                <FileTextOutlined /> Notes
+              </span>
+            ),
+            children: (
+              <div style={styles.grid}>
+                {loading ? (
+                  [1, 2, 3].map(i => <ContentSkeleton key={i} />)
+                ) : chapterNotes.length > 0 ? (
+                  chapterNotes.map((note) => (
+                    <NoteCard key={note._id} note={note} />
+                  ))
+                ) : (
+                  <div style={styles.emptyState}>
+                    <FileTextOutlined style={{ fontSize: '48px', marginBottom: '16px' }} />
+                    <p>No notes uploaded yet</p>
+                  </div>
+                )}
+              </div>
+            ),
+          },
+        ]}
+      />
 
-                  {/* Hover effect using CSS */}
-                  <style>{`
-          .custom-card:hover .note-overlay {
-            opacity: 1;
-          }
-        `}</style>
-                </Card>
-              ))
-            ) : (
-              <p>No notes found for this chapter.</p>
-            )}
-          </div>
-        </TabPane>
-      </Tabs>
-
-      {/* Modal for uploading video or note */}
+      {/* Upload Modal */}
       <Modal
-        title={`Upload ${activeTab === "videos" ? "Video" : "Note"}`}
-        visible={isModalVisible}
+        title={<span style={{ color: '#fff' }}>Upload {activeTab === "videos" ? "Video" : "Note"}</span>}
+        open={isModalVisible}
         onCancel={handleCancel}
         footer={null}
+        width={600}
       >
         <Form form={form} layout="vertical" onFinish={handleUpload}>
           <Form.Item
             name="title"
-            label="Title"
-            rules={[
-              {
-                required: true,
-                message: `Please enter the ${
-                  activeTab === "videos" ? "video" : "note"
-                } title`,
-              },
-            ]}
+            label={<span style={{ color: '#d4d4d4' }}>Title</span>}
+            rules={[{ required: true, message: "Please enter a title" }]}
           >
-            <Input />
+            <Input placeholder="Enter title" />
           </Form.Item>
-          <Form.Item name="description" label="Description">
-            <Input.TextArea rows={4} />
+
+          <Form.Item
+            name="description"
+            label={<span style={{ color: '#d4d4d4' }}>Description</span>}
+          >
+            <Input.TextArea rows={4} placeholder="Enter description" />
           </Form.Item>
+
           <Form.Item
             name="file"
-            label={`${activeTab === "videos" ? "Video" : "Note"} Files`}
-            rules={[
-              {
-                required: true,
-                message: `Please upload at least one ${
-                  activeTab === "videos" ? "video" : "note"
-                }`,
-              },
-            ]}
+            label={<span style={{ color: '#d4d4d4' }}>{activeTab === "videos" ? "Video" : "Note"} Files</span>}
+            rules={[{ required: true, message: "Please upload at least one file" }]}
           >
             <Upload
               beforeUpload={() => false}
@@ -345,38 +405,51 @@ const ChapterContent = () => {
                   ? "video/*"
                   : "application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               }
-              onPreview={handlePreview} // Preview the uploaded files
               fileList={fileList}
-              onChange={({ fileList }) => setFileList(fileList)} // Track selected files
+              onChange={({ fileList }) => setFileList(fileList)}
             >
-              <Button icon={<UploadOutlined />}>Click to Upload</Button>
+              <Button icon={<InboxOutlined />} block style={{ height: '100px' }}>
+                Click or drag files to upload
+              </Button>
             </Upload>
           </Form.Item>
 
-          {/* File preview */}
-          {previewFile && activeTab === "videos" && (
-            <video width="100%" height="auto" controls>
-              <source src={previewFile} type="video/mp4" />
-            </video>
-          )}
-          {previewFile && activeTab === "notes" && (
-            <embed
-              src={previewFile}
-              type="application/pdf"
-              width="100%"
-              height="400px"
-            />
-          )}
-
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={uploading}>
-              {uploading
-                ? "Uploading..."
-                : `Upload ${activeTab === "videos" ? "Video" : "Note"}`}
+          <Form.Item style={{ marginBottom: 0, marginTop: 24 }}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={uploading}
+              block
+              size="large"
+            >
+              {uploading ? "Uploading..." : `Upload ${activeTab === "videos" ? "Video" : "Note"}`}
             </Button>
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* Custom Styles for Ant Design Tabs in Dark Mode */}
+      <style>{`
+        .custom-tabs .ant-tabs-nav::before {
+          border-bottom: 1px solid #262626;
+        }
+        .custom-tabs .ant-tabs-tab {
+          color: #888;
+          transition: color 0.3s;
+          padding: 12px 0;
+        }
+        .custom-tabs .ant-tabs-tab:hover {
+          color: #fff;
+        }
+        .custom-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+          color: #fff;
+          font-weight: 600;
+        }
+        .custom-tabs .ant-tabs-ink-bar {
+          background: #3b82f6;
+          height: 3px;
+        }
+      `}</style>
     </div>
   );
 };

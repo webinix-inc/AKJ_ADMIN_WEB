@@ -1,9 +1,11 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, memo, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import "./Sidebar.css";
+import api from "../../api/axios";
+import { io } from "socket.io-client";
 
-import { FaChalkboardTeacher, FaUser, FaUserGraduate } from "react-icons/fa";
+import { FaChalkboardTeacher, FaUser, FaUserGraduate, FaBars, FaTimes } from "react-icons/fa";
 import { GoHomeFill } from "react-icons/go";
 import {
   IoAnalyticsOutline,
@@ -14,16 +16,68 @@ import { MdOutlineContentCopy, MdStore } from "react-icons/md";
 import { TiDocumentText } from "react-icons/ti";
 import { VscTools } from "react-icons/vsc";
 
+// Socket connection for real-time updates
+const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || "https://lms-backend-724799456037.europe-west1.run.app";
+const socket = io(SOCKET_URL, {
+  transports: ["websocket", "polling"],
+  reconnection: true,
+  reconnectionDelay: 1000,
+});
+
 const Sidebar = () => {
   const adminData = useSelector((state) => state.admin.adminData);
   const { permissions, userType } = adminData?.data || {};
+  const currentUserId = adminData?.data?.userId;
 
   const [isUserManagementHovered, setUserManagementHovered] = useState(false);
   const [isReportHovered, setReportHovered] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [dropdownTimeout, setDropdownTimeout] = useState(null);
+  const [totalUnreadMessages, setTotalUnreadMessages] = useState(0);
 
   const userDropdownRef = useRef(null);
   const reportDropdownRef = useRef(null);
+
+  const location = useLocation();
+
+  // Fetch total unread messages on mount
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await api.get("/chat/users/withMessages", {
+          params: { page: 1, limit: 100 },
+        });
+        setTotalUnreadMessages(response.data.totalUnreadMessages || 0);
+      } catch (error) {
+        console.error("Error fetching unread count:", error);
+      }
+    };
+
+    fetchUnreadCount();
+
+    // Join socket room for real-time updates
+    if (currentUserId) {
+      socket.emit("join", currentUserId);
+    }
+
+    // Listen for new messages to update count
+    const handleNewMessage = (messageData) => {
+      // If it's an incoming message (not from us), increment count
+      if (messageData.sender !== currentUserId) {
+        setTotalUnreadMessages(prev => prev + 1);
+      }
+    };
+
+    socket.on("message", handleNewMessage);
+
+    return () => {
+      socket.off("message", handleNewMessage);
+    };
+  }, [currentUserId]);
+
+  const isParentActive = (subItems) => {
+    return subItems.some((item) => location.pathname === item.link);
+  };
 
   const sidebarItems = [
     {
@@ -67,7 +121,7 @@ const Sidebar = () => {
       link: "/messages",
       icon: <IoChatbubbleEllipsesOutline size={20} />,
       permission: permissions?.chatPermission,
-      messagecount: "4",
+      messagecount: totalUnreadMessages > 0 ? totalUnreadMessages.toString() : null,
     },
     {
       text: "Marketing Services",
@@ -133,127 +187,142 @@ const Sidebar = () => {
     setDropdownTimeout(timeout);
   };
 
+  const toggleMobileSidebar = () => {
+    setIsMobileOpen(!isMobileOpen);
+  };
+
   return (
-    <div className="sidebar">
-      <div className="sidebar1">
-        <div className="sidebar2">
-          <h6>AKJ Classes</h6>
-        </div>
-        <div className="sidebar5">
-          {sidebarItems
-            .filter((item) => userType === "ADMIN" || item.permission)
-            .map((item, index) => (
-              <NavLink
-                key={index}
-                to={item.link}
-                className="sidebar-link"
-                activeClassName="active"
-              >
-                <div className="sidebar6">
-                  <span>{item.icon}</span>
-                  <p>{item.text}</p>
-                  {item.messagecount && (
-                    <div className="sidebarmessage">
-                      <h6>{item.messagecount}</h6>
-                    </div>
-                  )}
-                </div>
-              </NavLink>
-            ))}
+    <>
+      <button className="mobile-toggle" onClick={toggleMobileSidebar}>
+        {isMobileOpen ? <FaTimes /> : <FaBars />}
+      </button>
 
-          {/* Report and Analytic Dropdown */}
-          {(userType === "ADMIN" || reportAnalyticsItem.permission) && (
-            <>
-              <div
-                className="sidebar-link"
-                onMouseEnter={() => handleMouseEnter(setReportHovered)}
-                onMouseLeave={() =>
-                  handleMouseLeave(setReportHovered, reportDropdownRef)
-                }
-              >
-                <div className="sidebar6">
-                  <span>{reportAnalyticsItem.icon}</span>
-                  <p>{reportAnalyticsItem.text}</p>
-                </div>
-              </div>
-              <div
-                ref={reportDropdownRef}
-                onMouseEnter={() => handleMouseEnter(setReportHovered)}
-                onMouseLeave={() =>
-                  handleMouseLeave(setReportHovered, reportDropdownRef)
-                }
-              >
-                {isReportHovered && (
-                  <div className="mt-0 flex flex-col right-0">
-                    {reportSubItems
-                      .filter((item) => userType === "ADMIN" || item.permission)
-                      .map((subItem, index) => (
-                        <NavLink
-                          key={index}
-                          to={subItem.link}
-                          className="sidebar-link"
-                          activeClassName="active"
-                        >
-                          <div className="sidebar6">
-                            <span>{subItem.icon}</span>
-                            <p>{subItem.text}</p>
-                          </div>
-                        </NavLink>
-                      ))}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
+      {/* Overlay for mobile */}
+      <div
+        className={`sidebar-overlay ${isMobileOpen ? 'visible' : ''}`}
+        onClick={() => setIsMobileOpen(false)}
+      />
 
-          {/* User Management Dropdown */}
-          {(userType === "ADMIN" || userManagementItem.permission) && (
-            <>
-              <div
-                className="sidebar-link"
-                onMouseEnter={() => handleMouseEnter(setUserManagementHovered)}
-                onMouseLeave={() =>
-                  handleMouseLeave(setUserManagementHovered, userDropdownRef)
-                }
-              >
-                <div className="sidebar6">
-                  <span>{userManagementItem.icon}</span>
-                  <p>{userManagementItem.text}</p>
+      <div className={`sidebar-container ${isMobileOpen ? "mobile-open" : ""}`}>
+        <div className="sidebar-content">
+          <div className="sidebar-header">
+            <h6>AKJ Classes</h6>
+          </div>
+          <div className="sidebar-nav">
+            {sidebarItems
+              .filter((item) => userType === "ADMIN" || item.permission)
+              .map((item, index) => (
+                <NavLink
+                  key={index}
+                  to={item.link}
+                  className="nav-item"
+                  activeClassName="active"
+                  onClick={() => setIsMobileOpen(false)}
+                >
+                  <div className="nav-content">
+                    <span className="nav-icon">{item.icon}</span>
+                    <p className="nav-text">{item.text}</p>
+                    {item.messagecount && (
+                      <div className="nav-badge">
+                        <span>{item.messagecount}</span>
+                      </div>
+                    )}
+                  </div>
+                </NavLink>
+              ))}
+
+            {/* Report and Analytic Dropdown */}
+            {(userType === "ADMIN" || reportAnalyticsItem.permission) && (
+              <div className="dropdown-wrapper">
+                <div
+                  className={`nav-item dropdown-trigger ${isParentActive(reportSubItems) ? "active" : ""
+                    }`}
+                  onMouseEnter={() => handleMouseEnter(setReportHovered)}
+                  onMouseLeave={() =>
+                    handleMouseLeave(setReportHovered, reportDropdownRef)
+                  }
+                >
+                  <div className="nav-content">
+                    <span className="nav-icon">{reportAnalyticsItem.icon}</span>
+                    <p className="nav-text">{reportAnalyticsItem.text}</p>
+                  </div>
+                </div>
+                <div
+                  ref={reportDropdownRef}
+                  className={`sidebar-submenu ${isReportHovered ? "show" : ""}`}
+                  onMouseEnter={() => handleMouseEnter(setReportHovered)}
+                  onMouseLeave={() =>
+                    handleMouseLeave(setReportHovered, reportDropdownRef)
+                  }
+                >
+                  {reportSubItems
+                    .filter((item) => userType === "ADMIN" || item.permission)
+                    .map((subItem, index) => (
+                      <NavLink
+                        key={index}
+                        to={subItem.link}
+                        className="nav-item sub-item"
+                        activeClassName="active"
+                        onClick={() => setIsMobileOpen(false)}
+                      >
+                        <div className="nav-content">
+                          <span className="nav-icon">{subItem.icon}</span>
+                          <p className="nav-text">{subItem.text}</p>
+                        </div>
+                      </NavLink>
+                    ))}
                 </div>
               </div>
-              <div
-                ref={userDropdownRef}
-                onMouseEnter={() => handleMouseEnter(setUserManagementHovered)}
-                onMouseLeave={() =>
-                  handleMouseLeave(setUserManagementHovered, userDropdownRef)
-                }
-              >
-                {isUserManagementHovered && (
-                  <div className="mt-0 flex flex-col right-0">
-                    {userSubItems
-                      .filter((item) => userType === "ADMIN" || item.permission)
-                      .map((subItem, index) => (
-                        <NavLink
-                          key={index}
-                          to={subItem.link}
-                          className="sidebar-link"
-                          activeClassName="active"
-                        >
-                          <div className="sidebar6">
-                            <span>{subItem.icon}</span>
-                            <p>{subItem.text}</p>
-                          </div>
-                        </NavLink>
-                      ))}
+            )}
+
+            {/* User Management Dropdown */}
+            {(userType === "ADMIN" || userManagementItem.permission) && (
+              <div className="dropdown-wrapper">
+                <div
+                  className={`nav-item dropdown-trigger ${isParentActive(userSubItems) ? "active" : ""
+                    }`}
+                  onMouseEnter={() => handleMouseEnter(setUserManagementHovered)}
+                  onMouseLeave={() =>
+                    handleMouseLeave(setUserManagementHovered, userDropdownRef)
+                  }
+                >
+                  <div className="nav-content">
+                    <span className="nav-icon">{userManagementItem.icon}</span>
+                    <p className="nav-text">{userManagementItem.text}</p>
                   </div>
-                )}
+                </div>
+                <div
+                  ref={userDropdownRef}
+                  className={`sidebar-submenu ${isUserManagementHovered ? "show" : ""}`}
+                  onMouseEnter={() => handleMouseEnter(setUserManagementHovered)}
+                  onMouseLeave={() =>
+                    handleMouseLeave(setUserManagementHovered, userDropdownRef)
+                  }
+                >
+                  {userSubItems
+                    .filter((item) => userType === "ADMIN" || item.permission)
+                    .map((subItem, index) => (
+                      <NavLink
+                        key={index}
+                        to={subItem.link}
+                        className="nav-item sub-item"
+                        activeClassName="active"
+                        onClick={() => setIsMobileOpen(false)}
+                      >
+                        <div className="nav-content">
+                          <span className="nav-icon">{subItem.icon}</span>
+                          <p className="nav-text">{subItem.text}</p>
+                        </div>
+                      </NavLink>
+                    ))}
+                </div>
               </div>
-            </>
-          )}
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
-export default Sidebar;
+export default memo(Sidebar);
