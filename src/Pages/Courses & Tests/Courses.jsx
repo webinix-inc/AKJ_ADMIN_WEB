@@ -265,10 +265,11 @@ const Courses = () => {
                   ) : regularCourses.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                       <Suspense fallback={<SkeletonCard />}>
-                        {regularCourses.map((course) => (
+                        {regularCourses.map((course, index) => (
                           <CourseCard
                             key={course?._id}
                             course={course}
+                            index={index}
                             onRefresh={refreshCourses}
                           />
                         ))}

@@ -84,6 +84,24 @@
   }
 }
 
+/* Notification Drawer Styling */
+.notification-offcanvas .ant-drawer-content {
+  background-color: #0d0d0d !important;
+  /* Match navbar dark bg */
+}
+
+.notification-offcanvas .ant-drawer-body {
+  padding: 0 !important;
+  background-color: #0d0d0d !important;
+  overflow: hidden !important;
+  /* Let component handle scroll */
+}
+
+.notification-offcanvas .ant-drawer-header {
+  display: none !important;
+  /* Double safety */
+}
+
 /* Profile Dropdown Styles */
 .profile-dropdown-container {
   position: relative;
@@ -160,8 +178,8 @@
   transform: rotate(180deg);
 }
 
-/* Dropdown Menu Override */
-.dropdown-menu.profile-menu {
+/* Dropdown Menu Override for Ant Design */
+.custom-profile-dropdown .ant-dropdown-menu {
   background-color: #1a1a1a !important;
   border: 1px solid #333 !important;
   border-radius: 12px !important;
@@ -169,23 +187,36 @@
   margin-top: 12px !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
   min-width: 180px !important;
+  width: auto !important;
+  /* Force auto width */
+  max-width: 300px !important;
+  /* Prevent excessive width */
 }
 
-.profile-menu-item,
-.dropdown-item.profile-menu-item {
+.custom-profile-dropdown .ant-dropdown-menu-item {
+  padding: 0 !important;
+  border-radius: 8px !important;
+  background-color: transparent !important;
+  transition: all 0.2s !important;
+}
+
+.custom-profile-dropdown .ant-dropdown-menu-item:hover {
+  background-color: var(--navbar-accent) !important;
+}
+
+.profile-menu-item {
+  display: block;
+  width: 100%;
   color: #e0e0e0 !important;
   padding: 10px 16px !important;
-  border-radius: 8px !important;
   font-family: "Open Sans", sans-serif !important;
   font-size: 0.9rem !important;
-  transition: all 0.2s !important;
-  background-color: transparent !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+  /* changes */
 }
 
-.profile-menu-item:hover,
-.dropdown-item.profile-menu-item:hover,
-.dropdown-item.profile-menu-item:focus {
-  background-color: var(--navbar-accent) !important;
+.custom-profile-dropdown .ant-dropdown-menu-item:hover .profile-menu-item {
   color: white !important;
 }
 

@@ -8,20 +8,28 @@ const CreateInstallmentForm = ({ courseId, onSubmit }) => {
   const [form] = Form.useForm();
   const dispatch = useDispatch();
 
+  // Fetch subscriptions for this specific course on mount
+  useEffect(() => {
+    if (courseId) {
+      dispatch(getAllSubscriptions(courseId));
+    }
+  }, [dispatch, courseId]);
+
   // Redux state to get subscriptions
   const { subscriptions, loading: subscriptionsLoading } = useSelector(
     (state) => state.subscription
   );
 
-  // Filter the subscription for the specific courseId
+  // Since API now filters by courseId, the first result (or specifically matching one) is what we need.
+  // Ideally, 'subscriptions' array will only contain relevant subscriptions.
+  // We can still do a safe find just in case, or if multiple plans exist for the course.
   const filteredSubscription = subscriptions?.find(
-    (subscription) => subscription?.course._id === courseId
+    (subscription) => subscription?.course?._id === courseId || subscription?.course === courseId
   );
 
+  console.log("filteredSubcriptions", filteredSubscription);
 
-  console.log("filteredSubcriptions" , filteredSubscription);
 
- 
 
   const handleFormSubmit = async (values) => {
     setLoading(true);
@@ -36,6 +44,7 @@ const CreateInstallmentForm = ({ courseId, onSubmit }) => {
       const payload = {
         courseId, // Get courseId from props
         planType: values.planType,
+        validityId: selectedValidity?._id, // 🔥 UPDATED: Send ID if available
         numberOfInstallments: values.numberOfInstallments,
         price,
       };
@@ -56,25 +65,34 @@ const CreateInstallmentForm = ({ courseId, onSubmit }) => {
       ) : filteredSubscription ? (
         <Form form={form} onFinish={handleFormSubmit}>
           <Form.Item
-            label="Plan Type"
+            label={<span className="font-medium" style={{ color: "white" }}>Plan Type</span>}
             name="planType"
             rules={[{ required: true, message: "Please select a plan type" }]}
           >
-            <Select placeholder="Select Plan Type">
+            <Select
+              placeholder="Select Plan Type"
+              className="dark-select w-full"
+              dropdownClassName="dark-select-dropdown"
+              suffixIcon={<span className="text-gray-500">▼</span>}
+              style={{ backgroundColor: "transparent", color: "white" }}
+            >
               {filteredSubscription?.validities?.map((validity, index) => (
                 <Select.Option
                   key={index}
                   value={`${validity.validity} months`}
                 >
-                  {`${validity.validity} months, ₹ ${validity.price}`}
+                  <div className="flex justify-between w-full">
+                    <span style={{ color: "white" }}>{validity.validity} Months</span>
+                    <span className="text-green-400">₹{validity.price}</span>
+                  </div>
                 </Select.Option>
               ))}
-              <Select.Option value="custom">Custom</Select.Option>
+              <Select.Option value="custom"><span style={{ color: "white" }}>Custom</span></Select.Option>
             </Select>
           </Form.Item>
 
           <Form.Item
-            label="Number of Installments"
+            label={<span className="font-medium" style={{ color: "white" }}>Number of Installments</span>}
             name="numberOfInstallments"
             rules={[
               {
@@ -83,7 +101,17 @@ const CreateInstallmentForm = ({ courseId, onSubmit }) => {
               },
             ]}
           >
-            <InputNumber min={1} placeholder="Enter number of installments" />
+            <InputNumber
+              min={1}
+              placeholder="Enter number of installments"
+              className="dark-input w-full"
+              style={{
+                width: "100%",
+                backgroundColor: "#262626",
+                color: "white",
+                borderColor: "#404040"
+              }}
+            />
           </Form.Item>
         </Form>
       ) : (

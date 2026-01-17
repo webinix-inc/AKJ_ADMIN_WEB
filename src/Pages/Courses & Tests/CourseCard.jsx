@@ -36,8 +36,16 @@ const CourseCard = memo(({ course, onRefresh, index = 0 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [shouldLoadImage, setShouldLoadImage] = useState(false);
 
-  // Progressive loading: Wait for page to be ready, then start loading images
+  // Progressive loading: First 4 cards load immediately (LCP optimization), rest defer
+  const isAboveFold = index < 4;
+
   useEffect(() => {
+    // First 4 cards load immediately for LCP
+    if (isAboveFold) {
+      setShouldLoadImage(true);
+      return;
+    }
+
     // Use requestIdleCallback if available, otherwise setTimeout
     const loadImage = () => setShouldLoadImage(true);
 
@@ -48,7 +56,7 @@ const CourseCard = memo(({ course, onRefresh, index = 0 }) => {
       const timer = setTimeout(loadImage, 500);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [isAboveFold]);
 
   const status = (() => {
     if (!course.isPublished) return { label: "Draft", color: "#fbbf24" };
@@ -147,8 +155,9 @@ const CourseCard = memo(({ course, onRefresh, index = 0 }) => {
             <img
               src={imgSrc}
               alt=""
-              loading="lazy"
-              decoding="async"
+              loading={isAboveFold ? "eager" : "lazy"}
+              fetchPriority={isAboveFold ? "high" : "auto"}
+              decoding={isAboveFold ? "sync" : "async"}
               onLoad={() => setImageLoaded(true)}
               onError={() => setImageLoaded(false)}
               style={{
@@ -245,9 +254,6 @@ const CourseCard = memo(({ course, onRefresh, index = 0 }) => {
             <span style={{ fontSize: '12px', color: '#737373' }}>
               {course.duration || ""}
             </span>
-            <span style={{ fontSize: '18px', fontWeight: '700', color: '#22c55e' }}>
-              {course.price ? `₹${course.price}` : 'Free'}
-            </span>
           </div>
 
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -257,17 +263,7 @@ const CourseCard = memo(({ course, onRefresh, index = 0 }) => {
             <button onClick={handleEdit} style={btnStyle}>
               <EditOutlined /> Edit
             </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); handleTogglePublish(course._id, !course.isPublished); }}
-              style={{
-                ...btnStyle,
-                background: course.isPublished ? '#dc2626' : '#16a34a',
-                borderColor: course.isPublished ? '#dc2626' : '#16a34a',
-                color: '#fff',
-              }}
-            >
-              {course.isPublished ? <><EyeInvisibleOutlined /> Hide</> : <><EyeOutlined /> Show</>}
-            </button>
+
             <div onClick={(e) => e.stopPropagation()}>
               <CourseActions
                 courseId={course._id}
@@ -275,6 +271,7 @@ const CourseCard = memo(({ course, onRefresh, index = 0 }) => {
                 isPublished={course.isPublished}
                 onTogglePublish={handleTogglePublish}
                 onDelete={() => setDeleteModalVisible(true)}
+                subscriptionCount={course.subscriptionCount}
               />
             </div>
           </div>

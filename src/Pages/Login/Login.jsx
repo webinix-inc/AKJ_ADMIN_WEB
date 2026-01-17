@@ -92,6 +92,7 @@ const Login = () => {
                 />
               </Form.Item>
 
+
               <Form.Item
                 label="Password"
                 name="password"
@@ -104,6 +105,7 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+
               </Form.Item>
 
               <Form.Item>

@@ -8,6 +8,7 @@ import { useNavigate, useParams } from "react-router-dom";
 // ✅ Ant Design
 import { InboxOutlined } from "@ant-design/icons";
 import {
+  Button,
   Checkbox,
   Dropdown,
   Input,
@@ -20,8 +21,8 @@ import {
 } from "antd";
 import TextArea from "antd/es/input/TextArea";
 
-// ✅ React Bootstrap
-import { Button } from "react-bootstrap";
+// ✅ React Bootstrap (Removed)
+// import { Button } from "react-bootstrap";
 
 // ✅ Icons
 import {
@@ -1195,10 +1196,10 @@ const FolderContents = () => {
                           <td className="px-6 py-4">
                             <div
                               className={`flex items-center justify-center w-16 h-16 rounded-xl cursor-pointer transition-all duration-300 hover:scale-105 shadow-sm ${folderObject.isMasterFolder
-                                  ? 'bg-gradient-to-br from-purple-100 to-purple-200 hover:from-purple-200 hover:to-purple-300'
-                                  : folderObject.isSystemFolder
-                                    ? 'bg-gradient-to-br from-orange-100 to-orange-200 hover:from-orange-200 hover:to-orange-300'
-                                    : 'bg-gradient-to-br from-blue-100 to-blue-200 hover:from-blue-200 hover:to-blue-300'
+                                ? 'bg-gradient-to-br from-purple-100 to-purple-200 hover:from-purple-200 hover:to-purple-300'
+                                : folderObject.isSystemFolder
+                                  ? 'bg-gradient-to-br from-orange-100 to-orange-200 hover:from-orange-200 hover:to-orange-300'
+                                  : 'bg-gradient-to-br from-blue-100 to-blue-200 hover:from-blue-200 hover:to-blue-300'
                                 }`}
                               onClick={() => handleFolderClick(folderObject._id)}
                             >
@@ -1222,10 +1223,10 @@ const FolderContents = () => {
                               <div className="flex items-center gap-2">
                                 <span
                                   className={`font-medium cursor-pointer transition-colors duration-200 ${folderObject.isMasterFolder
-                                      ? 'text-purple-800 hover:text-purple-600'
-                                      : folderObject.isSystemFolder
-                                        ? 'text-orange-800 hover:text-orange-600'
-                                        : 'text-gray-800 hover:text-blue-600'
+                                    ? 'text-purple-800 hover:text-purple-600'
+                                    : folderObject.isSystemFolder
+                                      ? 'text-orange-800 hover:text-orange-600'
+                                      : 'text-gray-800 hover:text-blue-600'
                                     }`}
                                   onClick={(e) => {
                                     if (!folderObject.isMasterFolder) {

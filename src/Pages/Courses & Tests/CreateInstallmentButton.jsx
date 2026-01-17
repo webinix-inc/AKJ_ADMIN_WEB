@@ -1,7 +1,16 @@
-import { Button, Modal, Form, InputNumber, message, Select } from "antd";
+import { Button, Modal, Form, InputNumber, message } from "antd";
 import { useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import api from "../../api/axios";
+
+// Explicit styles for high visibility in Dark Mode
+const darkInputStyle = {
+  backgroundColor: "#262626",
+  color: "white",
+  border: "1px solid #404040",
+  width: "100%",
+  borderRadius: "6px"
+};
 
 const CreateInstallmentButton = ({
   courseId,
@@ -11,213 +20,183 @@ const CreateInstallmentButton = ({
 }) => {
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [form] = Form.useForm();
-  const [installmentPlans, setInstallmentPlans] = useState([
-    { planType: "", numberOfInstallments: 1 },
-  ]);
-  const dispatch = useDispatch();
+
+  // We keep a state of "configs" which maps validities to installment counts
+  const [validityConfigs, setValidityConfigs] = useState([]);
 
   const { subscriptions, loading: subscriptionsLoading } = useSelector(
     (state) => state.subscription
   );
+
   const filteredSubscription = subscriptions?.find(
-    (subscription) => subscription?.course?._id === courseId
+    (subscription) => subscription?.course?._id === courseId || subscription?.course === courseId
   );
 
-  const fetchExistingInstallments = useCallback(async () => {
-    if (!courseId) {
-      setInstallmentPlans([{ planType: "", numberOfInstallments: 1 }]);
-      return;
-    }
+  const initializeConfigs = useCallback(async () => {
+    if (!courseId || !filteredSubscription) return;
+
     try {
+      // 1. Fetch existing installments
       const response = await api.get(`/admin/installments/${courseId}`);
-      const existing = response?.data?.data || [];
-      if (existing.length > 0) {
-        setInstallmentPlans(
-          existing.map((plan) => ({
-            planType: plan.planType || "",
-            numberOfInstallments: plan.numberOfInstallments || 1,
-          }))
+      const existingInstallments = response?.data?.data || [];
+
+      // 2. Map Validities to Config Objects
+      const configs = filteredSubscription.validities.map((validity) => {
+        const planTypeStr = `${validity.validity} months`;
+
+        // Find if we already have an installment plan for this validity
+        const existing = existingInstallments.find(
+          (ex) => ex.planType?.toLowerCase() === planTypeStr.toLowerCase()
         );
-      } else {
-        setInstallmentPlans([{ planType: "", numberOfInstallments: 1 }]);
-      }
+
+        return {
+          validityId: validity._id,
+          validityMonths: validity.validity,
+          planType: planTypeStr,
+          price: validity.price,
+          discount: validity.discount,
+          // Pre-fill existing count, or default to 1
+          numberOfInstallments: existing ? existing.numberOfInstallments : 1,
+        };
+      });
+
+      setValidityConfigs(configs);
+
     } catch (error) {
-      console.error("Failed to fetch installments", error);
-      message.error(
-        error?.response?.data?.message ||
-          "Failed to load existing installment plans"
-      );
+      console.error("Failed to load installments", error);
+      message.error("Failed to sync existing installments");
     }
-  }, [courseId]);
+  }, [courseId, filteredSubscription]);
 
   const showModal = () => {
     setVisible(true);
-    fetchExistingInstallments();
+    initializeConfigs();
   };
+
   const hideModal = () => setVisible(false);
 
-  const handleAddPlanField = () => {
-    setInstallmentPlans((prev) => [
-      ...prev,
-      { planType: "", numberOfInstallments: 1 },
-    ]);
-  };
-
-  const handleRemovePlanField = (index) => {
-    setInstallmentPlans((prev) => {
-      const updated = prev.filter((_, i) => i !== index);
-      return updated.length > 0
-        ? updated
-        : [{ planType: "", numberOfInstallments: 1 }];
-    });
-  };
-
-  const handleChange = (index, field, value) => {
-    const updatedPlans = [...installmentPlans];
-    updatedPlans[index][field] = value;
-    setInstallmentPlans(updatedPlans);
+  // Handle Input Change for a specific row
+  const handleConfigChange = (index, value) => {
+    const updated = [...validityConfigs];
+    updated[index].numberOfInstallments = value;
+    setValidityConfigs(updated);
   };
 
   const handleFormSubmit = async () => {
     setLoading(true);
-
     try {
-      for (let plan of installmentPlans) {
-        const selectedValidity = filteredSubscription?.validities?.find(
-          (validity) => `${validity.validity} months` === plan.planType
-        );
-        const price = selectedValidity?.price || 0;
-        const discount = selectedValidity?.discount || 0;
+      // Loop through configs and submit them
+      for (let config of validityConfigs) {
+        const price = config.price || 0;
+        const discount = config.discount || 0;
 
-        // console.log("CreateInstallmentButton price", price);
-        // console.log("CreateInstallmentButton discont % ", discount);
         const payload = {
           courseId,
-          planType: plan.planType,
-          numberOfInstallments: plan.numberOfInstallments,
+          planType: config.planType,
+          validityId: config.validityId,
+          numberOfInstallments: config.numberOfInstallments,
           price,
-          discount,
+          discount
         };
 
         await onSubmit(payload);
       }
 
-      form.resetFields();
       hideModal();
       handleCancel();
-      message.success("All installment plans added successfully!");
-      await fetchExistingInstallments();
+      message.success("Installment plans updated successfully!");
     } catch (error) {
-      message.error("Failed to set installment plans");
+      console.error(error);
+      message.error("Failed to update installment plans");
     } finally {
       setLoading(false);
     }
   };
 
-  const selectedPlanTypes = installmentPlans
-    .map((plan) => plan.planType)
-    .filter(Boolean);
-
   return (
     <>
       <Button type="primary" onClick={showModal} disabled={!isPlanSaved}>
-        Create Installment Plans
+        Create/Edit Installments
       </Button>
       <Modal
-        title="Set Custom Installments"
+        title={<span style={{ color: "white" }}>Configure Installments</span>}
         visible={visible}
         onCancel={hideModal}
         onOk={handleFormSubmit}
         confirmLoading={loading}
+        className="dark-modal"
+        width={600}
+        destroyOnClose
       >
         {subscriptionsLoading ? (
-          <p>Loading subscriptions...</p>
-        ) : filteredSubscription ? (
-          <Form form={form} layout="vertical">
-            {installmentPlans.map((plan, index) => (
-              <div
-                key={index}
-                style={{
-                  marginBottom: "16px",
-                  border: "1px solid #f0f0f0",
-                  padding: "16px",
-                }}
-              >
-                <Form.Item
-                  label={`Plan Type for Plan ${index + 1}`}
-                  rules={[
-                    { required: true, message: "Please select a plan type" },
-                  ]}
-                >
-                  <Select
-                    placeholder="Select Plan Type"
-                    value={plan.planType}
-                    onChange={(value) => handleChange(index, "planType", value)}
-                  >
-                    {filteredSubscription?.validities?.map((validity, i) => (
-                      <Select.Option
-                        key={i}
-                        value={`${validity.validity} months`}
-                        disabled={selectedPlanTypes.includes(
-                          `${validity.validity} months`
-                        )}
-                      >
-                        {`${validity.validity} months, ₹ ${
-                          validity.price * (1 - validity.discount / 100)
-                        }`}
-                        {/* {`${validity.validity} months, ₹ ${
-                          validity.price - validity.discount
-                        }`} */}
-                      </Select.Option>
-                    ))}
-                    <Select.Option
-                      value="custom"
-                      disabled={selectedPlanTypes.includes("custom")}
-                    >
-                      Custom
-                    </Select.Option>
-                  </Select>
-                </Form.Item>
-
-                <Form.Item
-                  label={`Number of Installments for Plan ${index + 1}`}
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter the number of installments",
-                    },
-                  ]}
-                >
-                  <InputNumber
-                    min={1}
-                    placeholder="Enter number of installments"
-                    value={plan.numberOfInstallments}
-                    onChange={(value) =>
-                      handleChange(index, "numberOfInstallments", value)
-                    }
-                  />
-                </Form.Item>
-
-                <Button
-                  type="danger"
-                  onClick={() => handleRemovePlanField(index)}
-                  style={{ marginTop: "8px" }}
-                >
-                  Remove Plan
-                </Button>
-              </div>
-            ))}
-            <Button
-              type="dashed"
-              onClick={handleAddPlanField}
-              style={{ width: "100%" }}
-            >
-              Add Another Installment Plan
-            </Button>
-          </Form>
+          <p style={{ color: "white" }}>Loading subscription data...</p>
+        ) : !filteredSubscription ? (
+          <p style={{ color: "white" }}>No subscription found for this course.</p>
         ) : (
-          <p>No subscription available for this course.</p>
+          <div className="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+            {validityConfigs.length === 0 && <p style={{ color: "#888" }}>No validities found.</p>}
+
+            {validityConfigs.map((config, index) => {
+              // Calculate Preview Numbers Inside Render
+              const basePrice = config.price || 0;
+              const discount = config.discount || 0;
+              // GST/Handling at Subscription Level
+              const gst = filteredSubscription?.gst || 0;
+              const handling = filteredSubscription?.internetHandling || 0;
+
+              const discountedPrice = basePrice * (1 - discount / 100);
+              // GST and Handling are typically calculated on the discounted price
+              const gstAmount = (discountedPrice * gst) / 100;
+              const handlingAmount = (discountedPrice * handling) / 100;
+
+              const finalPrice = Math.floor(discountedPrice + gstAmount + handlingAmount);
+              const installments = config.numberOfInstallments || 1;
+              const perInstallment = Math.ceil(finalPrice / installments);
+
+              return (
+                <div key={index} className="mb-4 p-4 rounded-lg border border-gray-700 bg-[#1f1f1f]">
+                  {/* Header: Validity Name & Price */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <span className="block font-medium text-lg" style={{ color: "white" }}>
+                        {config.planType} - <span className="text-green-400">₹{finalPrice}</span>
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        Base: ₹{basePrice} | Disc: {discount}% | GST: {gst}% | Handling: {handling}%
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Input: Number of Installments */}
+                  <div className="flex flex-col gap-2">
+                    <label style={{ color: "#aaa", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      Number of Installments
+                    </label>
+                    <InputNumber
+                      min={1}
+                      max={24}
+                      value={config.numberOfInstallments}
+                      onChange={(val) => handleConfigChange(index, val)}
+                      style={darkInputStyle}
+                      className="dark-input-number-text"
+                    />
+
+                    {/* Price Preview Box */}
+                    <div className="mt-2 text-sm bg-[#262626] p-2 rounded border border-gray-700">
+                      <div className="flex justify-between text-gray-300">
+                        <span>Total Payable:</span>
+                        <span className="text-green-400 font-bold">₹{finalPrice}</span>
+                      </div>
+                      <div className="flex justify-between text-gray-300 mt-1">
+                        <span>Per Installment ({installments}):</span>
+                        <span className="text-blue-400 font-bold">₹{perInstallment}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </Modal>
     </>

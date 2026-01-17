@@ -14,11 +14,12 @@ const LiveClassCard = memo(({ liveClass, liveLink }) => {
   const dispatch = useDispatch();
   const [editMode, setEditMode] = useState(false);
   const [status, setStatus] = useState(liveClass.status);
-  const [canDelete, setCanDelete] = useState(false);
-  const [statusMessage, setStatusMessage] = useState("");
-  const [canEditState, setCanEditState] = useState(true);
-
   const isClassLive = status === "lv" || status === "live";
+
+  // Allow delete by default for non-live classes, to avoid button being disabled during polling
+  const [canDelete, setCanDelete] = useState(!isClassLive);
+  const [canEditState, setCanEditState] = useState(true);
+  const [statusMessage, setStatusMessage] = useState("");
 
   // Smart status-based auto-delete logic
   useEffect(() => {

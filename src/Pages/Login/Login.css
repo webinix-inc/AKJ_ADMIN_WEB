@@ -220,6 +220,28 @@
     }
 
     .login-card {
-        max-width: 500px;
+        max-width: 90%;
+        margin: 0 16px;
     }
+
+    .form-section {
+        padding: 24px !important;
+    }
+
+
+}
+
+/* Fix for double border/inner line in Password Field */
+.ant-input-affix-wrapper.dark-input input.ant-input {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+}
+
+/* Fix Placeholder Visibility */
+.dark-input::placeholder,
+.dark-input input::placeholder {
+    color: #888 !important;
+    opacity: 1;
 }

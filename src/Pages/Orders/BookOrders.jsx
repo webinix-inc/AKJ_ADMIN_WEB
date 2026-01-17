@@ -41,7 +41,7 @@ const BookOrders = () => {
       key: "orderInfo",
       render: (_, record) => (
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <Text type="secondary" style={{ fontSize: '12px' }}>Txn: {record.transactionId?.substring(0, 10)}...</Text>
+          <Text className="text-gray-400" style={{ fontSize: '12px' }}>Txn: {record.transactionId?.substring(0, 10)}...</Text>
           <Text className="text-white" strong>{record.orderId}</Text>
         </div>
       )
@@ -54,7 +54,7 @@ const BookOrders = () => {
           <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#2563eb' }} />
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <Text strong className="text-white">{record.user.firstName} {record.user.lastName}</Text>
-            <Text type="secondary" style={{ fontSize: '12px' }}>{record.user.email}</Text>
+            <Text className="text-gray-400" style={{ fontSize: '12px' }}>{record.user.email}</Text>
           </div>
         </Space>
       ),
@@ -77,7 +77,7 @@ const BookOrders = () => {
           )}
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <Text className="text-white">{record.book?.name || "Unknown Book"}</Text>
-            <Text type="secondary" style={{ fontSize: '12px' }}>Qty: {record.quantity}</Text>
+            <Text className="text-gray-400" style={{ fontSize: '12px' }}>Qty: {record.quantity}</Text>
           </div>
         </Space>
       ),

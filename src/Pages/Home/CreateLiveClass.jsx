@@ -24,7 +24,7 @@ const CreateLiveClass = ({ liveClass, handleClose }) => {
     liveClass?.startTime ? new Date(liveClass.startTime).toTimeString().substr(0, 5) : ""
   );
   const [classCreated, setClassCreated] = useState(false);
-  
+
   // Platform and Zoom-specific states
   const [platform, setPlatform] = useState(liveClass?.platform || "merithub");
   const [zoomMeetingLink, setZoomMeetingLink] = useState(liveClass?.zoomMeetingLink || "");
@@ -44,14 +44,30 @@ const CreateLiveClass = ({ liveClass, handleClose }) => {
   }, [dispatch]);
 
   // Update courseIds with proper labels when courses are loaded and liveClass exists
+  // Update courseIds with proper labels when courses are loaded and liveClass exists
   useEffect(() => {
     if (liveClass?.courseIds && courses.length > 0) {
       const mappedCourses = liveClass.courseIds
-        .map((courseId) => {
-          const course = courses.find((c) => c._id === courseId);
-          return course ? { value: course._id, label: course.title } : null;
+        .map((item) => {
+          // Handle both raw ID (string) and populated object case
+          const id = item._id || item;
+
+          // Try to find full course details in the loaded courses list
+          const course = courses.find((c) => c._id === id);
+
+          if (course) {
+            return { value: course._id, label: course.title };
+          }
+
+          // If not found in list (e.g. pagination) but we have populated data, use it
+          if (item._id && item.title) {
+            return { value: item._id, label: item.title };
+          }
+
+          return null;
         })
-        .filter(Boolean); // Remove any null values if course not found
+        .filter(Boolean);
+
       setCourseIds(mappedCourses);
     }
   }, [courses, liveClass]);
@@ -99,7 +115,7 @@ const CreateLiveClass = ({ liveClass, handleClose }) => {
     }
 
     const name = `${adminData.firstName || ""} ${adminData.lastName || ""}`.trim() || adminData.email;
-    
+
     try {
       const response = await api.post("/admin/register-merithub", {
         adminId: adminData.userId,
@@ -128,12 +144,12 @@ const CreateLiveClass = ({ liveClass, handleClose }) => {
       alert("Please fill in title and select courses.");
       return;
     }
-    
+
     if (platform === "zoom" && !zoomMeetingLink.trim()) {
       alert("Please provide a Zoom meeting link.");
       return;
     }
-    
+
     if (!isImmediate && isScheduled && (!startDate || !startTime)) {
       alert("Please fill in all required fields.");
       return;
@@ -143,13 +159,13 @@ const CreateLiveClass = ({ liveClass, handleClose }) => {
     if (!isImmediate && isScheduled && startDate && startTime) {
       const today = getTodayDate();
       const selectedDate = startDate;
-      
+
       // Check if date is in the past
       if (selectedDate < today) {
         alert("Cannot schedule a class for a past date. Please select today or a future date.");
         return;
       }
-      
+
       // If today is selected, check if time is in the past
       if (selectedDate === today) {
         const currentTime = getCurrentTime();
@@ -183,7 +199,7 @@ const CreateLiveClass = ({ liveClass, handleClose }) => {
         const registerConfirm = window.confirm(
           "You need to be registered in MeritHub to create live classes. Would you like to register now? (This will only take a moment)"
         );
-        
+
         if (!registerConfirm) {
           return; // User cancelled registration
         }
@@ -237,37 +253,95 @@ const CreateLiveClass = ({ liveClass, handleClose }) => {
 
   const animatedComponents = makeAnimated();
 
+  // React Select Custom Styles for Dark Mode
+  const customStyles = {
+    control: (provided) => ({
+      ...provided,
+      backgroundColor: "#262626", // Dark grey background
+      borderColor: "#374151", // Gray-700
+      color: "white",
+      boxShadow: "none",
+      "&:hover": {
+        borderColor: "#4B5563", // Gray-600
+      },
+    }),
+    menu: (provided) => ({
+      ...provided,
+      backgroundColor: "#262626",
+      zIndex: 9999,
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isFocused ? "#374151" : "#262626",
+      color: "white",
+      "&:active": {
+        backgroundColor: "#4B5563",
+      },
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: "white",
+    }),
+    multiValue: (provided) => ({
+      ...provided,
+      backgroundColor: "#374151",
+    }),
+    multiValueLabel: (provided) => ({
+      ...provided,
+      color: "white",
+    }),
+    multiValueRemove: (provided) => ({
+      ...provided,
+      color: "#9CA3AF",
+      ":hover": {
+        backgroundColor: "#EF4444",
+        color: "white",
+      },
+    }),
+    input: (provided) => ({
+      ...provided,
+      color: "white",
+    }),
+  };
+
   return (
-    <div className="bg-[#141414] rounded-lg shadow-lg p-6 max-w-md mx-auto">
-      <div className="flex text-white justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">{liveClass ? "Edit Live Class" : "Create Live Class"}</h2>
-        <IoMdClose onClick={handleClose} size={24} className="cursor-pointer" />
+    <div className="bg-[#1c1c1c] rounded-lg shadow-lg p-6 w-full h-full flex flex-col border border-gray-800">
+      <div className="flex text-white justify-between items-center mb-6">
+        <h2 className="text-xl font-bold">{liveClass ? "Edit Live Class" : "Create Live Class"}</h2>
+        <IoMdClose onClick={handleClose} size={24} className="cursor-pointer text-gray-400 hover:text-white transition-colors" />
       </div>
-      <div className="space-y-4">
-        <input
-          type="text"
-          placeholder="Class Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
-        />
-        <Select
-          components={animatedComponents}
-          isMulti
-          value={courseIds}
-          onChange={handleCourseChange}
-          options={courseOptions}
-          className="text-black"
-          placeholder="Select Courses"
-        />
-        
+      <div className="space-y-5 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+        <div className="space-y-1">
+          <label className="text-gray-400 text-xs uppercase font-semibold pl-1">Class Title</label>
+          <input
+            type="text"
+            placeholder="Enter class title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full px-4 py-2.5 bg-[#262626] border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 text-white placeholder-gray-500 transition-colors"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-gray-400 text-xs uppercase font-semibold pl-1">Select Courses</label>
+          <Select
+            components={animatedComponents}
+            isMulti
+            value={courseIds}
+            onChange={handleCourseChange}
+            options={courseOptions}
+            styles={customStyles}
+            placeholder="Search and select courses..."
+          />
+        </div>
+
         {/* Platform Selection */}
-        <div className="space-y-2">
-          <label className="text-white font-medium">Platform</label>
+        <div className="space-y-1">
+          <label className="text-gray-400 text-xs uppercase font-semibold pl-1">Platform</label>
           <select
             value={platform}
             onChange={(e) => setPlatform(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200 text-black"
+            className="w-full px-4 py-2.5 bg-[#262626] border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 text-white transition-colors appearance-none cursor-pointer"
           >
             <option value="merithub">📺 MeritHub</option>
             <option value="zoom">🎥 Zoom</option>
@@ -276,107 +350,128 @@ const CreateLiveClass = ({ liveClass, handleClose }) => {
 
         {/* Zoom-specific fields */}
         {platform === "zoom" && (
-          <div className="space-y-4 p-4 bg-gray-800 rounded-md">
-            <h3 className="text-white font-medium">Zoom Meeting Details</h3>
-            
+          <div className="space-y-4 p-4 bg-[#262626] rounded-lg border border-gray-700">
+            <h3 className="text-blue-400 text-sm font-semibold uppercase tracking-wide">Zoom Details</h3>
+
             <input
               type="url"
               placeholder="Zoom Meeting Link (Required)"
               value={zoomMeetingLink}
               onChange={(e) => setZoomMeetingLink(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+              className="w-full px-4 py-2 bg-[#1c1c1c] border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-white text-sm"
               required
             />
-            
+
             <input
               type="text"
               placeholder="Meeting ID (Optional)"
               value={zoomMeetingId}
               onChange={(e) => setZoomMeetingId(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+              className="w-full px-4 py-2 bg-[#1c1c1c] border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-white text-sm"
             />
-            
+
             <input
               type="text"
               placeholder="Passcode (Optional)"
               value={zoomPasscode}
               onChange={(e) => setZoomPasscode(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
+              className="w-full px-4 py-2 bg-[#1c1c1c] border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-white text-sm"
             />
           </div>
         )}
-        
-        <div className="flex items-center text-white">
+
+        <div className="flex items-center text-gray-300 bg-[#262626] p-3 rounded-lg border border-gray-800">
           <input
             type="checkbox"
             checked={isScheduled}
             onChange={() => setIsScheduled((prev) => !prev)}
-            className="mr-2"
+            className="mr-3 w-4 h-4 rounded text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500 focus:ring-offset-gray-800 cursor-pointer"
+            id="schedule-check"
           />
-          <label>Schedule for later</label>
+          <label htmlFor="schedule-check" className="cursor-pointer font-medium text-sm">Schedule for later</label>
         </div>
+
         {isScheduled && (
-          <div className="space-y-2">
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => {
-                setStartDate(e.target.value);
-                // If user selects a past date, reset to today
-                if (e.target.value < getTodayDate()) {
-                  setStartDate(getTodayDate());
-                }
-                // If user changes from today to future date, reset time min constraint
-                if (e.target.value > getTodayDate() && isToday) {
-                  // Time can be any value for future dates
-                }
-              }}
-              min={getTodayDate()}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
-            />
-            <input
-              type="time"
-              value={startTime}
-              onChange={(e) => {
-                // If today is selected, validate time is not in the past
-                if (isToday) {
-                  const selectedTime = e.target.value;
-                  const currentTime = getCurrentTime();
-                  if (selectedTime < currentTime) {
-                    // Don't update if time is in the past
-                    return;
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-gray-400 text-xs uppercase font-semibold pl-1">Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  if (e.target.value < getTodayDate()) {
+                    setStartDate(getTodayDate());
                   }
-                }
-                setStartTime(e.target.value);
-              }}
-              min={getMinTime}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-200"
-            />
+                }}
+                min={getTodayDate()}
+                className="w-full px-4 py-2 bg-[#262626] border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 text-white text-sm color-scheme-dark"
+                style={{ colorScheme: 'dark' }}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-gray-400 text-xs uppercase font-semibold pl-1">Time</label>
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => {
+                  if (isToday) {
+                    const selectedTime = e.target.value;
+                    const currentTime = getCurrentTime();
+                    if (selectedTime < currentTime) return;
+                  }
+                  setStartTime(e.target.value);
+                }}
+                min={getMinTime}
+                className="w-full px-4 py-2 bg-[#262626] border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 text-white text-sm"
+                style={{ colorScheme: 'dark' }}
+              />
+            </div>
           </div>
         )}
-        <div className="space-y-3 pt-4">
-          <button
-            onClick={() => handleSubmit(false)}
-            disabled={loading}
-            className={`w-full px-4 py-3 text-white rounded-md font-medium transition-all ${
-              loading ? "bg-gray-600 cursor-not-allowed" : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-            }`}
-          >
-            {loading ? "Processing..." : liveClass ? "Update Class" : "Schedule Class"}
-          </button>
 
-          {/* Go Live Now Button (Disabled when scheduled) */}
-          {!liveClass && (
+        <div className="space-y-3 pt-4">
+          {isScheduled ? (
+            <button
+              onClick={() => handleSubmit(false)}
+              disabled={loading || !startDate || !startTime || !title || courseIds.length === 0}
+              className={`w-full px-4 py-3 rounded-lg font-bold transition-all shadow-lg transform active:scale-95 ${loading || !startDate || !startTime || !title || courseIds.length === 0
+                ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/40"
+                }`}
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Processing...
+                </span>
+              ) : (
+                liveClass ? "Update Class" : "Schedule Class"
+              )}
+            </button>
+          ) : (
             <button
               onClick={() => handleSubmit(true)}
-              disabled={loading || isScheduled}
-              className={`w-full px-4 py-3 text-white rounded-md font-medium transition-all ${
-                loading || isScheduled
-                  ? "bg-gray-600 cursor-not-allowed"
-                  : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
-              }`}
+              disabled={loading || !title || courseIds.length === 0}
+              className={`w-full px-4 py-3 rounded-lg font-bold transition-all shadow-lg transform active:scale-95 ${loading || !title || courseIds.length === 0
+                ? "bg-gray-800 text-gray-500 cursor-not-allowed"
+                : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/40"
+                }`}
             >
-              {loading ? "Processing..." : "🚀 Go Live Now"}
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Processing...
+                </span>
+              ) : (
+                liveClass ? "Update & Go Live Only" : "🚀 Go Live Now"
+              )}
             </button>
           )}
         </div>

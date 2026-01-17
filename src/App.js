@@ -4,52 +4,43 @@ import "antd/dist/reset.css"; // ✅ Correct for AntD v5
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useSelector } from "react-redux";
 
-// Components
+// Components (Eager Loading)
 import AdminRoute from "./Component/utils/ProtectedRoute";
-import AllCourses from "./Pages/Courses & Tests/AllCourses";
-import AllCoursesDatails from "./Pages/Courses & Tests/AllCoursesDatails";
-import Courses from "./Pages/Courses & Tests/Courses";
-import CoursesEdit from "./Pages/Courses & Tests/CoursesEdit";
-import Tests from "./Pages/Courses & Tests/Tests";
-import FreeVideo from "./Pages/Courses & Tests/FreeVideo";
-import Home from "./Pages/Home/Home";
 import Login from "./Pages/Login/Login";
 
+// Lazy Loaded Components
+const Home = lazy(() => import("./Pages/Home/Home"));
+const AllCourses = lazy(() => import("./Pages/Courses & Tests/AllCourses"));
+const AllCoursesDatails = lazy(() => import("./Pages/Courses & Tests/AllCoursesDatails"));
+const Courses = lazy(() => import("./Pages/Courses & Tests/Courses"));
+const CoursesEdit = lazy(() => import("./Pages/Courses & Tests/CoursesEdit"));
+const FreeVideo = lazy(() => import("./Pages/Courses & Tests/FreeVideo"));
 
+const Plans = lazy(() => import("./Pages/Plans/Plans"));
+const Settings = lazy(() => import("./Pages/Settings/Settings"));
+const Notification = lazy(() => import("./Pages/Notification/Notification"));
+const BookStore = lazy(() => import("./Pages/BookStore/BookStore"));
+const Messages = lazy(() => import("./Pages/Messages/Messages"));
 
-import Plans from "./Pages/Plans/Plans";
+const CoursesFolder = lazy(() => import("./Pages/Content/CoursesFolder"));
+const FolderComponent = lazy(() => import("./Pages/Content/FolderStructure"));
+const FolderContents = lazy(() => import("./Pages/Content/FolderContents"));
+const SubjectsFolder = lazy(() => import("./Pages/Content/SubjectsFolder"));
+const ChaptersFolder = lazy(() => import("./Pages/Content/ChaptersFolder"));
+const ChapterContent = lazy(() => import("./Pages/Content/ChapterContent"));
 
-import Settings from "./Pages/Settings/Settings";
-import Notification from "./Pages/Notification/Notification";
-import BookStore from "./Pages/BookStore/BookStore";
-import Messages from "./Pages/Messages/Messages";
+const TestPanel = lazy(() => import("./Pages/TestPanel/TestPanel"));
+const TestCreationPage = lazy(() => import("./Pages/TestPanel/TestCreationPage"));
+const TestDetailsPage = lazy(() => import("./Pages/TestPanel/TestDetailsPage"));
 
-// Content Management Components
-import CoursesFolder from "./Pages/Content/CoursesFolder";
-import FolderComponent from "./Pages/Content/FolderStructure";
-import FolderContents from "./Pages/Content/FolderContents";
-import SubjectsFolder from "./Pages/Content/SubjectsFolder";
-import ChaptersFolder from "./Pages/Content/ChaptersFolder";
-import ChapterContent from "./Pages/Content/ChapterContent";
-
-// Test Panel Components
-import TestPanel from "./Pages/TestPanel/TestPanel";
-import TestCreationPage from "./Pages/TestPanel/TestCreationPage";
-import TestDetailsPage from "./Pages/TestPanel/TestDetailsPage";
-
-// Orders Components (Lazy Loaded)
+// Existing Lazy Loads
 const Orders = lazy(() => import("./Pages/Orders/Orders"));
 const BookOrders = lazy(() => import("./Pages/Orders/BookOrders"));
-
-// Teachers Components (Lazy Loaded)
 const Teachers = lazy(() => import("./Pages/Teachers/Teachers"));
 const TeacherProfile = lazy(() => import("./Pages/Teachers/TeacherProfile"));
 const AddTeacher = lazy(() => import("./Pages/Teachers/AddTeacher"));
-
-// Self Service Components (Lazy Loaded)
 const Students = lazy(() => import("./Pages/Students/Students"));
 const StudentProfile = lazy(() => import("./Pages/Students/StudentProfile"));
-
 const SelfService = lazy(() => import("./Pages/Self Service/SelfService"));
 const AddCoupon = lazy(() => import("./Pages/Self Service/AddCoupon"));
 const ManageBanners = lazy(() => import("./Pages/Self Service/ManageBanners"));
@@ -65,163 +56,177 @@ const EditCoupon = lazy(() => import("./Pages/Self Service/EditCoupon.jsx"));
 
 // Loading Fallback Component
 const Loading = () => (
-  <div className="flex justify-center items-center h-screen bg-black text-white">
-    Loading...
+  <div className="flex flex-col justify-center items-center h-screen bg-black">
+    {/* Animated Spinner with Gradient Border */}
+    <div className="relative w-16 h-16">
+      <div className="absolute top-0 left-0 w-full h-full border-4 border-blue-500/30 rounded-full"></div>
+      <div className="absolute top-0 left-0 w-full h-full border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+
+    {/* Loading Text with Pulse Effect */}
+    <div className="mt-4 flex items-center space-x-1">
+      <span className="text-gray-400 text-sm font-medium tracking-widest uppercase animate-pulse">Loading System</span>
+      <span className="flex space-x-1">
+        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></span>
+        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></span>
+        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+      </span>
+    </div>
   </div>
 );
 
 function App() {
   const adminData = useSelector((state) => state.admin.adminData);
 
-  const adminData2 = useSelector((state) => state);
-
-  console.log("Admidata is this :", adminData);
-  console.log("Admidata New is this :", adminData2);
-
-  const { permissions, userType } = adminData?.data || {};
-
-  console.log(permissions); // Debug permissions object
+  // console.log("Admidata is this :", adminData); // Removed excessive logs for performance
 
   return (
     <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<Login />} />
-        <Route path="/login" element={<Login />} />
-        <Route element={<AdminRoute />}>
-          <Route path="/home" element={<Home />} />
-        </Route>
-        {/* Protected Routes */}
-        <Route
-          element={
-            <AdminRoute requiredPermissions={["marketingServicesPermission"]} />
-          }
-        >
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/notification" element={<Notification />} />
-        </Route>
-        <Route
-          element={
-            <AdminRoute requiredPermissions={["reportAndAnalyticPermission"]} />
-          }
-        >
-          <Route path="/orders" element={<Suspense fallback={<Loading />}><Orders /></Suspense>} />
-          <Route path="/books/orders" element={<Suspense fallback={<Loading />}><BookOrders /></Suspense>} />
-        </Route>
-        <Route
-          element={<AdminRoute requiredPermissions={["planPermission"]} />}
-        >
-          <Route path="/plans" element={<Plans />} />
-        </Route>
-        <Route
-          element={<AdminRoute requiredPermissions={["coursesPermission"]} />}
-        >
-          <Route path="/courses_tests/courses" element={<Courses />} />
-          <Route
-            path="/courses_tests/courses/allcourses"
-            element={<AllCourses />}
-          />
-          <Route
-            path="/courses_tests/courses/edit/:id"
-            element={<CoursesEdit />}
-          />
-          <Route
-            path="/courses_tests/courses/allcourses/details"
-            element={<AllCoursesDatails />}
-          />
-          <Route path="/courses_tests/freeVideo" element={<FreeVideo />} />
-        </Route>
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          {/* Public Routes (Eager) */}
+          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
 
-        <Route
-          element={
-            <AdminRoute requiredPermissions={["testPortalPermission"]} />
-          }
-        >
-          <Route path="/content/testpanel" element={<TestPanel />} />
-          <Route path="/content/testpanel/:id" element={<TestCreationPage />} />
-          <Route path="/test-details/:id" element={<TestDetailsPage />} />
-        </Route>
-
-        <Route
-          element={<AdminRoute requiredPermissions={["coursesPermission"]} />}
-        >
-          <Route path="/content/courses" element={<CoursesFolder />} />
-          <Route path="/folder" element={<FolderComponent />} />
-          <Route path="/folder/:folderId" element={<FolderContents />} />
-          <Route path="/content/subjects/:id" element={<SubjectsFolder />} />
-          <Route
-            path="/content/subjects/:id/chapters"
-            element={<ChaptersFolder />}
-          />
-          <Route
-            path="/content/subjects/:id/chapters/:chapterId"
-            element={<ChapterContent />}
-          />
-        </Route>
-
-        <Route
-          element={<AdminRoute requiredPermissions={["bookStorePermission"]} />}
-        >
-          <Route path="/bookStore" element={<BookStore />} />
-        </Route>
-
-        <Route
-          element={<AdminRoute requiredPermissions={["peoplePermission"]} />}
-        >
-          <Route path="/students" element={<Suspense fallback={<Loading />}><Students /></Suspense>} />
-          <Route
-            path="/students/studentprofile/:id"
-            element={<Suspense fallback={<Loading />}><StudentProfile /></Suspense>}
-          />
-          <Route path="/teachers" element={<Suspense fallback={<Loading />}><Teachers /></Suspense>} />
-          <Route
-            path="/teachers/teacherprofile/:id"
-            element={<Suspense fallback={<Loading />}><TeacherProfile /></Suspense>}
-          />
-          <Route path="/teachers/addteacher" element={<Suspense fallback={<Loading />}><AddTeacher /></Suspense>} />
-        </Route>
-
-        <Route
-          element={
-            <AdminRoute requiredPermissions={["marketingServicesPermission"]} />
-          }
-        >
-          <Route path="/selfservice" element={<Suspense fallback={<Loading />}><SelfService /></Suspense>} />
-
-          <Route path="/selfservice/addcoupon" element={<Suspense fallback={<Loading />}><AddCoupon /></Suspense>} />
-
-          <Route path="/selfservice/editcoupon/:id" element={<Suspense fallback={<Loading />}><EditCoupon /></Suspense>} />
+          {/* Protected Routes (Lazy) */}
+          <Route element={<AdminRoute />}>
+            <Route path="/home" element={<Home />} />
+          </Route>
 
           <Route
-            path="/selfservice/managebanners"
-            element={<Suspense fallback={<Loading />}><ManageBanners /></Suspense>}
-          />
+            element={
+              <AdminRoute requiredPermissions={["marketingServicesPermission"]} />
+            }
+          >
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/notification" element={<Notification />} />
+          </Route>
+
           <Route
-            path="/selfservice/clientTestimonial"
-            element={<Suspense fallback={<Loading />}><ClientTestimonial /></Suspense>}
-          />
-          <Route path="/selfservice/entranceExam" element={<Suspense fallback={<Loading />}><EntranceExam /></Suspense>} />
+            element={
+              <AdminRoute requiredPermissions={["reportAndAnalyticPermission"]} />
+            }
+          >
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/books/orders" element={<BookOrders />} />
+          </Route>
+
           <Route
-            path="/selfservice/manage-coupons"
-            element={<Suspense fallback={<Loading />}><ManageCoupons /></Suspense>}
-          />
-          <Route path="/enquries" element={<Suspense fallback={<Loading />}><Enquries /></Suspense>} />
-          <Route path="/achiever" element={<Suspense fallback={<Loading />}><Achiever /></Suspense>} />
+            element={<AdminRoute requiredPermissions={["planPermission"]} />}
+          >
+            <Route path="/plans" element={<Plans />} />
+          </Route>
 
-          <Route path="/marketing-video" element={<Suspense fallback={<Loading />}><VideoMarketing /></Suspense>} />
-          <Route path="/important-link" element={<Suspense fallback={<Loading />}><ImportantLink /></Suspense>} />
-          <Route path="/selfservice/course-access" element={<Suspense fallback={<Loading />}><CourseAccess /></Suspense>} />
-        </Route>
+          <Route
+            element={<AdminRoute requiredPermissions={["coursesPermission"]} />}
+          >
+            <Route path="/courses_tests/courses" element={<Courses />} />
+            <Route
+              path="/courses_tests/courses/allcourses"
+              element={<AllCourses />}
+            />
+            <Route
+              path="/courses_tests/courses/edit/:id"
+              element={<CoursesEdit />}
+            />
+            <Route
+              path="/courses_tests/courses/allcourses/details"
+              element={<AllCoursesDatails />}
+            />
+            <Route path="/courses_tests/freeVideo" element={<FreeVideo />} />
+          </Route>
 
-        <Route
-          element={<AdminRoute requiredPermissions={["chatPermission"]} />}
-        >
-          <Route path="/messages" element={<Messages />} />
-        </Route>
+          <Route
+            element={
+              <AdminRoute requiredPermissions={["testPortalPermission"]} />
+            }
+          >
+            <Route path="/content/testpanel" element={<TestPanel />} />
+            <Route path="/content/testpanel/:id" element={<TestCreationPage />} />
+            <Route path="/test-details/:id" element={<TestDetailsPage />} />
+          </Route>
 
-        {/* Unauthorized Route */}
-        <Route path="/unauthorized" element={<div>Unauthorized Access</div>} />
-      </Routes>
+          <Route
+            element={<AdminRoute requiredPermissions={["coursesPermission"]} />}
+          >
+            <Route path="/content/courses" element={<CoursesFolder />} />
+            <Route path="/folder" element={<FolderComponent />} />
+            <Route path="/folder/:folderId" element={<FolderContents />} />
+            <Route path="/content/subjects/:id" element={<SubjectsFolder />} />
+            <Route
+              path="/content/subjects/:id/chapters"
+              element={<ChaptersFolder />}
+            />
+            <Route
+              path="/content/subjects/:id/chapters/:chapterId"
+              element={<ChapterContent />}
+            />
+          </Route>
+
+          <Route
+            element={<AdminRoute requiredPermissions={["bookStorePermission"]} />}
+          >
+            <Route path="/bookStore" element={<BookStore />} />
+          </Route>
+
+          <Route
+            element={<AdminRoute requiredPermissions={["peoplePermission"]} />}
+          >
+            <Route path="/students" element={<Students />} />
+            <Route
+              path="/students/studentprofile/:id"
+              element={<StudentProfile />}
+            />
+            <Route path="/teachers" element={<Teachers />} />
+            <Route
+              path="/teachers/teacherprofile/:id"
+              element={<TeacherProfile />}
+            />
+            <Route path="/teachers/addteacher" element={<AddTeacher />} />
+          </Route>
+
+          <Route
+            element={
+              <AdminRoute requiredPermissions={["marketingServicesPermission"]} />
+            }
+          >
+            <Route path="/selfservice" element={<SelfService />} />
+
+            <Route path="/selfservice/addcoupon" element={<AddCoupon />} />
+
+            <Route path="/selfservice/editcoupon/:id" element={<EditCoupon />} />
+
+            <Route
+              path="/selfservice/managebanners"
+              element={<ManageBanners />}
+            />
+            <Route
+              path="/selfservice/clientTestimonial"
+              element={<ClientTestimonial />}
+            />
+            <Route path="/selfservice/entranceExam" element={<EntranceExam />} />
+            <Route
+              path="/selfservice/manage-coupons"
+              element={<ManageCoupons />}
+            />
+            <Route path="/enquries" element={<Enquries />} />
+            <Route path="/achiever" element={<Achiever />} />
+
+            <Route path="/marketing-video" element={<VideoMarketing />} />
+            <Route path="/important-link" element={<ImportantLink />} />
+            <Route path="/selfservice/course-access" element={<CourseAccess />} />
+          </Route>
+
+          <Route
+            element={<AdminRoute requiredPermissions={["chatPermission"]} />}
+          >
+            <Route path="/messages" element={<Messages />} />
+          </Route>
+
+          {/* Unauthorized Route */}
+          <Route path="/unauthorized" element={<div>Unauthorized Access</div>} />
+        </Routes>
+      </Suspense>
     </Router>
   );
 }

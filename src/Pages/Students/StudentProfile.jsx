@@ -12,7 +12,8 @@ import {
   Tag,
   Card,
   Space,
-  Skeleton
+  Skeleton,
+  Tooltip
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -20,9 +21,11 @@ import {
   MailOutlined,
   PhoneOutlined,
   CalendarOutlined,
-  ReadOutlined
+  ReadOutlined,
+  HistoryOutlined
 } from "@ant-design/icons";
 import { AssignmentView } from '../User Management/AssignmentView';
+import UserTimelineModal from "./UserTimelineModal";
 
 const { Title, Text } = Typography;
 
@@ -31,6 +34,10 @@ const StudentProfile = () => {
   const navigate = useNavigate();
   const [studentDetails, setStudentDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Timeline Modal State
+  const [timelineModalVisible, setTimelineModalVisible] = useState(false);
+  const [selectedCourseForTimeline, setSelectedCourseForTimeline] = useState(null);
 
   useEffect(() => {
     const fetchStudentDetails = async () => {
@@ -57,6 +64,16 @@ const StudentProfile = () => {
     return initials?.length > 1
       ? (initials[0] + initials[1]).toUpperCase()
       : (initials[0] || "NA").toUpperCase();
+  };
+
+  const handleViewTimeline = (course) => {
+    setSelectedCourseForTimeline(course);
+    setTimelineModalVisible(true);
+  };
+
+  const closeTimelineModal = () => {
+    setTimelineModalVisible(false);
+    setSelectedCourseForTimeline(null);
   };
 
   if (loading) {
@@ -204,34 +221,62 @@ const StudentProfile = () => {
                 itemLayout="horizontal"
                 dataSource={purchasedCourses}
                 locale={{ emptyText: <span className="text-gray-500">No courses purchased yet.</span> }}
-                renderItem={(item) => (
-                  <List.Item className="border-b border-gray-800 last:border-0 hover:bg-white/5 transition-colors px-4 -mx-4">
-                    <List.Item.Meta
-                      avatar={
-                        <Avatar
-                          shape="square"
-                          size={48}
-                          src={item.course?.thumbnail}
-                          icon={<ReadOutlined />}
-                          className="bg-white/5"
-                        />
-                      }
-                      title={
-                        <Link to={`/courses_tests/courses/allcourses`} className="text-blue-400 hover:text-blue-300 text-base font-medium">
-                          {item.course?.title || "Untitled Course"}
-                        </Link>
-                      }
-                      description={
-                        <span className="text-gray-500 text-xs">
-                          Enrolled on {item.purchaseDate ? new Date(item.purchaseDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Unknown Date'}
-                        </span>
-                      }
-                    />
-                    <div>
-                      <Tag color="blue" className="m-0">Active</Tag>
-                    </div>
-                  </List.Item>
-                )}
+                renderItem={(item) => {
+                  const courseId = item.course?._id || item.course;
+                  const isInstallment = item.paymentType === 'installment';
+
+                  return (
+                    <List.Item
+                      className="border-b border-gray-800 last:border-0 hover:bg-white/5 transition-colors px-4 -mx-4"
+                      actions={[
+                        isInstallment && (
+                          <Tooltip title="View Payment Timeline">
+                            <Button
+                              type="link"
+                              icon={<HistoryOutlined />}
+                              onClick={() => handleViewTimeline(item.course)}
+                              className="text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                            >
+                              Timeline
+                            </Button>
+                          </Tooltip>
+                        )
+                      ].filter(Boolean)}
+                    >
+                      <List.Item.Meta
+                        avatar={
+                          <Avatar
+                            shape="square"
+                            size={48}
+                            src={item.course?.thumbnail}
+                            icon={<ReadOutlined />}
+                            className="bg-white/5"
+                          />
+                        }
+                        title={
+                          <Link to={`/courses_tests/courses/allcourses`} className="text-blue-400 hover:text-blue-300 text-base font-medium">
+                            {item.course?.title || "Untitled Course"}
+                          </Link>
+                        }
+                        description={
+                          <div className="space-y-1">
+                            <span className="text-gray-500 text-xs block">
+                              Enrolled on {item.purchaseDate ? new Date(item.purchaseDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Unknown Date'}
+                            </span>
+                            {isInstallment && (
+                              <Tag color="purple" bordered={false} className="text-[10px] px-1 m-0">
+                                Installment Plan
+                              </Tag>
+                            )}
+                          </div>
+                        }
+                      />
+                      <div className="hidden sm:block">
+                        <Tag color="blue" className="m-0">Active</Tag>
+                      </div>
+                    </List.Item>
+                  );
+                }}
               />
             </div>
 
@@ -241,6 +286,15 @@ const StudentProfile = () => {
           </div>
         </div>
       </div>
+
+      {/* Installment Timeline Modal */}
+      <UserTimelineModal
+        visible={timelineModalVisible}
+        onCancel={closeTimelineModal}
+        userId={id}
+        courseId={selectedCourseForTimeline?._id}
+        courseTitle={selectedCourseForTimeline?.title}
+      />
     </div>
   );
 };

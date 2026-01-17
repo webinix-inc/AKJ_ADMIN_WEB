@@ -332,6 +332,7 @@ const Orders = () => {
               <label className="dark-label">Date Range</label>
               <RangePicker
                 className="dark-picker w-full"
+                popupClassName="dark-range-picker-dropdown"
                 style={{ width: '100%' }}
                 onChange={(dates) => handleFilterChange("dateRange", dates)}
               />

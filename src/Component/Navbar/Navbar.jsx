@@ -1,16 +1,19 @@
-import React, { useEffect, useState, memo } from "react";
+import React, { useEffect, useState, memo, Suspense, lazy } from "react";
 import "./Navbar.css";
-import Offcanvas from "react-bootstrap/Offcanvas";
-import Dropdown from "react-bootstrap/Dropdown";
-import { useNavigate } from "react-router-dom";
+import { Drawer, Dropdown, Menu } from "antd";
+import { useNavigate }
+  from "react-router-dom";
 import { FaRegBell } from "react-icons/fa6";
 import { IoIosArrowDown } from "react-icons/io";
 import { GiPlainCircle } from "react-icons/gi";
 
 // import img from '../../Image/img.png'
+// import img from '../../Image/img.png'
 import img from "../../Image/img3.png";
-import Notifications from "../../Pages/Notifications/Notifications";
 import api from "../../api/axios";
+
+// Lazy load Notifications
+const Notifications = lazy(() => import("../../Pages/Notifications/Notifications"));
 
 const Navbar = ({ toggleSidebar }) => {
   const [show, setShow] = useState(false);
@@ -27,7 +30,6 @@ const Navbar = ({ toggleSidebar }) => {
     const fetchProfile = async () => {
       try {
         const res = await api.get("/admin/getProfile");
-        console.log("getProfile response is here :", res);
         const data = res.data?.data || {}; // adjust based on actual API structure
         setProfile({
           firstName: data.firstName || "",
@@ -52,6 +54,18 @@ const Navbar = ({ toggleSidebar }) => {
     return `${serverRoot}/${imagePath}`;
   };
 
+  const menuItems = [
+    {
+      key: 'settings',
+      label: <a href="/settings" className="profile-menu-item">Settings</a>,
+    },
+    {
+      key: 'signout',
+      label: <span className="profile-menu-item">Sign Out</span>,
+      onClick: () => navigate("/"),
+    },
+  ];
+
   return (
     <>
       <div className="navbar-container">
@@ -71,12 +85,13 @@ const Navbar = ({ toggleSidebar }) => {
 
             {/* Profile dropdown (opens on click) */}
             <Dropdown
-              className="profile-dropdown-container"
-              align="end"
+              menu={{ items: menuItems }}
+              trigger={['click']}
+              placement="bottomRight"
+              overlayClassName="custom-profile-dropdown"
             >
-              <Dropdown.Toggle
+              <div
                 className="profile-toggle"
-                as="div"
                 id="dropdown-custom-components"
               >
                 {getProfileImageUrl(profile.profilePicture) ? (
@@ -97,23 +112,26 @@ const Navbar = ({ toggleSidebar }) => {
                   <p className="profile-name">{profile.firstName || "User"}</p>
                   <IoIosArrowDown className="profile-arrow" />
                 </div>
-              </Dropdown.Toggle>
-
-              <Dropdown.Menu className="profile-menu">
-                <Dropdown.Item href="/settings" className="profile-menu-item">Settings</Dropdown.Item>
-                <Dropdown.Item onClick={() => navigate("/")} className="profile-menu-item">
-                  Sign Out
-                </Dropdown.Item>
-              </Dropdown.Menu>
+              </div>
             </Dropdown>
           </div>
         </div>
       </div>
 
-      {/* Notifications Offcanvas */}
-      <Offcanvas show={show} onHide={handleClose} placement="end" className="notification-offcanvas">
-        <Notifications handleClose={handleClose} />
-      </Offcanvas>
+      {/* Notifications Drawer */}
+      <Drawer
+        title={null}
+        closable={false}
+        placement="right"
+        onClose={handleClose}
+        open={show}
+        className="notification-offcanvas"
+        width={400}
+      >
+        <Suspense fallback={<div className="p-4 text-white text-center">Loading Notifications...</div>}>
+          <Notifications handleClose={handleClose} />
+        </Suspense>
+      </Drawer>
     </>
   );
 };

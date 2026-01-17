@@ -25,6 +25,7 @@ const dropdownStyles = `
   
   .course-actions-dropdown .ant-select-item:hover {
     background-color: #f0f7ff !important;
+    vertical-align: middle;
   }
   
   .course-actions-dropdown .ant-select-item-option-selected {
@@ -41,13 +42,13 @@ if (typeof document !== 'undefined' && !document.getElementById('course-actions-
   document.head.appendChild(style);
 }
 
-const CourseActions = ({ courseId, isPublished, onTogglePublish, onDelete, rootFolderId }) => {
+const CourseActions = ({ courseId, isPublished, onTogglePublish, onDelete, rootFolderId, subscriptionCount, bypassSubscriptionCheck = false }) => {
   const [downloadOption, setDownloadOption] = useState("web");
   const [downloadLoading, setDownloadLoading] = useState(false);
 
   const handleDownloadOptionChange = async (value) => {
     setDownloadOption(value);
-    
+
     if (!rootFolderId) {
       message.warning("Course root folder not found. Cannot update download settings.");
       return;
@@ -58,7 +59,7 @@ const CourseActions = ({ courseId, isPublished, onTogglePublish, onDelete, rootF
       // Map UI options to backend values
       const downloadTypeMap = {
         "web": "web",
-        "app_pdf": "app_pdf", 
+        "app_pdf": "app_pdf",
         "app_video": "app_video",
         "both": "both"
       };
@@ -80,7 +81,7 @@ const CourseActions = ({ courseId, isPublished, onTogglePublish, onDelete, rootF
 
       const optionLabels = {
         "web": "Web (View Only)",
-        "app_pdf": "App (PDF Download)", 
+        "app_pdf": "App (PDF Download)",
         "app_video": "App (Video Internal Only)",
         "both": "Both (All Downloads)"
       };
@@ -142,66 +143,75 @@ const CourseActions = ({ courseId, isPublished, onTogglePublish, onDelete, rootF
   ];
 
   const menu = (
-    <div 
+    <div
       onClick={(e) => {
         if (e && typeof e.stopPropagation === 'function') {
           e.stopPropagation();
         }
       }}
-      style={{ 
-        padding: "12px", 
-        minWidth: "280px", 
-        background: "white", 
-        borderRadius: "8px", 
-        boxShadow: "0 4px 12px rgba(0,0,0,0.15)" 
+      style={{
+        padding: "16px",
+        minWidth: "300px",
+        background: "#ffffff",
+        borderRadius: "12px",
+        boxShadow: "0 10px 40px -10px rgba(0,0,0,0.15)",
+        border: "1px solid #f0f0f0"
       }}
     >
       {/* Publish Toggle */}
-      <div style={{ marginBottom: "12px" }}>
-        <div style={{ 
-          display: "flex", 
-          alignItems: "center", 
+      <div style={{ marginBottom: "16px" }}>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
           justifyContent: "space-between",
-          padding: "8px 12px",
-          background: "#f8f9fa",
-          borderRadius: "6px",
-          border: "1px solid #e9ecef"
+          padding: "10px 14px",
+          background: "#fafafa",
+          borderRadius: "8px",
+          border: "1px solid #f0f0f0"
         }}>
           <Space>
             {isPublished ? (
-              <EyeOutlined style={{ color: "#52c41a" }} />
+              <EyeOutlined style={{ color: "#10b981", fontSize: "16px" }} />
             ) : (
-              <EyeInvisibleOutlined style={{ color: "#8c8c8c" }} />
+              <EyeInvisibleOutlined style={{ color: "#737373", fontSize: "16px" }} />
             )}
-            <span style={{ fontWeight: "500" }}>
+            <span style={{ fontWeight: "600", fontSize: "14px", color: isPublished ? "#10b981" : "#525252" }}>
               {isPublished ? "Published" : "Unpublished"}
             </span>
           </Space>
           <Switch
             checked={isPublished}
+            disabled={!isPublished && !bypassSubscriptionCheck && (!subscriptionCount || subscriptionCount === 0)}
             onChange={(checked) => {
+              if (!isPublished && !bypassSubscriptionCheck && (!subscriptionCount || subscriptionCount === 0)) {
+                message.error("Cannot publish: No subscription plans linked.");
+                return;
+              }
               onTogglePublish(courseId, checked);
             }}
             onClick={(checked, e) => {
-              // Ant Design Switch onClick receives (checked, event)
               if (e && typeof e.stopPropagation === 'function') {
                 e.stopPropagation();
               }
+              if (!isPublished && !bypassSubscriptionCheck && (!subscriptionCount || subscriptionCount === 0)) {
+                message.error("Cannot publish: No subscription plans linked.");
+              }
             }}
-            size="small"
+            size="default"
+            style={{ backgroundColor: isPublished ? "#10b981" : undefined }}
           />
         </div>
       </div>
 
-      <Divider style={{ margin: "12px 0" }} />
+      <div style={{ height: "1px", background: "#f0f0f0", margin: "16px 0" }} />
 
       {/* Download Settings */}
-      <div style={{ marginBottom: "12px" }}>
-        <div style={{ 
-          marginBottom: "8px", 
-          fontSize: "13px", 
-          fontWeight: "500", 
-          color: "#595959" 
+      <div style={{ marginBottom: "16px" }}>
+        <div style={{
+          marginBottom: "8px",
+          fontSize: "14px",
+          fontWeight: "600",
+          color: "#404040"
         }}>
           Download Settings {downloadLoading && "⏳"}
         </div>
@@ -213,7 +223,8 @@ const CourseActions = ({ courseId, isPublished, onTogglePublish, onDelete, rootF
           placeholder="Select download option"
           disabled={downloadLoading}
           className="course-actions-dropdown"
-          size="small"
+          size="middle"
+
           onClick={(e) => {
             if (e && typeof e.stopPropagation === 'function') {
               e.stopPropagation();
@@ -221,7 +232,6 @@ const CourseActions = ({ courseId, isPublished, onTogglePublish, onDelete, rootF
           }}
           onDropdownVisibleChange={(open) => {
             if (open) {
-              // Additional prevention when dropdown opens
               document.addEventListener('click', (e) => {
                 if (e && typeof e.stopPropagation === 'function') {
                   e.stopPropagation();
@@ -230,58 +240,67 @@ const CourseActions = ({ courseId, isPublished, onTogglePublish, onDelete, rootF
             }
           }}
         />
-        <div style={{ 
-          fontSize: "11px", 
-          color: "#8c8c8c", 
-          marginTop: "6px",
-          textAlign: "center"
+        <div style={{
+          fontSize: "12px",
+          color: "#aaa",
+          marginTop: "8px",
+          display: "flex",
+          gap: "6px",
+          alignItems: "center"
         }}>
-          💡 Controls how users can access course materials
+          <span style={{ fontSize: "14px" }}>💡</span> Controls how users can access course materials
         </div>
       </div>
 
-      <Divider style={{ margin: "12px 0" }} />
+      <div style={{ height: "1px", background: "#f0f0f0", margin: "16px 0" }} />
 
       {/* Delete Action */}
       <div>
         <Popconfirm
           title={
             <div>
-              <div style={{ fontWeight: "500", marginBottom: "4px" }}>
+              <div style={{ fontWeight: "600", marginBottom: "4px", fontSize: "14px" }}>
                 Delete this course?
               </div>
-              <div style={{ fontSize: "12px", color: "#8c8c8c" }}>
-                This action cannot be undone
+              <div style={{ fontSize: "13px", color: "#666" }}>
+                This action cannot be undone.
               </div>
             </div>
           }
           onConfirm={() => onDelete(courseId)}
           okText="Delete"
           cancelText="Cancel"
-          okButtonProps={{ danger: true }}
+          okButtonProps={{ danger: true, size: 'middle' }}
+          cancelButtonProps={{ size: 'middle' }}
           placement="topRight"
         >
-          <Button 
-            danger 
+          <Button
             block
+            size="large"
+            type="primary"
+            danger
             icon={<DeleteOutlined />}
             onClick={(e) => {
               if (e && typeof e.stopPropagation === 'function') {
                 e.stopPropagation();
               }
             }}
-            style={{ 
-              display: "flex", 
-              alignItems: "center", 
+            style={{
+              display: "flex",
+              alignItems: "center",
               justifyContent: "center",
-              fontWeight: "500"
+              fontWeight: "600",
+              borderRadius: "8px",
+              height: "40px",
+              backgroundColor: "#ef4444",
+              borderColor: "#ef4444"
             }}
           >
             Delete Course
           </Button>
         </Popconfirm>
       </div>
-    </div>
+    </div >
   );
 
   const handleDropdownClick = (e) => {
@@ -304,14 +323,14 @@ const CourseActions = ({ courseId, isPublished, onTogglePublish, onDelete, rootF
 
   return (
     <div onClick={handleDropdownClick}>
-      <Dropdown 
+      <Dropdown
         dropdownRender={() => menu}
-        trigger={["click"]} 
+        trigger={["click"]}
         placement="bottomRight"
       >
-        <Button 
-          icon={<EllipsisOutlined />} 
-          shape="circle" 
+        <Button
+          icon={<EllipsisOutlined />}
+          shape="circle"
           onClick={handleButtonClick}
           style={{
             border: "1px solid #d9d9d9",

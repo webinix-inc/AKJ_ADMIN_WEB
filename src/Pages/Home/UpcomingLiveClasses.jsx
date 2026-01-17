@@ -73,7 +73,7 @@ const UpcomingLiveClasses = memo(() => {
     }
 
     return (
-        <div className='w-full flex flex-col gap-4'>
+        <div className='w-full flex flex-col gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar'>
             {upcomingClasses.map(liveClass => (
                 <LiveClassCard
                     key={liveClass._id}

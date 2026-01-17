@@ -9,6 +9,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
 import CourseActions from "./CourseActions";
+import axiosInstance from "../../api/axios";
 
 const BatchUserManager = lazy(() => import("./BatchUserManager"));
 
@@ -38,8 +39,14 @@ const BatchCourseCard = memo(({ course, onRefresh }) => {
   }, []);
 
   const handleTogglePublish = useCallback(async (courseId, isPublished) => {
-    message.success(`Batch ${isPublished ? 'published' : 'unpublished'}`);
-    onRefresh?.();
+    try {
+      await axiosInstance.patch(`/admin/courses/${courseId}/toggle-publish`, { isPublished });
+      message.success(`Batch ${isPublished ? 'published' : 'unpublished'} successfully`);
+      onRefresh?.();
+    } catch (error) {
+      console.error("Error toggling publish status:", error);
+      message.error(error.response?.data?.message || "Failed to update publish status");
+    }
   }, [onRefresh]);
 
   const handleDelete = useCallback(() => {
@@ -181,6 +188,8 @@ const BatchCourseCard = memo(({ course, onRefresh }) => {
                 isPublished={course.isPublished}
                 onTogglePublish={handleTogglePublish}
                 onDelete={handleDelete}
+                subscriptionCount={course.subscriptionCount}
+                bypassSubscriptionCheck={true}
               />
             </div>
           </div>

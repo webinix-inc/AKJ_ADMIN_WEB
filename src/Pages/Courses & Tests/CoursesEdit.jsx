@@ -579,47 +579,21 @@ const CoursesEdit = () => {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Price</label>
-                {isEditMode ? (
-                  <input
-                    style={styles.input}
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    placeholder="₹0"
-                  />
-                ) : (
-                  <p style={styles.value}>₹{formData.price || 0}</p>
-                )}
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Discount</label>
-                {isEditMode ? (
-                  <input
-                    style={styles.input}
-                    value={formData.discount}
-                    onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
-                    placeholder="0%"
-                  />
-                ) : (
-                  <p style={styles.value}>{formData.discount || 0}%</p>
-                )}
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Duration</label>
-                {isEditMode ? (
-                  <input
-                    style={styles.input}
-                    value={formData.courseDuration}
-                    onChange={(e) => setFormData({ ...formData, courseDuration: e.target.value })}
-                    placeholder="Duration"
-                  />
-                ) : (
-                  <p style={styles.value}>{formData.courseDuration || "N/A"}</p>
-                )}
-              </div>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Discount (%)</label>
+              {isEditMode ? (
+                <input
+                  style={styles.input}
+                  value={formData.discount}
+                  onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
+                  placeholder="0%"
+                />
+              ) : (
+                <p style={styles.value}>{formData.discount || 0}%</p>
+              )}
             </div>
+
+
           </div>
 
           {/* Description Card */}

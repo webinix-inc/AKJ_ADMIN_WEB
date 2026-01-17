@@ -1,59 +1,61 @@
-/* Plans Page Revamp - Dark Theme (Scoped) */
+/* =============================================================================
+   PLANS PAGE & MODAL DARK THEME OVERRIDES
+   ============================================================================= */
+
+/* 1. Main Page Container */
 .plans-container {
     background-color: #141414;
     min-height: 100vh;
     padding: 24px;
-    /* Removed custom gradient to match standard theme */
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Glassmorphism Card Scope */
+/* 2. Glassmorphism Card Style */
 .plans-container .glass-card {
-    background: rgba(30, 30, 30, 0.6);
+    background: #1f1f1f;
+    background: rgba(31, 31, 31, 0.6);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
+    border-radius: 16px;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     height: 100%;
     display: flex;
     flex-direction: column;
     position: relative;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .plans-container .glass-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
     border-color: rgba(26, 133, 255, 0.3);
 }
 
 .plans-container .card-header {
-    padding: 24px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
+    padding: 20px 24px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     text-align: center;
 }
 
 .plans-container .plan-title {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 700;
     color: #fff;
-    margin-bottom: 8px;
-    letter-spacing: -0.5px;
+    margin: 0 0 8px 0;
 }
 
 .plans-container .course-title {
-    font-size: 14px;
-    font-weight: 500;
-    color: #1a85ff;
+    font-size: 11px;
+    font-weight: 600;
+    color: #3b82f6;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    background: rgba(26, 133, 255, 0.1);
+    letter-spacing: 0.5px;
+    background: rgba(59, 130, 246, 0.1);
+    padding: 4px 10px;
+    border-radius: 100px;
     display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
 }
 
 .plans-container .card-body {
@@ -62,23 +64,24 @@
 }
 
 .plans-container .section-label {
-    font-size: 12px;
+    font-size: 11px;
     text-transform: uppercase;
-    color: #666;
-    font-weight: 600;
+    color: #737373;
+    font-weight: 700;
     margin-bottom: 12px;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
 }
 
 .plans-container .validity-tag {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #ccc;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #d4d4d4;
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 13px;
-    display: inline-block;
-    margin: 0 6px 6px 0;
+    display: inline-flex;
+    margin: 0 8px 8px 0;
+    align-items: center;
 }
 
 .plans-container .features-list {
@@ -90,7 +93,7 @@
 .plans-container .feature-item {
     display: flex;
     align-items: flex-start;
-    color: #ccc;
+    color: #d4d4d4;
     font-size: 14px;
     margin-bottom: 10px;
     line-height: 1.5;
@@ -104,207 +107,296 @@
 }
 
 .plans-container .card-footer {
-    padding: 20px;
+    padding: 16px 24px;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     gap: 12px;
     background: rgba(0, 0, 0, 0.2);
 }
 
-.plans-container .dark-btn-primary {
-    background: linear-gradient(135deg, #1a85ff 0%, #0062cc 100%);
-    border: none;
-    color: white;
-    font-weight: 600;
-    border-radius: 8px;
-    height: 40px;
-    box-shadow: 0 4px 12px rgba(26, 133, 255, 0.3);
+/* 3. Button Styles */
+.dark-btn-primary {
+    background: #2563eb !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    height: 40px !important;
+    transition: all 0.2s !important;
 }
 
-.plans-container .dark-btn-primary:hover {
-    box-shadow: 0 6px 16px rgba(26, 133, 255, 0.5);
-    opacity: 0.9;
+.dark-btn-primary:hover {
+    background: #1d4ed8 !important;
+    opacity: 1 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
 }
 
-.plans-container .dark-btn-danger {
-    background: rgba(255, 77, 79, 0.1);
-    border: 1px solid rgba(255, 77, 79, 0.2);
-    color: #ff4d4f;
-    font-weight: 600;
-    border-radius: 8px;
-    height: 40px;
+.dark-btn-danger {
+    background: rgba(239, 68, 68, 0.1) !important;
+    border: 1px solid rgba(239, 68, 68, 0.2) !important;
+    color: #ef4444 !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    height: 40px !important;
 }
 
-.plans-container .dark-btn-danger:hover {
-    background: rgba(255, 77, 79, 0.2) !important;
-    border-color: #ff4d4f !important;
-    color: #ff4d4f !important;
+.dark-btn-danger:hover {
+    background: rgba(239, 68, 68, 0.2) !important;
+    border-color: #ef4444 !important;
 }
 
-.plans-container .view-btn {
+.view-btn {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    color: #fff;
+    top: 16px;
+    right: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: #a3a3a3;
     width: 32px;
     height: 32px;
-    border-radius: 50%;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s;
+    z-index: 10;
 }
 
-.plans-container .view-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: scale(1.1);
+.view-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
 }
 
-/* Modal & Drawer Scoped Overrides */
+/* 4. DRAWER & MODAL - CRITICAL BACKGROUND FIXES */
+/* Target every possible container to kill the white background */
+.dark-drawer .ant-drawer-content,
+.dark-drawer .ant-drawer-header,
+.dark-drawer .ant-drawer-body,
+.dark-drawer .ant-drawer-wrapper-body {
+    background-color: #1a1a1a !important;
+    /* Force solid dark */
+    background: #1a1a1a !important;
+    color: #fff !important;
+}
+
 .dark-modal .ant-modal-content,
-.dark-drawer .ant-drawer-content {
-    background-color: rgba(30, 30, 30, 0.95) !important;
-    color: #fff !important;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
 .dark-modal .ant-modal-header,
-.dark-drawer .ant-drawer-header {
-    background-color: transparent !important;
+.dark-modal .ant-modal-body,
+.dark-modal .ant-modal-footer {
+    background-color: #1a1a1a !important;
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    /* Clean border */
+}
+
+/* Fix borders */
+.dark-drawer .ant-drawer-header,
+.dark-modal .ant-modal-header {
     border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-    padding-bottom: 20px !important;
 }
 
-.dark-modal .ant-modal-title,
-.dark-drawer .ant-drawer-title {
-    color: #fff !important;
-    font-size: 20px !important;
+/* Titles */
+.dark-drawer .ant-drawer-title,
+.dark-modal .ant-modal-title {
+    color: #f5f5f5 !important;
     font-weight: 600 !important;
-    letter-spacing: 0.5px;
 }
 
-.dark-modal .ant-modal-close-x,
-.dark-drawer .ant-drawer-close {
-    color: #aaa !important;
-    transition: color 0.3s;
+/* Close Icons */
+.dark-drawer .ant-drawer-close,
+.dark-modal .ant-modal-close-x {
+    color: #a3a3a3 !important;
 }
 
-.dark-modal .ant-modal-close-x:hover,
-.dark-drawer .ant-drawer-close:hover {
+.dark-drawer .ant-drawer-close:hover,
+.dark-modal .ant-modal-close-x:hover {
     color: #fff !important;
 }
 
-/* Form inputs (scoped) */
-.plans-container .ant-form-item-label>label,
-.dark-modal .ant-form-item-label>label,
-.dark-drawer .ant-form-item-label>label {
-    color: #ccc !important;
+/* 5. FORM INPUTS & LABELS */
+.dark-drawer .ant-form-item-label>label,
+.dark-modal .ant-form-item-label>label {
+    color: #d4d4d4 !important;
+    /* Clearly visible light grey */
     font-size: 13px !important;
-    font-weight: 500 !important;
 }
 
-.plans-container .ant-input,
-.plans-container .ant-input-number,
-.plans-container .ant-input-number-input,
-.plans-container .ant-select-selector,
-.dark-modal .ant-input,
-.dark-modal .ant-input-number,
-.dark-modal .ant-input-number-input,
-.dark-modal .ant-select-selector,
 .dark-drawer .ant-input,
 .dark-drawer .ant-input-number,
 .dark-drawer .ant-input-number-input,
-.dark-drawer .ant-select-selector {
-    background-color: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+.dark-drawer .ant-select-selector,
+.dark-modal .ant-input,
+.dark-modal .ant-input-number,
+.dark-modal .ant-input-number-input,
+.dark-modal .ant-select-selector {
+    background-color: #262626 !important;
+    border: 1px solid #404040 !important;
     color: #fff !important;
-    border-radius: 8px !important;
-    padding: 8px 11px !important;
-    transition: all 0.3s ease !important;
 }
 
-.plans-container .ant-select-selector,
-.dark-modal .ant-select-selector,
-.dark-drawer .ant-select-selector {
-    padding: 4px 11px !important;
-    height: 40px !important;
-    display: flex !important;
-    align-items: center !important;
+/* Placeholders - High Contrast */
+.dark-drawer .ant-input::placeholder,
+.dark-modal .ant-input::placeholder,
+.dark-drawer .ant-input-number-input::placeholder,
+.dark-modal .ant-input-number-input::placeholder,
+.dark-drawer .ant-select-selection-placeholder,
+.dark-modal .ant-select-selection-placeholder {
+    color: #a3a3a3 !important;
+    /* Light grey */
+    opacity: 1 !important;
 }
 
-.plans-container .ant-input:hover,
-.dark-modal .ant-input:hover,
-.dark-drawer .ant-input:hover {
-    border-color: rgba(255, 255, 255, 0.3) !important;
-}
-
-.plans-container .ant-input:focus,
-.dark-modal .ant-input:focus,
+/* Focus States */
 .dark-drawer .ant-input:focus,
-.dark-modal .ant-input-number-focused,
-.dark-modal .ant-select-focused .ant-select-selector {
-    background-color: rgba(0, 0, 0, 0.5) !important;
-    border-color: #1a85ff !important;
-    box-shadow: 0 0 0 2px rgba(26, 133, 255, 0.15) !important;
+.dark-modal .ant-input:focus {
+    border-color: #3b82f6 !important;
+    background-color: #262626 !important;
 }
 
-.dark-modal .ant-btn-dashed,
-.dark-drawer .ant-btn-dashed {
-    background-color: rgba(255, 255, 255, 0.03) !important;
-    border: 1px dashed rgba(255, 255, 255, 0.2) !important;
-    color: #888 !important;
-    height: 40px;
-    border-radius: 8px !important;
-    transition: all 0.3s;
+/* Dashed Buttons (Add Feature/Validity) */
+.dark-drawer .ant-btn-dashed,
+.dark-modal .ant-btn-dashed {
+    background: transparent !important;
+    border-color: #525252 !important;
+    color: #a3a3a3 !important;
 }
 
-.dark-modal .ant-btn-dashed:hover,
-.dark-drawer .ant-btn-dashed:hover {
-    border-color: #1a85ff !important;
-    color: #1a85ff !important;
-    background-color: rgba(26, 133, 255, 0.05) !important;
+.dark-drawer .ant-btn-dashed:hover,
+.dark-modal .ant-btn-dashed:hover {
+    border-color: #3b82f6 !important;
+    color: #3b82f6 !important;
+    background: rgba(59, 130, 246, 0.1) !important;
 }
 
-.plans-container .ant-switch,
-.dark-modal .ant-switch,
-.dark-drawer .ant-switch {
-    background-color: #333;
+/* Switch */
+.dark-drawer .ant-switch,
+.dark-modal .ant-switch {
+    background-color: #404040;
 }
 
-.plans-container .ant-switch-checked,
-.dark-modal .ant-switch-checked,
-.dark-drawer .ant-switch-checked {
-    background-color: #1a85ff;
+.dark-drawer .ant-switch-checked,
+.dark-modal .ant-switch-checked {
+    background-color: #2563eb;
 }
 
-/* Inset Container */
+/* Inner Sections (Validities/Features) */
 .form-section-container {
-    background-color: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 24px;
+    background-color: #171717 !important;
+    border: 1px dashed #404040 !important;
+    padding: 16px;
+    border-radius: 8px;
 }
 
-/* Specific Dropdown Style */
+/* Dropdowns */
 .ant-select-dropdown {
-    background-color: #1f1f1f !important;
-    border: 1px solid #333;
+    background-color: #262626 !important;
+    border: 1px solid #404040 !important;
 }
 
 .ant-select-item {
-    color: #fff;
-}
-
-.ant-select-item-option-selected {
-    background-color: #1a85ff !important;
+    color: #e5e5e5 !important;
 }
 
 .ant-select-item-option-active {
-    background-color: rgba(255, 255, 255, 0.1) !important;
+    background-color: #333 !important;
+}
+
+.ant-select-item-option-selected {
+    background-color: rgba(37, 99, 235, 0.2) !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+}
+
+/* =============================================================================
+   6. BROWSER AUTOFILL OVERRIDES (CRITICAL FOR DARK MODE)
+   ============================================================================= */
+/* Force the background to be dark even when the browser tries to make it white/yellow */
+/* We target specific classes to ensure we override the library defaults */
+.plans-container input:-webkit-autofill,
+.plans-container input:-webkit-autofill:hover,
+.plans-container input:-webkit-autofill:focus,
+.plans-container input:-webkit-autofill:active,
+.dark-modal input:-webkit-autofill,
+.dark-modal input:-webkit-autofill:hover,
+.dark-modal input:-webkit-autofill:focus,
+.dark-modal input:-webkit-autofill:active,
+.dark-drawer input:-webkit-autofill,
+.dark-drawer input:-webkit-autofill:hover,
+.dark-drawer input:-webkit-autofill:focus,
+.dark-drawer input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #262626 inset !important;
+    -webkit-text-fill-color: white !important;
+    caret-color: white !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* =============================================================================
+   7. INPUT NUMBER HANDLER OVERRIDES (ARROWS)
+   ============================================================================= */
+/* Wrapper for the up/down buttons */
+.dark-modal .ant-input-number-handler-wrap,
+.dark-drawer .ant-input-number-handler-wrap {
+    background: #333 !important;
+    border-left: 1px solid #404040 !important;
+}
+
+/* Individual buttons */
+.dark-modal .ant-input-number-handler,
+.dark-drawer .ant-input-number-handler {
+    border-top: 1px solid #404040 !important;
+    background: #262626 !important;
+}
+
+/* Icons within buttons */
+.dark-modal .ant-input-number-handler .ant-input-number-handler-up-inner,
+.dark-modal .ant-input-number-handler .ant-input-number-handler-down-inner,
+.dark-drawer .ant-input-number-handler .ant-input-number-handler-up-inner,
+.dark-drawer .ant-input-number-handler .ant-input-number-handler-down-inner {
+    color: #a3a3a3 !important;
+}
+
+/* Hover state for buttons */
+.dark-modal .ant-input-number-handler:hover,
+.dark-drawer .ant-input-number-handler:hover {
+    background: #404040 !important;
+    height: 100% !important;
+}
+
+.dark-modal .ant-input-number-handler:hover .ant-input-number-handler-up-inner,
+.dark-modal .ant-input-number-handler:hover .ant-input-number-handler-down-inner,
+.dark-drawer .ant-input-number-handler:hover .ant-input-number-handler-up-inner,
+.dark-drawer .ant-input-number-handler:hover .ant-input-number-handler-down-inner {
+    color: white !important;
+}
+
+/* Input Number Borders */
+.dark-modal .ant-input-number,
+.dark-drawer .ant-input-number {
+    border-color: #404040 !important;
+    box-shadow: none !important;
+}
+
+.dark-modal .ant-input-number-focused,
+.dark-drawer .ant-input-number-focused {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+}
+
+/* =============================================================================
+   8. TIMELINE OVERRIDES
+   ============================================================================= */
+.dark-timeline .ant-timeline-item-tail {
+    border-left: 2px solid #404040 !important;
+}
+
+.dark-timeline .ant-timeline-item-head-blue {
+    border-color: #3b82f6 !important;
+    color: #3b82f6 !important;
+}
+
+.dark-timeline .ant-timeline-item-head-green {
+    border-color: #10b981 !important;
+    color: #10b981 !important;
 }

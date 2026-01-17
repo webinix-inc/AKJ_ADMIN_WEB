@@ -67,6 +67,34 @@ const Plans = () => {
   const [isEditPlanSaved, setIsEditPlanSaved] = useState(false);
   const [isEditingAllowed, setIsEditingAllowed] = useState(false);
 
+  // Dirty Check States
+  const [initialPlanState, setInitialPlanState] = useState(null);
+  const [isFormDirty, setIsFormDirty] = useState(false);
+
+  // Deep compare helper
+  const checkForChanges = useCallback(() => {
+    if (!initialPlanState) return;
+
+    const values = form.getFieldsValue(['name', 'course', 'gst', 'internetHandling']);
+    const currentState = {
+      name: values.name,
+      course: values.course,
+      gst: values.gst,
+      internetHandling: values.internetHandling,
+      validities,
+      features
+    };
+
+    // Simple JSON compare
+    const isDirty = JSON.stringify(currentState) !== JSON.stringify(initialPlanState);
+    setIsFormDirty(isDirty);
+  }, [form, initialPlanState, validities, features]);
+
+  // Watch for changes in state-managed fields
+  useEffect(() => {
+    checkForChanges();
+  }, [validities, features, checkForChanges]);
+
   useEffect(() => {
     dispatch(getAllSubscriptions())
       .unwrap()
@@ -87,6 +115,18 @@ const Plans = () => {
       });
   }, [dispatch]);
 
+  // Helper to filter courses that already have a subscription plan
+  // If currentCourseId is provided (edit mode), that course is included in the list
+  const getAvailableCourses = useCallback((currentCourseId = null) => {
+    if (!courses || !subscriptions) return [];
+
+    const usedCourseIds = subscriptions
+      .filter(sub => sub.course && sub.course._id !== currentCourseId) // Exclude current plan's course from "used" list
+      .map(sub => sub.course._id);
+
+    return courses.filter(course => !usedCourseIds.includes(course._id));
+  }, [courses, subscriptions]);
+
   const showAddModal = () => {
     setIsAddModalVisible(true);
     form.resetFields();
@@ -97,23 +137,41 @@ const Plans = () => {
 
   const showEditModal = (subscription) => {
     setCurrentSubscription(subscription);
-    setSelectedCourseId(subscription?.course?._id);
+    const courseId = subscription?.course?._id;
+    setSelectedCourseId(courseId);
+
     form.setFieldsValue({
-      ...subscription,
-      course: subscription?.course?._id,
+      name: subscription.name,
+      course: courseId,
+      gst: subscription.gst,
+      internetHandling: subscription.internetHandling,
     });
-    setValidities(
-      subscription.validities || [
-        { validity: null, price: null, discount: null },
-      ]
-    );
-    setFeatures(
-      subscription.features || [{ name: "", enabled: true, description: "" }]
-    );
+
+    const initialValidities = subscription.validities || [{ validity: null, price: null, discount: null }];
+    const initialFeatures = subscription.features || [{ name: "", enabled: true, description: "" }];
+
+    setValidities(initialValidities);
+    setFeatures(initialFeatures);
+
+    // Capture initial state for dirty check (Sanitized)
+    setInitialPlanState({
+      name: subscription.name,
+      course: courseId,
+      gst: subscription.gst,
+      internetHandling: subscription.internetHandling,
+      validities: initialValidities,
+      features: initialFeatures
+    });
+
+    setIsFormDirty(false);
     setIsEditModalVisible(true);
-    setIsEditPlanSaved(true); // Assuming existing plan is saved initially
-    setIsEditingAllowed(false);
+    setIsEditPlanSaved(true);
+    setIsEditingAllowed(true);
   };
+
+  // ... (rest of handlers)
+
+  // ... (inside render)
 
   const handleCancel = () => {
     setIsAddModalVisible(false);
@@ -139,7 +197,10 @@ const Plans = () => {
         description: "Subscription plan added successfully",
       });
 
-      setIsPlanSaved(true);
+      // Refresh list and close modal
+      dispatch(getAllSubscriptions());
+      handleCancel();
+
     } catch (error) {
       notification.error({
         message: "Error",
@@ -241,9 +302,11 @@ const Plans = () => {
   };
 
   const handleFeatureChange = (index, field, value) => {
-    const newFeatures = [...features];
-    newFeatures[index][field] = value;
-    setFeatures(newFeatures);
+    setFeatures((prevFeatures) => {
+      const newFeatures = [...prevFeatures];
+      newFeatures[index] = { ...newFeatures[index], [field]: value };
+      return newFeatures;
+    });
   };
 
   const addFeatureField = () => {
@@ -359,15 +422,15 @@ const Plans = () => {
                 <div>
                   <div className="section-label">Features</div>
                   <ul className="features-list">
-                    {plan.features?.slice(0, 4).map((feature, featureIndex) => (
+                    {plan.features?.filter(f => f.enabled).slice(0, 4).map((feature, featureIndex) => (
                       <li key={featureIndex} className="feature-item">
                         <IoCheckmarkCircleOutline className="feature-icon" />
                         {feature.name}
                       </li>
                     ))}
-                    {plan.features?.length > 4 && (
+                    {plan.features?.filter(f => f.enabled).length > 4 && (
                       <li className="text-xs text-gray-500 italic pl-6">
-                        +{plan.features.length - 4} more features...
+                        +{plan.features.filter(f => f.enabled).length - 4} more features...
                       </li>
                     )}
                   </ul>
@@ -459,7 +522,7 @@ const Plans = () => {
             <div>
               <h4 className="text-gray-400 text-xs uppercase font-bold mb-3 tracking-wider">Features</h4>
               <ul className="space-y-2">
-                {selectedPlan.features.map((feature, index) => (
+                {selectedPlan.features.filter(f => f.enabled).map((feature, index) => (
                   <li key={index} className="flex items-start text-gray-300">
                     <IoCheckmarkCircleOutline className="text-blue-500 mr-2 mt-1 flex-shrink-0" />
                     {feature.name}
@@ -524,8 +587,10 @@ const Plans = () => {
                   placeholder="Select a course"
                   disabled={isPlanSaved}
                   className="dark-select"
+                  showSearch
+                  optionFilterProp="children"
                 >
-                  {courses?.map((course) => (
+                  {getAvailableCourses(null).map((course) => (
                     <Select.Option key={course._id} value={course._id}>
                       {course.title}
                     </Select.Option>
@@ -695,7 +760,7 @@ const Plans = () => {
         width={600}
         className="dark-drawer"
       >
-        <Form form={form} layout="vertical" onFinish={handleEditPlan}>
+        <Form form={form} layout="vertical" onFinish={handleEditPlan} onValuesChange={checkForChanges}>
           <Form.Item
             label="Course"
             name="course"
@@ -706,8 +771,10 @@ const Plans = () => {
               onChange={(value) => setSelectedCourseId(value)}
               value={selectedCourseId}
               disabled={!isEditingAllowed}
+              showSearch
+              optionFilterProp="children"
             >
-              {courses?.map((course) => (
+              {getAvailableCourses(currentSubscription?.course?._id).map((course) => (
                 <Select.Option
                   key={course._id}
                   value={course._id}
@@ -760,11 +827,11 @@ const Plans = () => {
                     />
                   </Col>
                   <Col span={4}>
-                    <Button danger type="text" icon={<IoClose />} onClick={() => removeValidityField(index)} disabled={isEditPlanSaved} />
+                    <Button danger type="text" icon={<IoClose />} onClick={() => removeValidityField(index)} disabled={!isEditingAllowed} />
                   </Col>
                 </Row>
               ))}
-              <Button type="dashed" block onClick={addValidityField} disabled={isEditPlanSaved}>+ Add Validity</Button>
+              <Button type="dashed" block onClick={addValidityField} disabled={!isEditingAllowed}>+ Add Validity</Button>
             </div>
           </Form.Item>
 
@@ -784,10 +851,10 @@ const Plans = () => {
                     size="small"
                     className="mt-1"
                   />
-                  <Button danger type="text" icon={<IoClose />} onClick={() => removeFeatureField(index)} disabled={isEditPlanSaved} />
+                  <Button danger type="text" icon={<IoClose />} onClick={() => removeFeatureField(index)} disabled={!isEditingAllowed} />
                 </div>
               ))}
-              <Button type="dashed" block onClick={addFeatureField} disabled={isEditPlanSaved}>+ Add Feature</Button>
+              <Button type="dashed" block onClick={addFeatureField} disabled={!isEditingAllowed}>+ Add Feature</Button>
             </div>
           </Form.Item>
 
@@ -812,7 +879,7 @@ const Plans = () => {
             {!isEditingAllowed && !isEditPlanSaved ? (
               <Button onClick={() => setIsEditingAllowed(true)}>Enable Editing</Button>
             ) : (
-              <Button type="primary" htmlType="submit" disabled={isEditPlanSaved}>Update Plan</Button>
+              <Button type="primary" htmlType="submit" disabled={!isEditingAllowed || !isFormDirty}>Update Plan</Button>
             )}
 
             <CreateInstallmentButton
@@ -834,22 +901,26 @@ const InstallmentTimelineModal = ({ visible, onCancel, installment }) => {
 
   return (
     <Modal
-      title={`${installment.planType} Installment Timeline`}
+      title={<span className="text-white">{installment.planType} Installment Timeline</span>}
       visible={visible}
       onCancel={onCancel}
-      footer={<Button onClick={onCancel}>Close</Button>}
-      centered
+      footer={
+        <Button onClick={onCancel} className="dark-btn-secondary">
+          Close
+        </Button>
+      }
       className="dark-modal"
     >
-      <div className="bg-[#1f1f1f] p-4 rounded-lg">
-        <Timeline>
+      <div className="py-4">
+        <Timeline className="dark-timeline">
           {installment.installments.map((inst, index) => (
-            <Timeline.Item key={index} color="blue">
-              <div className="text-white">
-                <strong className="text-blue-400">Installment {index + 1}:</strong> ₹
-                {Math.floor(inst.amount)}
+            <Timeline.Item key={index} color={inst.isPaid ? "green" : "blue"}>
+              <div className="text-white font-medium">
+                Installment {index + 1}: <span className="text-green-400">₹{inst.amount}</span>
               </div>
-              <div className="text-gray-400 text-xs">Due Date: {inst.dueDate}</div>
+              <div className="text-gray-400 text-xs">
+                Due Date: {inst.dueDate || "N/A"}
+              </div>
             </Timeline.Item>
           ))}
         </Timeline>

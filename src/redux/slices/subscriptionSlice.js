@@ -16,14 +16,16 @@ export const createSubscription = createAsyncThunk(
 );
 
 // Fetch all subscriptions
+// Fetch all subscriptions (optionally filtered by courseId)
 export const getAllSubscriptions = createAsyncThunk(
   "subscription/getAllSubscriptions",
-  async (_, { rejectWithValue }) => {
+  async (courseId, { rejectWithValue }) => {
     try {
-      const response = await api.get("/admin/subscriptions");
+      const url = courseId ? `/admin/subscriptions?courseId=${courseId}` : "/admin/subscriptions";
+      const response = await api.get(url);
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || { message: error.message });
     }
   }
 );
@@ -79,7 +81,7 @@ export const getSubscriptionsByCourseId = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
-          "Failed to fetch subscriptions by course ID."
+        "Failed to fetch subscriptions by course ID."
       );
     }
   }
@@ -178,6 +180,7 @@ const subscriptionSlice = createSlice({
       .addCase(getSubscriptionsByCourseId.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.subscriptionsByCourse = []; // Clear previous data to prevent phantom display
       })
       .addCase(getSubscriptionsByCourseId.fulfilled, (state, action) => {
         state.loading = false;
@@ -186,6 +189,7 @@ const subscriptionSlice = createSlice({
       .addCase(getSubscriptionsByCourseId.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        state.subscriptionsByCourse = []; // Ensure it's empty on failure
       });
   },
 });

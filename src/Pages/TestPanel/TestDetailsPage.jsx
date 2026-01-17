@@ -493,8 +493,8 @@ const TestDetailsPage = () => {
 
       {/* Add/Edit Question Modal -- Using ReactQuill with dark theme overrides */}
       {(addQuestionModal || editModal) && (
-        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#0a0a0a] w-full max-w-5xl h-[90vh] rounded-2xl border border-[#262626] flex flex-col overflow-hidden">
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[1000] p-4">
+          <div className="bg-[#0a0a0a] w-[95vw] max-w-7xl h-[90vh] rounded-2xl border border-[#262626] flex flex-col overflow-hidden">
             <div className="p-4 border-b border-[#262626] flex justify-between items-center bg-[#171717]">
               <h2 className="text-white font-bold">{editModal ? 'Edit Question' : 'Add Question'}</h2>
               <button onClick={() => { setAddQuestionModal(false); setEditModal(false); }} className="text-gray-400 hover:text-white"><MdClose size={24} /></button>
@@ -629,6 +629,54 @@ const TestDetailsPage = () => {
               <button onClick={() => { setAddQuestionModal(false); setEditModal(false); }} className="px-6 py-2 rounded-lg text-gray-400 hover:bg-[#262626]">Cancel</button>
               <button onClick={editModal ? handleSaveEdit : handleAddQuestion} className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium">
                 {loading ? 'Saving...' : 'Save Question'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete All Confirmation Modal */}
+      {deleteAllModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1001]">
+          <div className="bg-[#171717] p-6 rounded-xl border border-[#262626] w-96 text-center">
+            <h3 className="text-white text-lg font-bold mb-4">Delete All Questions?</h3>
+            <p className="text-gray-400 mb-6">Are you sure you want to delete all questions? This action cannot be undone.</p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => setDeleteAllModal(false)}
+                className="px-6 py-2 rounded-lg text-gray-400 hover:bg-[#262626]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDeleteAll}
+                className="px-6 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium"
+              >
+                Yes, Delete All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Single Confirmation Modal */}
+      {deleteModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1001]">
+          <div className="bg-[#171717] p-6 rounded-xl border border-[#262626] w-96 text-center">
+            <h3 className="text-white text-lg font-bold mb-4">Delete Question?</h3>
+            <p className="text-gray-400 mb-6">Are you sure you want to delete this question?</p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => setDeleteModal(false)}
+                className="px-6 py-2 rounded-lg text-gray-400 hover:bg-[#262626]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-6 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium"
+              >
+                Delete
               </button>
             </div>
           </div>

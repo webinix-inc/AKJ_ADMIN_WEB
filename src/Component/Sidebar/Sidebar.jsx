@@ -3,8 +3,6 @@ import { useSelector } from "react-redux";
 import { NavLink, useLocation } from "react-router-dom";
 import "./Sidebar.css";
 import api from "../../api/axios";
-import { io } from "socket.io-client";
-
 import { FaChalkboardTeacher, FaUser, FaUserGraduate, FaBars, FaTimes } from "react-icons/fa";
 import { GoHomeFill } from "react-icons/go";
 import {
@@ -16,13 +14,8 @@ import { MdOutlineContentCopy, MdStore } from "react-icons/md";
 import { TiDocumentText } from "react-icons/ti";
 import { VscTools } from "react-icons/vsc";
 
-// Socket connection for real-time updates
+// Socket URL for deferred connection
 const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || "https://lms-backend-724799456037.europe-west1.run.app";
-const socket = io(SOCKET_URL, {
-  transports: ["websocket", "polling"],
-  reconnection: true,
-  reconnectionDelay: 1000,
-});
 
 const Sidebar = () => {
   const adminData = useSelector((state) => state.admin.adminData);
@@ -54,24 +47,35 @@ const Sidebar = () => {
     };
 
     fetchUnreadCount();
+  }, []);
 
-    // Join socket room for real-time updates
-    if (currentUserId) {
+  // Deferred socket connection for real-time message updates
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    let socket = null;
+
+    // Dynamically import socket.io-client to reduce initial bundle
+    import("socket.io-client").then(({ io }) => {
+      socket = io(SOCKET_URL, {
+        transports: ["websocket", "polling"],
+        reconnection: true,
+        reconnectionDelay: 1000,
+      });
+
       socket.emit("join", currentUserId);
-    }
 
-    // Listen for new messages to update count
-    const handleNewMessage = (messageData) => {
-      // If it's an incoming message (not from us), increment count
-      if (messageData.sender !== currentUserId) {
-        setTotalUnreadMessages(prev => prev + 1);
-      }
-    };
-
-    socket.on("message", handleNewMessage);
+      socket.on("message", (messageData) => {
+        if (messageData.sender !== currentUserId) {
+          setTotalUnreadMessages(prev => prev + 1);
+        }
+      });
+    });
 
     return () => {
-      socket.off("message", handleNewMessage);
+      if (socket) {
+        socket.disconnect();
+      }
     };
   }, [currentUserId]);
 
