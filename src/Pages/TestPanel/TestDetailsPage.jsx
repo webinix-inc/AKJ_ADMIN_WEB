@@ -75,11 +75,13 @@ const TestDetailsPage = () => {
     );
 
   // Helper: Extract data from tables array
+  // eslint-disable-next-line no-unused-vars
   const extractDataFromTables = (question) => {
     if (!question.tables || !Array.isArray(question.tables) || question.tables.length === 0) {
       return null;
     }
     try {
+      // eslint-disable-next-line no-unused-vars
       const parsedTables = question.tables.map(item => {
         if (typeof item === 'string' && item.startsWith('[')) {
           try { return JSON.parse(item); } catch (e) { return item; }
@@ -572,7 +574,7 @@ const TestDetailsPage = () => {
                           <div className="flex flex-wrap gap-2">
                             {option.optionImage?.map((img, imgIdx) => (
                               <div key={imgIdx} className="relative group">
-                                <img src={img.src || img} alt={`Option ${String.fromCharCode(65 + idx)} image ${imgIdx + 1}`} className="w-12 h-12 rounded border border-[#333] object-cover" />
+                                <img src={img.src || img} alt={`Option ${String.fromCharCode(65 + idx)} - ${imgIdx + 1}`} className="w-12 h-12 rounded border border-[#333] object-cover" />
                                 <button onClick={() => editModal ? handleRemoveEditOptionImage(idx, imgIdx) : handleRemoveOptionImage(idx, imgIdx)} className="absolute -top-1 -right-1 bg-red-600 rounded-full w-4 h-4 flex items-center justify-center text-xs text-white opacity-0 group-hover:opacity-100">×</button>
                               </div>
                             ))}

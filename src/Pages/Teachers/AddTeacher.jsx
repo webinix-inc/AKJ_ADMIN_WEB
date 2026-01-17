@@ -12,7 +12,6 @@ import {
   Switch,
   Row,
   Col,
-  Typography,
   notification
 } from "antd";
 import {
