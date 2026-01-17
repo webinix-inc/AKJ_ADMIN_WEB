@@ -6,7 +6,7 @@ import {
   EyeOutlined,
   GlobalOutlined
 } from "@ant-design/icons";
-import { Button, Divider, Dropdown, Popconfirm, Select, Space, Switch, message } from "antd";
+import { Button, Dropdown, Popconfirm, Select, Space, Switch, message } from "antd";
 import React, { useState } from "react";
 import api from "../../api/axios";
 
@@ -95,9 +95,7 @@ const CourseActions = ({ courseId, isPublished, onTogglePublish, onDelete, rootF
     }
   };
 
-  const handleMenuClick = (e) => {
-    if (e && e.stopPropagation) e.stopPropagation();
-  };
+
 
   const downloadOptions = [
     {

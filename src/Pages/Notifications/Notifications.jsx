@@ -13,7 +13,6 @@ const Notifications = ({ handleClose }) => {
   const [filter, setFilter] = useState("all"); // 'all', 'broadcast', 'courseSpecific'
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState(null);
-  const [visibleCount, setVisibleCount] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);

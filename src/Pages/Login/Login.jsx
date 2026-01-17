@@ -4,10 +4,10 @@ import { useNavigate } from "react-router-dom";
 import img1 from "../../Image/img1.png";
 import { loginAdmin, resetLoginState } from "../../redux/slices/adminSlice";
 import { Form, Input, Button, Row, Col, Typography, message } from "antd";
-import { UserOutlined, LockOutlined, GoogleOutlined } from "@ant-design/icons";
+import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import "./Login.css";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const Login = () => {
   const [email, setEmail] = useState("");

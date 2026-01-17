@@ -7,6 +7,7 @@ import './SelfService.css';
 
 const EntranceExam = () => {
   const navigate = useNavigate();
+  // eslint-disable-next-line no-unused-vars
   const [addBannerModalShow, setAddBannerModalShow] = useState(false);
 
   return (

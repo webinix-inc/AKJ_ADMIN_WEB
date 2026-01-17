@@ -12,8 +12,6 @@ import {
   notification,
   message,
   Timeline,
-  Card,
-  Tag,
   Drawer,
   Row,
   Col,

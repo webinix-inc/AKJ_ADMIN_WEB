@@ -1,17 +1,15 @@
 import { Pie } from "@ant-design/charts";
-import { DownloadOutlined, FilterOutlined } from "@ant-design/icons";
+import { DownloadOutlined } from "@ant-design/icons";
 import {
   Button,
   DatePicker,
   Select,
   Spin,
-  Statistic,
   Table,
   Tag,
   Typography,
   Row,
   Col,
-  Card,
   Space,
   Avatar
 } from "antd";
@@ -23,7 +21,7 @@ import HOC from "../../Component/HOC/HOC";
 import { fetchPaidOrders } from "../../redux/slices/orderSlice";
 import "./Orders.css";
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 

@@ -11,21 +11,18 @@ import {
   Checkbox,
   Row,
   Col,
-  notification,
-  Card
+  notification
 } from "antd";
 import {
   ArrowLeftOutlined,
   SaveOutlined,
   TagOutlined,
-  UserOutlined,
   BookOutlined,
   ClockCircleOutlined,
   DollarOutlined
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import HOC from "../../Component/HOC/HOC";
-import dayjs from "dayjs";
 import { fetchCourses } from "../../redux/slices/courseSlice";
 import './SelfService.css';
 

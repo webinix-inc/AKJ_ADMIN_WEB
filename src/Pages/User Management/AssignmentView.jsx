@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Table,
-  Card,
   Tag,
   Button,
   Modal,
@@ -29,7 +28,7 @@ import {
 import api from '../../api/axios';
 import './UserManagement.css';
 
-const { Title, Text, Paragraph } = Typography;
+const { Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
@@ -50,6 +49,7 @@ const AssignmentView = ({ userId, userName, embedded = false }) => {
     if (userId) {
       fetchUserAssignments();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const fetchUserAssignments = async () => {

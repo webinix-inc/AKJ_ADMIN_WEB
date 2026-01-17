@@ -17,6 +17,7 @@ const UserTimelineModal = ({ visible, onCancel, userId, courseId, courseTitle })
             setTimelineData(null);
             setError(null);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [visible, userId, courseId]);
 
     const fetchTimeline = async () => {

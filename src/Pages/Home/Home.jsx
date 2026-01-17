@@ -108,6 +108,7 @@ const Home = () => {
   }, []);
 
   const handleClose = useCallback(() => setShow(false), []);
+  // eslint-disable-next-line no-unused-vars
   const handleShow = useCallback(() => setShow(true), []);
   const handleClose1 = useCallback(() => setShow1(false), []);
   const handleShow1 = useCallback(() => setShow1(true), []);

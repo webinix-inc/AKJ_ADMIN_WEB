@@ -5,7 +5,6 @@ import api from "../../api/axios";
 import "./Teachers.css";
 import {
   Button,
-  Card,
   Descriptions,
   Avatar,
   Spin,

@@ -2,17 +2,15 @@ import React, { useState, useEffect } from "react";
 import HOC from "../../Component/HOC/HOC";
 import "./Teachers.css";
 import { Link, useNavigate } from "react-router-dom";
-import { PlusOutlined, EyeOutlined, SearchOutlined } from "@ant-design/icons";
+import { PlusOutlined, EyeOutlined } from "@ant-design/icons";
 import api from "../../api/axios";
 import {
   Table,
   Button,
   Select,
-  Input,
   Card,
   Tooltip,
   Avatar,
-  Pagination,
   Row,
   Col,
   Space,
@@ -20,7 +18,7 @@ import {
 } from "antd";
 
 const { Option } = Select;
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const Teachers = () => {
   const navigate = useNavigate();

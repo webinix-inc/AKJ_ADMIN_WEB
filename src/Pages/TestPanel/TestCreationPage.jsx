@@ -4,7 +4,6 @@ import {
   ClockCircleOutlined,
   DeleteOutlined,
   EditOutlined,
-  ExclamationCircleOutlined,
   PlusOutlined,
   ReloadOutlined,
   SettingOutlined,
@@ -87,6 +86,7 @@ const TestCreationPage = () => {
       message.error("Invalid folder ID. Please navigate from the test panel.");
       navigate(-1);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, navigate]);
 
   // Fetch quiz availability
@@ -261,6 +261,7 @@ const TestCreationPage = () => {
 
   useEffect(() => {
     applyFilters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizzes, searchText, selectedCategory, showOnlyActive]);
 
   const columns = [
@@ -489,8 +490,8 @@ const TestCreationPage = () => {
           pageSize: 8,
           className: "dark-pagination",
           itemRender: (_, type, originalElement) => {
-            if (type === 'prev') return <a className="text-gray-400">Prev</a>;
-            if (type === 'next') return <a className="text-gray-400">Next</a>;
+            if (type === 'prev') return <a href="#prev" onClick={(e) => e.preventDefault()} className="text-gray-400">Prev</a>;
+            if (type === 'next') return <a href="#next" onClick={(e) => e.preventDefault()} className="text-gray-400">Next</a>;
             return originalElement;
           }
         }}

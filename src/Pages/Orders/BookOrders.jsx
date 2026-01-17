@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Table, Typography, Spin, Alert, Tooltip, Avatar, Space } from "antd";
-import { ShoppingOutlined, UserOutlined, BookOutlined } from "@ant-design/icons";
+import { UserOutlined, BookOutlined } from "@ant-design/icons";
 import api from "../../api/axios";
 import HOC from "../../Component/HOC/HOC";
 import "./Orders.css";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const BookOrders = () => {
   const [orders, setOrders] = useState([]);

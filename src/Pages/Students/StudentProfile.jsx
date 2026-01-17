@@ -4,14 +4,10 @@ import HOC from "../../Component/HOC/HOC";
 import api from "../../api/axios";
 import "./Students.css";
 import {
-  Typography,
   Button,
   Avatar,
-  Descriptions,
   List,
   Tag,
-  Card,
-  Space,
   Skeleton,
   Tooltip
 } from "antd";
@@ -26,8 +22,6 @@ import {
 } from "@ant-design/icons";
 import { AssignmentView } from '../User Management/AssignmentView';
 import UserTimelineModal from "./UserTimelineModal";
-
-const { Title, Text } = Typography;
 
 const StudentProfile = () => {
   const { id } = useParams();
@@ -222,6 +216,7 @@ const StudentProfile = () => {
                 dataSource={purchasedCourses}
                 locale={{ emptyText: <span className="text-gray-500">No courses purchased yet.</span> }}
                 renderItem={(item) => {
+                  // eslint-disable-next-line no-unused-vars
                   const courseId = item.course?._id || item.course;
                   const isInstallment = item.paymentType === 'installment';
 

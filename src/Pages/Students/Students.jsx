@@ -4,20 +4,16 @@ import "./Students.css";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
 import {
-  Pagination,
   Select,
   DatePicker,
   Input,
   Table,
   Space,
-  Tag,
   Tooltip,
-  Avatar,
-  Card
+  Avatar
 } from "antd";
 import {
   SearchOutlined,
-  UserOutlined,
   CalendarOutlined,
   PhoneOutlined,
   MailOutlined,

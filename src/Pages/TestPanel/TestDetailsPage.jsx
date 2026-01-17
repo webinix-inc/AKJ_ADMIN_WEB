@@ -1,13 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Oval } from "react-loader-spinner";
+import React, { useEffect, useState } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import HOC from "../../Component/HOC/HOC";
 import api from "../../api/axios";
-import { getOptimizedQuizImage } from "../../utils/imageUtils";
 import QuestionRenderer from "../../Components/MathRenderer";
 import "./TestPanel.css"; // Import new styles
 
@@ -35,6 +33,7 @@ const useQuizId = () => {
 
 const TestDetailsPage = () => {
   const [questions, setQuestions] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [quizDetails, setQuizDetails] = useState({
@@ -47,6 +46,7 @@ const TestDetailsPage = () => {
   const [deleteModal, setDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [isUploading, setIsUploading] = useState(false);
   const [deleteAllModal, setDeleteAllModal] = useState(false);
   const [addQuestionModal, setAddQuestionModal] = useState(false);
@@ -67,7 +67,6 @@ const TestDetailsPage = () => {
 
   const quizId = useQuizId();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const calculateTotalMarks = () =>
     questions.reduce(
@@ -134,6 +133,7 @@ const TestDetailsPage = () => {
       fetchQuizDetails();
       fetchQuestions();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizId]);
 
   const handleUpload = async (event) => {
@@ -572,7 +572,7 @@ const TestDetailsPage = () => {
                           <div className="flex flex-wrap gap-2">
                             {option.optionImage?.map((img, imgIdx) => (
                               <div key={imgIdx} className="relative group">
-                                <img src={img.src || img} className="w-12 h-12 rounded border border-[#333] object-cover" />
+                                <img src={img.src || img} alt={`Option ${String.fromCharCode(65 + idx)} image ${imgIdx + 1}`} className="w-12 h-12 rounded border border-[#333] object-cover" />
                                 <button onClick={() => editModal ? handleRemoveEditOptionImage(idx, imgIdx) : handleRemoveOptionImage(idx, imgIdx)} className="absolute -top-1 -right-1 bg-red-600 rounded-full w-4 h-4 flex items-center justify-center text-xs text-white opacity-0 group-hover:opacity-100">×</button>
                               </div>
                             ))}

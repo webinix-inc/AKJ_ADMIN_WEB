@@ -1,8 +1,6 @@
 import {
   CalendarOutlined,
   EditOutlined,
-  EyeInvisibleOutlined,
-  EyeOutlined,
   FolderOutlined,
   UserOutlined,
   BookOutlined

@@ -54,6 +54,7 @@ export const deleteLiveClass = createAsyncThunk(
   "liveClasses/deleteLiveClass",
   async (classId, { rejectWithValue }) => {
     try {
+      // eslint-disable-next-line no-unused-vars
       const response = await api.delete(`/admin/delete-live-classes/${classId}`);
       return { classId }; // Return the classId of the deleted class
     } catch (error) {

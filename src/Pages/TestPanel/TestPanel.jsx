@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { AiFillFolder } from "react-icons/ai";
-import { FiMoreVertical, FiSearch, FiPlus, FiGrid, FiList } from "react-icons/fi";
+import { FiMoreVertical, FiSearch, FiPlus } from "react-icons/fi";
 import { FaTrashAlt, FaEdit, FaEye, FaEyeSlash, FaFolder } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import {
@@ -10,10 +10,7 @@ import {
   Input,
   Select,
   Button,
-  message,
-  Switch,
-  Spin,
-  Empty
+  message
 } from "antd";
 import HOC from "../../Component/HOC/HOC";
 import api from "../../api/axios";

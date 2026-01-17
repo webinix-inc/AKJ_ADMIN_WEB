@@ -29,7 +29,7 @@ import {
 } from "../../redux/slices/courseSlice";
 import { getSubscriptionsByCourseId } from "../../redux/slices/subscriptionSlice";
 import { getOptimizedCourseImage, handleImageError } from "../../utils/imageUtils";
-import { Input, Space } from "antd";
+import { Input } from "antd";
 import api from "../../api/axios";
 
 // Styles

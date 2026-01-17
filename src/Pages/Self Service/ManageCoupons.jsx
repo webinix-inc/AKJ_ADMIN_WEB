@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { fetchAllCoupons, deleteCoupon } from "../../redux/slices/couponSlice";
 import { Table, Button, Space, Tag, Modal, Tooltip } from "antd";
 import {
@@ -16,7 +16,6 @@ const { confirm } = Modal;
 
 const ManageCoupons = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { coupons, loading } = useSelector((state) => state.coupons);
 
   useEffect(() => {

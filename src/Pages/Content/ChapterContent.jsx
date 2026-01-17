@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   Button,
   Form,
@@ -23,7 +23,7 @@ import api from "../../api/axios";
 
 import "./Content.css";
 
-const { TabPane } = Tabs;
+
 
 // Styles
 const styles = {
@@ -184,7 +184,6 @@ const ContentSkeleton = memo(() => (
 
 const ChapterContent = () => {
   const { id, chapterId } = useParams();
-  const navigate = useNavigate();
   const [chapterVideos, setChapterVideos] = useState([]);
   const [chapterNotes, setChapterNotes] = useState([]);
   const [loading, setLoading] = useState(true);

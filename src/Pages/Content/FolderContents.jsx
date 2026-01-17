@@ -206,6 +206,7 @@ const filterVideoFiles = (files) => {
 };
 
 // Helper function to check if folder contains only videos (for copy operation)
+// eslint-disable-next-line no-unused-vars
 const folderContainsOnlyVideos = (folder) => {
   if (!folder) return false;
 
@@ -602,6 +603,7 @@ const FolderContents = () => {
     setNewFolderName("");
   };
 
+  // eslint-disable-next-line no-unused-vars
   const showUploadModal = () => {
     setIsUploadModalVisible(true);
   };

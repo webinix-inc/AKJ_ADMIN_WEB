@@ -3,7 +3,6 @@ import "./App.css";
 import "antd/dist/reset.css"; // ✅ Correct for AntD v5
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useSelector } from "react-redux";
-
 // Components (Eager Loading)
 import AdminRoute from "./Component/utils/ProtectedRoute";
 import Login from "./Pages/Login/Login";
@@ -76,6 +75,7 @@ const Loading = () => (
 );
 
 function App() {
+  // eslint-disable-next-line no-unused-vars
   const adminData = useSelector((state) => state.admin.adminData);
 
   // console.log("Admidata is this :", adminData); // Removed excessive logs for performance

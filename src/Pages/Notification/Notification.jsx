@@ -6,7 +6,6 @@ import HOC from "../../Component/HOC/HOC";
 import { fetchCourses } from "../../redux/slices/courseSlice";
 import { useDispatch, useSelector } from "react-redux";
 import api from "../../api/axios";
-import { message } from "antd";
 
 const NotificationPanel = () => {
   const [recipients, setRecipients] = useState([]);

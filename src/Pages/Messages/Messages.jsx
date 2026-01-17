@@ -1,10 +1,10 @@
 import dayjs from "dayjs";
 import EmojiPicker from "emoji-picker-react";
-import React, { useEffect, useRef, useState, useCallback, useMemo, memo, lazy, Suspense } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo, memo } from "react";
 import { BsEmojiSmile } from "react-icons/bs";
-import { FaSearch, FaBars, FaTimes, FaComments } from "react-icons/fa";
+import { FaSearch, FaBars, FaComments } from "react-icons/fa";
 import { FaMinus, FaPlus } from "react-icons/fa6";
-import { IoIosArrowForward, IoMdCheckbox, IoMdDoneAll } from "react-icons/io";
+import { IoIosArrowForward, IoMdDoneAll } from "react-icons/io";
 import { IoLinkOutline } from "react-icons/io5";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -220,10 +220,10 @@ ChatHeader.displayName = 'ChatHeader';
 // ===== Main Component =====
 const Messages = () => {
   const [users, setUsers] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const searchRef = useRef(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [activeUserId, setActiveUserId] = useState(null); // Track by user ID instead of index
   const [newMessage, setNewMessage] = useState("");
@@ -235,11 +235,12 @@ const Messages = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [data, setData] = useState([]);
   const [socketConnected, setSocketConnected] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isTyping, setIsTyping] = useState(false); // Typing indicator state
   const [typingUser, setTypingUser] = useState(null); // Who is typing
   const [sendingMessage, setSendingMessage] = useState(false); // Message sending state
-  const typingTimeoutRef = useRef(null);
+  // eslint-disable-next-line no-unused-vars
   const [unreadNotifications, setUnreadNotifications] = useState(() => {
     const storedNotifications = localStorage.getItem("unreadNotifications");
     return storedNotifications ? JSON.parse(storedNotifications) : {};
@@ -458,6 +459,7 @@ const Messages = () => {
       socket.off("readReceipt");
       socket.off("userTyping");
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUser, currentUserId, normalizeMessages, sortMessages]);
 
   const fetchMessages = async (receiverId, cursor = null) => {
@@ -577,6 +579,7 @@ const Messages = () => {
     if (cursor && !loadingMessages) {
       fetchMessages(selectedUser._id, cursor);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cursor, loadingMessages, selectedUser]);
 
   const handleEmojiClick = useCallback((emojiObject) => {

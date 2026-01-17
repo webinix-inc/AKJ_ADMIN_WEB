@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input, notification, Popconfirm, Tooltip, Space } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined, DatabaseOutlined, LinkOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { Table, Button, Modal, Form, Input, notification, Tooltip, Space } from 'antd';
+import { EditOutlined, DeleteOutlined, PlusOutlined, LinkOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import HOC from '../../Component/HOC/HOC';
 import api from '../../api/axios';
 import './SelfService.css';

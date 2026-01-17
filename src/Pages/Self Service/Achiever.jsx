@@ -4,9 +4,7 @@ import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  ExclamationCircleOutlined,
-  UploadOutlined,
-  TrophyOutlined
+  ExclamationCircleOutlined
 } from '@ant-design/icons';
 import {
   Modal,
@@ -14,7 +12,6 @@ import {
   Table,
   Upload,
   InputNumber,
-  message,
   Form,
   notification,
   Tooltip,

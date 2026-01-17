@@ -23,8 +23,8 @@ import {
   fetchSubCategories,
 } from "../../redux/slices/courseSlice";
 
+
 const { Option } = Select;
-const { TextArea } = Input;
 
 const AddCourse = ({ modalShow, onHide }) => {
   const dispatch = useDispatch();
@@ -34,6 +34,7 @@ const AddCourse = ({ modalShow, onHide }) => {
   const [loading, setLoading] = useState(false);
   const [faqs, setFaqs] = useState([{ question: "", answer: "" }]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
   const [subCategories, setSubCategories] = useState([]);
   const [categoryModalShow, setCategoryModalShow] = useState(false);

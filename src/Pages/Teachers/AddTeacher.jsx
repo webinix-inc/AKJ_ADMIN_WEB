@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import HOC from "../../Component/HOC/HOC";
 import { useNavigate } from "react-router-dom";
 import "./Teachers.css";
@@ -13,23 +13,17 @@ import {
   Row,
   Col,
   Typography,
-  Card,
-  notification,
-  Space
+  notification
 } from "antd";
 import {
-  UploadOutlined,
   UserOutlined,
   MailOutlined,
   PhoneOutlined,
   LockOutlined,
-  ArrowLeftOutlined,
-  InboxOutlined
+  ArrowLeftOutlined
 } from "@ant-design/icons";
 
-const { Title, Text } = Typography;
 const { TextArea } = Input;
-const { Dragger } = Upload;
 
 const AddTeacher = () => {
   const navigate = useNavigate();
@@ -39,7 +33,6 @@ const AddTeacher = () => {
 
   // State to manage file uploads locally for FormData construction
   const [fileListPhoto, setFileListPhoto] = useState([]);
-  const [fileListDoc, setFileListDoc] = useState([]);
 
   // Default permissions state
   const [permissions, setPermissions] = useState({

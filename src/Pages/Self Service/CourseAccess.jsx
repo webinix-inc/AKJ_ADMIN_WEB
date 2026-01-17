@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Select, Button, message, Card, Spin, Input, Form, Typography, Space } from "antd";
+import { Select, Button, message, Spin, Input, Form } from "antd";
 import { LockOutlined, ClockCircleOutlined, UserOutlined, BookOutlined } from "@ant-design/icons";
 import { fetchAllUserProfiles } from "../../redux/slices/userSlice";
 import { fetchCourses } from "../../redux/slices/courseSlice";
@@ -9,7 +9,6 @@ import HOC from "../../Component/HOC/HOC";
 import './SelfService.css';
 
 const { Option } = Select;
-const { Title } = Typography;
 
 const CourseAccess = () => {
   const dispatch = useDispatch();

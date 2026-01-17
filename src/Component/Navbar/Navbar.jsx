@@ -1,6 +1,6 @@
 import React, { useEffect, useState, memo, Suspense, lazy } from "react";
 import "./Navbar.css";
-import { Drawer, Dropdown, Menu } from "antd";
+import { Drawer, Dropdown } from "antd";
 import { useNavigate }
   from "react-router-dom";
 import { FaRegBell } from "react-icons/fa6";

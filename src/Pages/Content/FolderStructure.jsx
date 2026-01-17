@@ -1,10 +1,9 @@
-import { Dropdown, Menu, Spin, message, Button, Modal } from "antd";
+import { Dropdown, Menu, message, Button } from "antd";
 import React, { useEffect, useState, memo, useCallback } from "react";
 import {
   FaEllipsisV,
   FaFolder,
   FaCrown,
-  FaLock,
   FaArrowRight,
   FaDownload,
   FaBan

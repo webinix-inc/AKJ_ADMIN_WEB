@@ -14,12 +14,10 @@ import {
   Row,
   Col,
   Card,
-  Divider,
 } from "antd";
 import {
   UserAddOutlined,
   DeleteOutlined,
-  SearchOutlined,
   TeamOutlined,
   ClockCircleOutlined,
   LockOutlined,
@@ -87,6 +85,7 @@ const BatchUserManager = ({ visible, onCancel, course, onRefresh }) => {
     if (visible) {
       fetchUsers();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
   useEffect(() => {

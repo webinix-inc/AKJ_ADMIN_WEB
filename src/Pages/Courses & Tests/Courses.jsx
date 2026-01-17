@@ -83,7 +83,6 @@ const Courses = () => {
   const handleAddCourseModalOpen = useCallback(() => setModalShow(true), []);
   const handleAddCourseModalClose = useCallback(() => setModalShow(false), []);
   const handleCourseAddedSuccessModalClose = useCallback(() => setModalShow2(false), []);
-  const handleCategoryModalOpen = useCallback(() => setCategoryModalShow(true), []);
 
   const handleCategoryModalClose = useCallback(() => {
     setCategoryModalShow(false);

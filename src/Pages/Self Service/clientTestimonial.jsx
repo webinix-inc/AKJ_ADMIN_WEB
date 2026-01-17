@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Modal, Form, Input, Switch, message, Upload, Space, Card, Tooltip } from "antd";
+import { Table, Button, Modal, Form, Input, Switch, message, Space, Tooltip } from "antd";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeftOutlined,
   DeleteOutlined,
-  EditOutlined,
   PlusOutlined,
   ExclamationCircleOutlined
 } from "@ant-design/icons";

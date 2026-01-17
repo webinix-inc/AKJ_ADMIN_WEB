@@ -14,21 +14,16 @@ import {
   Badge,
   Row,
   Col,
-  Skeleton,
-  Statistic,
   Tag
 } from "antd";
 import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  UploadOutlined,
   SearchOutlined,
   BookOutlined,
   ArrowLeftOutlined,
-  SaveOutlined,
-  ShoppingCartOutlined,
-  RiseOutlined
+  SaveOutlined
 } from "@ant-design/icons";
 import HOC from "../../Component/HOC/HOC";
 import api from "../../api/axios";
