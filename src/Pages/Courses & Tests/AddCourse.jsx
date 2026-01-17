@@ -1,4 +1,4 @@
-import { MinusCircleOutlined, PlusOutlined, CloudUploadOutlined, FileTextOutlined } from "@ant-design/icons";
+import { MinusCircleOutlined, PlusOutlined, CloudUploadOutlined, FileTextOutlined, InfoCircleOutlined, QuestionCircleOutlined, FolderOutlined, CalendarOutlined, PictureOutlined } from "@ant-design/icons";
 import {
   Button,
   DatePicker,
@@ -161,49 +161,25 @@ const AddCourse = ({ modalShow, onHide }) => {
       .finally(() => setSubcategoryLoading(false));
   };
 
-  // Brighter, more visible styles
+  // Simple, clean style system
   const sectionStyle = {
-    marginBottom: '24px',
-    padding: '24px',
-    background: 'linear-gradient(145deg, #1e1e1e 0%, #171717 100%)',
-    borderRadius: '16px',
-    border: '1px solid #333',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-  };
-
-  const sectionHeaderStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
     marginBottom: '20px',
-    paddingBottom: '16px',
-    borderBottom: '1px solid #333',
-  };
-
-  const iconBoxStyle = {
-    width: '42px',
-    height: '42px',
-    borderRadius: '12px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '20px',
   };
 
   const labelStyle = {
-    color: '#ffffff',
-    fontSize: '14px',
-    fontWeight: '600',
-    marginBottom: '8px',
+    color: '#a1a1aa',
+    fontSize: '13px',
+    fontWeight: '500',
+    marginBottom: '6px',
     display: 'block',
   };
 
   const inputStyle = {
-    background: '#2a2a2a',
-    border: '2px solid #404040',
-    borderRadius: '10px',
+    background: '#1a1a1a',
+    border: '1px solid #2d2d2d',
+    borderRadius: '6px',
     color: '#ffffff',
-    fontSize: '15px',
+    fontSize: '14px',
   };
 
   const faqInputStyle = {
@@ -214,91 +190,65 @@ const AddCourse = ({ modalShow, onHide }) => {
   return (
     <>
       <Modal
-        width={780}
+        width={520}
         title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '8px 0' }}>
-            <div style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '14px',
-              background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)',
-            }}>
-              <PlusOutlined style={{ color: '#fff', fontSize: '22px' }} />
-            </div>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '22px', fontWeight: '700', color: '#ffffff' }}>Create New Course</h3>
-              <p style={{ margin: 0, fontSize: '14px', color: '#888' }}>Fill in the course details below</p>
-            </div>
-          </div>
+          <span style={{ fontSize: '15px', fontWeight: '600', color: '#ffffff' }}>New Course</span>
         }
         open={modalShow}
         onCancel={onHide}
         footer={null}
         centered
+        className="custom-scrollbar"
         styles={{
-          content: { background: '#121212', borderRadius: '20px', border: '1px solid #333' },
-          header: { background: '#121212', borderBottom: '1px solid #333', padding: '24px 28px' },
-          body: { padding: '28px', maxHeight: '70vh', overflowY: 'auto' },
+          content: { background: '#141414', borderRadius: '12px', border: '1px solid #262626' },
+          header: { background: '#141414', borderBottom: '1px solid #262626', padding: '16px 20px' },
+          body: { padding: '20px', maxHeight: '70vh', overflowY: 'auto' },
         }}
       >
         <Form form={form} layout="vertical" requiredMark={false}>
 
-          {/* Basic Info Section */}
+          {/* Course Title */}
           <div style={sectionStyle}>
-            <div style={sectionHeaderStyle}>
-              <div style={{ ...iconBoxStyle, background: 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)' }}>📚</div>
-              <h4 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>Basic Information</h4>
-            </div>
-
-            <div style={{ marginBottom: '20px' }}>
-              <label style={labelStyle}>Course Title <span style={{ color: '#ef4444' }}>*</span></label>
-              <Form.Item
-                name="title"
-                rules={[{ required: true, message: "Please enter a course title" }]}
-                style={{ marginBottom: 0 }}
-              >
-                <Input
-                  placeholder="Enter your course title"
-                  size="large"
-                  style={inputStyle}
-                />
-              </Form.Item>
-            </div>
-
-            <div>
-              <label style={labelStyle}>Description <span style={{ color: '#ef4444' }}>*</span></label>
-              <Form.Item
-                name="description"
-                rules={[{ required: true, message: "Please enter a description" }]}
-                style={{ marginBottom: 0 }}
-              >
-                <ReactQuill
-                  theme="snow"
-                  value={form.getFieldValue("description")}
-                  onChange={(value) => form.setFieldsValue({ description: value })}
-                  placeholder="Write a detailed course description..."
-                  style={{
-                    background: '#2a2a2a',
-                    borderRadius: '10px',
-                    border: '2px solid #404040',
-                  }}
-                />
-              </Form.Item>
-            </div>
+            <label style={labelStyle}>Course Title <span style={{ color: '#ef4444' }}>*</span></label>
+            <Form.Item
+              name="title"
+              rules={[{ required: true, message: "Please enter a course title" }]}
+              style={{ marginBottom: 0 }}
+            >
+              <Input
+                placeholder="Enter course title"
+                style={inputStyle}
+              />
+            </Form.Item>
           </div>
 
-          {/* FAQs Section */}
+          {/* Description */}
           <div style={sectionStyle}>
-            <div style={sectionHeaderStyle}>
-              <div style={{ ...iconBoxStyle, background: 'linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)' }}>❓</div>
-              <div>
-                <h4 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>FAQs</h4>
-                <p style={{ margin: 0, fontSize: '13px', color: '#888' }}>Add frequently asked questions (optional)</p>
-              </div>
+            <label style={labelStyle}>Description <span style={{ color: '#ef4444' }}>*</span></label>
+            <Form.Item
+              name="description"
+              rules={[{ required: true, message: "Please enter a description" }]}
+              style={{ marginBottom: 0 }}
+            >
+              <ReactQuill
+                theme="snow"
+                value={form.getFieldValue("description")}
+                onChange={(value) => form.setFieldsValue({ description: value })}
+                placeholder="Course description..."
+                style={{
+                  background: '#1a1a1a',
+                  borderRadius: '6px',
+                  border: '1px solid #2d2d2d',
+                }}
+              />
+            </Form.Item>
+          </div>
+
+          {/* FAQs */}
+          <div style={sectionStyle}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <label style={labelStyle}>FAQs</label>
+              <span style={{ fontSize: '11px', color: '#666' }}>Optional</span>
             </div>
 
             {faqs.map((faq, index) => (
@@ -338,14 +288,10 @@ const AddCourse = ({ modalShow, onHide }) => {
             </Button>
           </div>
 
-          {/* Category Section */}
+          {/* Category */}
           <div style={sectionStyle}>
-            <div style={sectionHeaderStyle}>
-              <div style={{ ...iconBoxStyle, background: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)' }}>📁</div>
-              <h4 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>Category & Classification</h4>
-            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: selectedCategory ? '1fr 1fr' : '1fr', gap: '16px', marginBottom: '12px' }}>
 
-            <div style={{ display: 'grid', gridTemplateColumns: selectedCategory ? '1fr 1fr' : '1fr', gap: '20px', marginBottom: '16px' }}>
               <div>
                 <label style={labelStyle}>Category <span style={{ color: '#ef4444' }}>*</span></label>
                 <Form.Item
@@ -393,56 +339,46 @@ const AddCourse = ({ modalShow, onHide }) => {
               )}
             </div>
 
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
               <Button
+                size="small"
                 icon={<PlusOutlined />}
                 onClick={() => setCategoryModalShow(true)}
-                style={{ borderColor: '#555', color: '#fff', background: '#2a2a2a' }}
+                style={{ borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', background: 'transparent', fontSize: '12px' }}
               >
                 Add Category
               </Button>
               <Button
+                size="small"
                 icon={<PlusOutlined />}
                 onClick={() => setSubcategoryModalShow(true)}
                 disabled={!selectedCategory}
-                style={{ borderColor: '#555', color: selectedCategory ? '#fff' : '#666', background: '#2a2a2a' }}
+                style={{ borderColor: 'rgba(255,255,255,0.1)', color: selectedCategory ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.3)', background: 'transparent', fontSize: '12px' }}
               >
                 Add Subcategory
               </Button>
             </div>
           </div>
 
-          {/* Schedule Section */}
+          {/* Schedule */}
           <div style={sectionStyle}>
-            <div style={sectionHeaderStyle}>
-              <div style={{ ...iconBoxStyle, background: 'linear-gradient(135deg, #22c55e 0%, #4ade80 100%)' }}>📅</div>
-              <h4 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>Schedule</h4>
-            </div>
-
-            <div>
-              <label style={labelStyle}>Start Date</label>
-              <Form.Item name="startDate" style={{ marginBottom: 0 }}>
-                <DatePicker
-                  style={{ ...inputStyle, width: '100%' }}
-                  size="large"
-                  placeholder="Select start date"
-                />
-              </Form.Item>
-            </div>
+            <label style={labelStyle}>Start Date <span style={{ fontSize: '11px', color: '#666', fontWeight: 'normal' }}>(Optional)</span></label>
+            <Form.Item name="startDate" style={{ marginBottom: 0 }}>
+              <DatePicker
+                style={{ ...inputStyle, width: '100%' }}
+                placeholder="Select date"
+              />
+            </Form.Item>
           </div>
 
-          {/* Media Section */}
+          {/* Media */}
           <div style={sectionStyle}>
-            <div style={sectionHeaderStyle}>
-              <div style={{ ...iconBoxStyle, background: 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)' }}>🖼️</div>
-              <h4 style={{ margin: 0, fontSize: '18px', fontWeight: '700', color: '#ffffff' }}>Media & Files</h4>
-            </div>
 
             {/* Course Image */}
-            <div style={{ marginBottom: '24px' }}>
+            <div style={{ marginBottom: '20px' }}>
               <label style={labelStyle}>Course Thumbnail</label>
-              <p style={{ color: '#888', fontSize: '13px', marginBottom: '12px' }}>
-                Recommended size: 380 × 285 pixels. Use high-quality images.
+              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', marginBottom: '10px' }}>
+                380 × 285 pixels recommended
               </p>
 
               <Upload
@@ -461,9 +397,9 @@ const AddCourse = ({ modalShow, onHide }) => {
                 onChange={handleImageChange}
               >
                 {courseImage.length >= 1 ? null : (
-                  <div style={{ color: '#aaa', padding: '8px' }}>
-                    <CloudUploadOutlined style={{ fontSize: '28px', marginBottom: '8px' }} />
-                    <div style={{ fontSize: '13px' }}>Click to Upload</div>
+                  <div style={{ color: 'rgba(255,255,255,0.5)', padding: '6px' }}>
+                    <CloudUploadOutlined style={{ fontSize: '24px', marginBottom: '4px' }} />
+                    <div style={{ fontSize: '12px' }}>Upload</div>
                   </div>
                 )}
               </Upload>
@@ -472,8 +408,8 @@ const AddCourse = ({ modalShow, onHide }) => {
             {/* Course Notes */}
             <div>
               <label style={labelStyle}>Course Notes</label>
-              <p style={{ color: '#888', fontSize: '13px', marginBottom: '12px' }}>
-                Upload PDF or Word documents for course materials.
+              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', marginBottom: '10px' }}>
+                PDF or Word documents
               </p>
 
               <Upload
@@ -496,10 +432,10 @@ const AddCourse = ({ modalShow, onHide }) => {
               >
                 <Button
                   icon={<FileTextOutlined />}
-                  size="large"
-                  style={{ borderColor: '#555', color: '#fff', background: '#2a2a2a' }}
+                  size="small"
+                  style={{ borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', background: 'transparent', fontSize: '12px' }}
                 >
-                  Upload Documents
+                  Upload Files
                 </Button>
               </Upload>
             </div>
@@ -513,16 +449,15 @@ const AddCourse = ({ modalShow, onHide }) => {
             size="large"
             style={{
               width: '100%',
-              height: '56px',
-              borderRadius: '14px',
-              fontSize: '16px',
-              fontWeight: '700',
-              background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+              height: '48px',
+              borderRadius: '10px',
+              fontSize: '14px',
+              fontWeight: '600',
+              background: '#3b82f6',
               border: 'none',
-              boxShadow: '0 4px 20px rgba(59, 130, 246, 0.4)',
             }}
           >
-            {loading ? "Creating Course..." : "🚀 Create Course"}
+            {loading ? "Creating..." : "Create Course"}
           </Button>
         </Form>
       </Modal>

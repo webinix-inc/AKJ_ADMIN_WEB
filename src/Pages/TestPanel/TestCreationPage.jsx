@@ -46,24 +46,60 @@ const TestCreationPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [quizForm] = Form.useForm();
+  const [attemptsForm] = Form.useForm();
   const [editingQuiz, setEditingQuiz] = useState(null);
   const [quizAvailability, setQuizAvailability] = useState({});
   const [availabilityModalVisible, setAvailabilityModalVisible] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [attemptModalVisible, setAttemptModalVisible] = useState(false);
+
+  // New State for Folder Editing
+  const [folderDetails, setFolderDetails] = useState(null);
+  const [courses, setCourses] = useState([]);
+  const [isFolderModalVisible, setIsFolderModalVisible] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [selectedCourses, setSelectedCourses] = useState([]);
+  const [categories, setCategories] = useState([]);
+
   const navigate = useNavigate();
+
+  // Helper: Convert DD-MM-YYYY (Backend) to YYYY-MM-DD (Input)
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return "";
+    const parts = dateString.split("-");
+    if (parts.length === 3) {
+      // Check if it's already YYYY-MM-DD
+      if (parts[0].length === 4) return dateString;
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return dateString;
+  };
+
+  // Helper: Convert YYYY-MM-DD (Input) to DD-MM-YYYY (Backend)
+  const formatDateForPayload = (dateString) => {
+    if (!dateString) return "";
+    const parts = dateString.split("-");
+    if (parts.length === 3) {
+      // Check if it's already DD-MM-YYYY
+      if (parts[0].length === 2 && parts[2].length === 4) return dateString;
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return dateString;
+  };
 
   // Fetch all quizzes
   const fetchQuizzes = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/admin/folder/${id}`);
+      // 🔧 FIX: Add timestamp to prevent browser caching
+      const response = await api.get(`/admin/folder/${id}?ts=${Date.now()}`);
       if (response.data.success === false) {
         throw new Error(response.data.message || "Failed to fetch quizzes");
       }
       const quizzesData = response.data.quizzes || [];
       setQuizzes(quizzesData);
       setFilteredQuizzes(quizzesData);
+      console.log("✅ [DEBUG] Fetched quizzes:", quizzesData);
     } catch (error) {
       console.error("Error fetching quizzes:", error);
       const errorMsg = error.response?.data?.message ||
@@ -79,13 +115,27 @@ const TestCreationPage = () => {
     }
   };
 
+
+
+  const fetchCategories = async () => {
+    try {
+      const response = await api.get("/admin/categories");
+      setCategories(response.data.data || response.data || []);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
   useEffect(() => {
     if (id && id !== 'undefined' && id !== 'null') {
+      fetchFolderDetails();
       fetchQuizzes();
+      fetchCourses();
     } else {
       message.error("Invalid folder ID. Please navigate from the test panel.");
       navigate(-1);
     }
+    fetchCategories();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, navigate]);
 
@@ -93,7 +143,7 @@ const TestCreationPage = () => {
   const fetchQuizAvailability = async (quizId) => {
     try {
       setLoading(true);
-      const response = await api.get(`/quizzes/${quizId}/availability`);
+      const response = await api.get(`/admin/quizzes/${quizId}/availability`);
       setQuizAvailability((prev) => ({
         ...prev,
         [quizId]: response.data.availability || {},
@@ -116,7 +166,9 @@ const TestCreationPage = () => {
         `/admin/quizzes/${quizId}/availability`,
         payload
       );
-      const updatedAvailability = response.data.updatedAvailability || {};
+      console.log("✅ [DEBUG] Availability Response:", response.data);
+      const updatedAvailability = response.data.updatedAvailability || response.data.quiz || {};
+
       setQuizAvailability((prev) => ({
         ...prev,
         [quizId]: updatedAvailability,
@@ -124,14 +176,14 @@ const TestCreationPage = () => {
       setQuizzes((prev) =>
         prev.map((quiz) =>
           quiz._id === quizId
-            ? { ...quiz, isActive: updatedAvailability.isActive }
+            ? { ...quiz, isActive: updatedAvailability.isActive !== undefined ? updatedAvailability.isActive : quiz.isActive }
             : quiz
         )
       );
       setFilteredQuizzes((prev) =>
         prev.map((quiz) =>
           quiz._id === quizId
-            ? { ...quiz, isActive: updatedAvailability.isActive }
+            ? { ...quiz, isActive: updatedAvailability.isActive !== undefined ? updatedAvailability.isActive : quiz.isActive }
             : quiz
         )
       );
@@ -141,6 +193,62 @@ const TestCreationPage = () => {
     } catch (error) {
       console.error("Error updating quiz availability:", error);
       message.error("Failed to update quiz availability.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch all courses for dropdown
+  const fetchCourses = async () => {
+    try {
+      const response = await api.get("/admin/courses");
+      console.log("Fetch courses response:", response.data);
+      // Backend might return { data: [...] } or { courses: [...] } or just [...]
+      const courseList = response.data.data || response.data.courses || (Array.isArray(response.data) ? response.data : []);
+      setCourses(courseList);
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+    }
+  };
+
+  // Fetch folder details
+  const fetchFolderDetails = async () => {
+    try {
+      // Using testPanel endpoint to get folder with populated courses
+      const response = await api.get(`/testPanel/folders/${id}`);
+      if (response.data.folder) {
+        setFolderDetails(response.data.folder);
+        setNewFolderName(response.data.folder.name);
+        // Map to {label, value} for labelInValue support
+        setSelectedCourses(response.data.folder.courses?.map(c => ({
+          label: c.title,
+          value: c._id
+        })) || []);
+      }
+    } catch (error) {
+      console.error("Error fetching folder details:", error);
+    }
+  };
+
+  // Update folder details
+  const handleUpdateFolder = async () => {
+    if (!newFolderName.trim()) {
+      message.error("Please enter a folder name.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await api.patch(`/testPanel/folders/${id}`, {
+        name: newFolderName,
+        courses: selectedCourses.map(c => c.value), // Extract IDs
+      });
+      message.success("Folder updated successfully");
+      setIsFolderModalVisible(false);
+      fetchFolderDetails(); // Refresh details
+    } catch (error) {
+      console.error("Error updating folder:", error);
+      message.error("Failed to update folder");
     } finally {
       setLoading(false);
     }
@@ -224,21 +332,24 @@ const TestCreationPage = () => {
 
   // Toggle quiz active status
   const toggleQuizActive = async (quizId, isActive) => {
-    try {
-      setLoading(true);
-      await api.put(`/admin/quizzes/${quizId}/toggle-active`, { isActive });
+    // Optimistic update
+    const updateState = (status) => {
       setQuizzes((prev) =>
-        prev.map((quiz) => (quiz._id === quizId ? { ...quiz, isActive } : quiz))
+        prev.map((quiz) => (quiz._id === quizId ? { ...quiz, isActive: status } : quiz))
       );
       setFilteredQuizzes((prev) =>
-        prev.map((quiz) => (quiz._id === quizId ? { ...quiz, isActive } : quiz))
+        prev.map((quiz) => (quiz._id === quizId ? { ...quiz, isActive: status } : quiz))
       );
+    };
+
+    try {
+      updateState(isActive); // Update UI immediately
+      await api.put(`/admin/quizzes/${quizId}/toggle-active`, { isActive });
       message.success(`Quiz ${isActive ? "activated" : "deactivated"} successfully.`);
     } catch (error) {
       console.error("Error toggling quiz status:", error);
+      updateState(!isActive); // Revert on failure
       message.error("Failed to toggle quiz status.");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -327,10 +438,15 @@ const TestCreationPage = () => {
           <Button
             type="text"
             icon={<EditOutlined />}
-            className="text-gray-400 hover:text-blue-500"
+            className="text-gray-400 hover:!text-blue-500"
             onClick={() => {
               setEditingQuiz(record);
-              quizForm.setFieldsValue(record);
+              const totalMinutes = (record.duration?.hours || 0) * 60 + (record.duration?.minutes || 0);
+              quizForm.setFieldsValue({
+                ...record,
+                durationHours: Math.floor(totalMinutes / 60),
+                durationMinutes: totalMinutes % 60
+              });
               setIsModalVisible(true);
             }}
           >
@@ -339,9 +455,10 @@ const TestCreationPage = () => {
           <Button
             type="text"
             icon={<SettingOutlined />}
-            className="text-gray-400 hover:text-purple-500"
+            className="text-gray-400 hover:!text-purple-500"
             onClick={() => {
               setSelectedQuiz(record._id);
+              attemptsForm.setFieldsValue({ maxAttempts: record.maxAttempts || 1 });
               setAttemptModalVisible(true);
             }}
           >
@@ -350,7 +467,7 @@ const TestCreationPage = () => {
           <Button
             type="text"
             icon={<ClockCircleOutlined />}
-            className="text-gray-400 hover:text-orange-500"
+            className="text-gray-400 hover:!text-blue-500"
             onClick={() => fetchQuizAvailability(record._id)}
           >
             Avail
@@ -424,22 +541,47 @@ const TestCreationPage = () => {
             className="text-gray-400 hover:text-white"
           />
           <div>
-            <h1 className="test-panel-title">Quizzes</h1>
-            <p style={{ color: '#888', margin: 0 }}>Manage quizzes in this folder</p>
+            <h1 className="test-panel-title">
+              {folderDetails?.name || "Quizzes"}
+            </h1>
+            <p style={{ color: '#888', margin: 0 }}>
+              {folderDetails?.courses?.length
+                ? `Linked to ${folderDetails.courses.length} courses`
+                : "Manage quizzes in this folder"}
+            </p>
           </div>
         </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => {
-            setIsModalVisible(true);
-            setEditingQuiz(null);
-            quizForm.resetFields();
-          }}
-          size="large"
-        >
-          Create New Quiz
-        </Button>
+        <Space>
+          <Button
+            icon={<EditOutlined />}
+            onClick={() => {
+              if (folderDetails) {
+                setNewFolderName(folderDetails.name);
+                setSelectedCourses(folderDetails.courses?.map(c => ({
+                  label: c.title,
+                  value: c._id
+                })) || []);
+              }
+              setIsFolderModalVisible(true);
+            }}
+            size="large"
+            className="dark-button-secondary"
+          >
+            Edit Folder
+          </Button>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setIsModalVisible(true);
+              setEditingQuiz(null);
+              quizForm.resetFields();
+            }}
+            size="large"
+          >
+            Create New Quiz
+          </Button>
+        </Space>
       </div>
 
       {/* Filters */}
@@ -501,6 +643,7 @@ const TestCreationPage = () => {
 
       {/* Create/Edit Modal */}
       <Modal
+        centered
         title={editingQuiz ? "Edit Quiz" : "Create Quiz"}
         open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
@@ -519,7 +662,7 @@ const TestCreationPage = () => {
             });
           }}
           initialValues={{
-            durationHours: editingQuiz ? Math.floor((editingQuiz.duration?.hours || 0) * 60 + (editingQuiz.duration?.minutes || 0)) / 60 : 0,
+            durationHours: editingQuiz ? Math.floor(((editingQuiz.duration?.hours || 0) * 60 + (editingQuiz.duration?.minutes || 0)) / 60) : 0,
             durationMinutes: editingQuiz ? ((editingQuiz.duration?.hours || 0) * 60 + (editingQuiz.duration?.minutes || 0)) % 60 : 0,
             isFreeTest: editingQuiz ? editingQuiz.isFreeTest || false : false,
           }}
@@ -537,7 +680,13 @@ const TestCreationPage = () => {
             label={<span className="text-gray-400">Category</span>}
             rules={[{ required: true, message: "Please input category" }]}
           >
-            <Input className="dark-input" />
+            <Select placeholder="Select a category" className="dark-select" popupClassName="dark-select-dropdown">
+              {categories.map((cat) => (
+                <Option key={cat._id} value={cat.name}>
+                  {cat.name}
+                </Option>
+              ))}
+            </Select>
           </Form.Item>
           <Form.Item label={<span className="text-gray-400">Duration</span>}>
             <Space>
@@ -574,15 +723,67 @@ const TestCreationPage = () => {
         </Form>
       </Modal>
 
+      {/* Edit Folder Modal */}
+      <Modal
+        centered
+        title="Edit Folder"
+        open={isFolderModalVisible}
+        onCancel={() => setIsFolderModalVisible(false)}
+        footer={[
+          <Button key="cancel" onClick={() => setIsFolderModalVisible(false)} className="dark-button-secondary">
+            Cancel
+          </Button>,
+          <Button key="submit" type="primary" onClick={handleUpdateFolder}>
+            Save Changes
+          </Button>,
+        ]}
+        wrapClassName="dark-modal"
+      >
+        <div className="flex flex-col gap-4 py-4">
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Folder Name</label>
+            <Input
+              placeholder="Ex: Weekly Tests"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              className="dark-input"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Assign to Courses</label>
+            <Select
+              mode="multiple"
+              labelInValue
+              placeholder="Select courses..."
+              value={selectedCourses}
+              onChange={(value) => setSelectedCourses(value)}
+              className="w-full dark-select"
+              popupClassName="dark-select-dropdown"
+              optionFilterProp="children"
+            >
+              {courses
+                .filter(course => !selectedCourses.some(selected => selected.value === course._id))
+                .map((course) => (
+                  <Option key={course._id} value={course._id}>
+                    {course.title}
+                  </Option>
+                ))}
+            </Select>
+          </div>
+        </div>
+      </Modal>
+
       {/* Attempts Modal */}
       <Modal
+        centered
         open={attemptModalVisible}
         onCancel={() => setAttemptModalVisible(false)}
         footer={null}
         title="Set Quiz Attempts"
         wrapClassName="dark-modal"
       >
-        <Form onFinish={handleSetQuizAttempts} layout="vertical" className="py-4">
+        <Form form={attemptsForm} onFinish={handleSetQuizAttempts} layout="vertical" className="py-4">
           <Form.Item
             name="maxAttempts"
             label={<span className="text-gray-400">Maximum Attempts</span>}
@@ -598,6 +799,7 @@ const TestCreationPage = () => {
 
       {/* Availability Modal */}
       <Modal
+        centered
         open={availabilityModalVisible}
         onCancel={() => {
           setAvailabilityModalVisible(false);
@@ -609,13 +811,14 @@ const TestCreationPage = () => {
       >
         {selectedQuiz && quizAvailability[selectedQuiz] ? (
           <Form
+            key={selectedQuiz} // 🔧 FIX: Force re-render when quiz changes
             layout="vertical"
             initialValues={{
               availabilityType: quizAvailability[selectedQuiz]?.availabilityType || "always",
               isActive: quizAvailability[selectedQuiz]?.isActive || false,
-              scheduledStartDate: quizAvailability[selectedQuiz]?.scheduledStartDate || "",
+              scheduledStartDate: formatDateForInput(quizAvailability[selectedQuiz]?.scheduledStartDate),
               scheduledStartTime: quizAvailability[selectedQuiz]?.scheduledStartTime || "",
-              scheduledEndDate: quizAvailability[selectedQuiz]?.scheduledEndDate || "",
+              scheduledEndDate: formatDateForInput(quizAvailability[selectedQuiz]?.scheduledEndDate),
               scheduledEndTime: quizAvailability[selectedQuiz]?.scheduledEndTime || "",
             }}
             onFinish={(values) => {
@@ -624,9 +827,9 @@ const TestCreationPage = () => {
                 isActive: values.availabilityType === "always" ? values.isActive : true,
               };
               if (values.availabilityType === "scheduled") {
-                payload.scheduledStartDate = values.scheduledStartDate;
+                payload.scheduledStartDate = formatDateForPayload(values.scheduledStartDate);
                 payload.scheduledStartTime = values.scheduledStartTime;
-                payload.scheduledEndDate = values.scheduledEndDate;
+                payload.scheduledEndDate = formatDateForPayload(values.scheduledEndDate);
                 payload.scheduledEndTime = values.scheduledEndTime;
               }
               updateQuizAvailability(selectedQuiz, payload);

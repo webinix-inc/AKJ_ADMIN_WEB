@@ -7,10 +7,30 @@
 }
 
 .bookstore-header {
-    /* Layout handled by Tailwind classes in JSX */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
     margin-bottom: 24px;
     border-bottom: 1px solid #262626;
     padding-bottom: 16px;
+}
+
+/* Mobile responsive header */
+@media (max-width: 768px) {
+    .bookstore-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .bookstore-header>div {
+        width: 100%;
+    }
+
+    .bookstore-header .dark-input {
+        width: 100% !important;
+    }
 }
 
 .bookstore-title {
@@ -44,6 +64,45 @@
     transform: translateY(-5px);
     border-color: #3b82f6;
     box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.2);
+}
+
+/* Fix white bar at bottom of cards */
+.book-card .ant-card-actions {
+    background: #1a1a1a !important;
+    border-top: 1px solid #333 !important;
+}
+
+.book-card .ant-card-actions>li {
+    border-right: 1px solid #333 !important;
+    margin: 0 !important;
+}
+
+.book-card .ant-card-actions>li:last-child {
+    border-right: none !important;
+}
+
+.book-card .ant-card-body {
+    background: #171717 !important;
+}
+
+.book-card .ant-card-actions>li>span {
+    font-size: 18px !important;
+    padding: 12px 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.book-card .ant-card-actions>li>span .anticon {
+    font-size: 18px !important;
+}
+
+.book-card .ant-card-actions>li>span>.ant-btn {
+    font-size: 16px !important;
+}
+
+.book-card .ant-card-actions>li>span>.ant-btn .anticon {
+    font-size: 18px !important;
 }
 
 .book-image-container {

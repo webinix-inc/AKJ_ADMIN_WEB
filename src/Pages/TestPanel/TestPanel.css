@@ -220,6 +220,7 @@
     background-color: #171717 !important;
     border-color: #262626 !important;
     color: #fff !important;
+    /* color: #fff; */
 }
 
 .dark-input:focus,
@@ -260,6 +261,10 @@
     background-color: #262626 !important;
     color: #fff !important;
     border: 1px solid #333 !important;
+}
+
+.dark-select .ant-select-selection-placeholder {
+    color: #a3a3a3 !important;
 }
 
 /* --- Popconfirm / Popover Dark Theme --- */
@@ -310,4 +315,11 @@
 .ant-btn-text.ant-btn-dangerous:hover {
     background-color: rgba(220, 38, 38, 0.15) !important;
     color: #ef4444 !important;
+}
+
+/* Fix for single-select background in Category dropdown */
+.dark-select.ant-select-single .ant-select-selection-item {
+    background-color: transparent !important;
+    border: none !important;
+    padding-left: 0 !important;
 }

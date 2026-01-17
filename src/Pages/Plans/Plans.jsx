@@ -482,15 +482,15 @@ const Plans = () => {
             </div>
 
             <div className="bg-[#2a2a2a] p-4 rounded-lg border border-gray-700">
-              <h4 className="text-gray-400 text-xs uppercase font-bold mb-3 tracking-wider">Pricing Logic</h4>
+              <h4 className="text-gray-300 text-xs uppercase font-bold mb-3 tracking-wider">Pricing Logic</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">GST:</span>
-                  <span>{selectedPlan.gst}%</span>
+                  <span className="text-gray-300">GST:</span>
+                  <span className="text-white font-medium">{selectedPlan.gst}%</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Internet Handling:</span>
-                  <span>{selectedPlan.internetHandling}%</span>
+                  <span className="text-gray-300">Internet Handling:</span>
+                  <span className="text-white font-medium">{selectedPlan.internetHandling}%</span>
                 </div>
               </div>
             </div>
@@ -875,9 +875,20 @@ const Plans = () => {
 
           <div className="flex gap-3 justify-end mt-4 pt-4 border-t border-gray-700">
             {!isEditingAllowed && !isEditPlanSaved ? (
-              <Button onClick={() => setIsEditingAllowed(true)}>Enable Editing</Button>
+              <Button onClick={() => setIsEditingAllowed(true)} style={{ borderColor: '#3b82f6', color: '#3b82f6' }}>Enable Editing</Button>
             ) : (
-              <Button type="primary" htmlType="submit" disabled={!isEditingAllowed || !isFormDirty}>Update Plan</Button>
+              <Button
+                type="primary"
+                htmlType="submit"
+                disabled={!isEditingAllowed || !isFormDirty}
+                style={{
+                  background: (!isEditingAllowed || !isFormDirty) ? '#374151' : '#3b82f6',
+                  borderColor: (!isEditingAllowed || !isFormDirty) ? '#374151' : '#3b82f6',
+                  color: (!isEditingAllowed || !isFormDirty) ? '#9ca3af' : '#fff',
+                }}
+              >
+                Update Plan
+              </Button>
             )}
 
             <CreateInstallmentButton

@@ -315,16 +315,29 @@
 }
 
 .ant-card-actions {
-  background: rgba(0, 0, 0, 0.2) !important;
-  border-top: 1px solid var(--ct-border) !important;
+  background: #1a1a1a !important;
+  border-top: 1px solid #333 !important;
 }
 
 .ant-card-actions>li {
-  border-right: 1px solid var(--ct-border) !important;
+  border-right: 1px solid #333 !important;
+  color: #a3a3a3 !important;
 }
 
 .ant-card-actions>li:last-child {
   border-right: none !important;
+}
+
+.ant-card-actions>li>span {
+  color: #a3a3a3 !important;
+}
+
+.ant-card-actions>li>span:hover {
+  color: #3b82f6 !important;
+}
+
+.ant-card-actions>li>span>.anticon {
+  color: inherit !important;
 }
 
 .ant-card h3 {
