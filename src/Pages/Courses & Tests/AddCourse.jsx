@@ -1,4 +1,4 @@
-import { MinusCircleOutlined, PlusOutlined, CloudUploadOutlined, FileTextOutlined, InfoCircleOutlined, QuestionCircleOutlined, FolderOutlined, CalendarOutlined, PictureOutlined } from "@ant-design/icons";
+import { MinusCircleOutlined, PlusOutlined, CloudUploadOutlined, FileTextOutlined } from "@ant-design/icons";
 import {
   Button,
   DatePicker,
