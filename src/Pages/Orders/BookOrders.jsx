@@ -1,32 +1,78 @@
 import React, { useEffect, useState } from "react";
-import { Table, Typography, Spin, Alert, Tooltip, Avatar, Space } from "antd";
-import { UserOutlined, BookOutlined } from "@ant-design/icons";
+import { Table, Typography, Spin, Alert, Tooltip, Avatar, Space, Button } from "antd";
+import { UserOutlined, BookOutlined, DownloadOutlined } from "@ant-design/icons";
 import api from "../../api/axios";
 import HOC from "../../Component/HOC/HOC";
+import * as XLSX from "xlsx";
 import "./Orders.css";
 
 const { Text } = Typography;
 
+const BookImage = ({ src, alt = "Book" }) => {
+  const [hasError, setHasError] = useState(false);
+
+  if (hasError || !src) {
+    return (
+      <div style={{ width: 40, height: 50, background: '#333', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <BookOutlined style={{ color: '#888' }} />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      onError={() => setHasError(true)}
+      style={{ width: 40, height: 50, borderRadius: 4, objectFit: 'cover' }}
+    />
+  );
+};
+
 const BookOrders = () => {
   const [orders, setOrders] = useState([]);
+  const [booksMap, setBooksMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchOrdersAndBooks = async () => {
       try {
-        const { data } = await api.get("/orders");
-        if (data.success) setOrders(data.orders || data.data);
-        else setError("Failed to load orders.");
+        // Fetch orders and books in parallel
+        const [ordersRes, booksRes] = await Promise.all([
+          api.get("/orders"),
+          api.get("/admin/books")
+        ]);
+
+        // Process orders
+        if (ordersRes.data.success) {
+          const sortedOrders = (ordersRes.data.orders || ordersRes.data.data).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          console.log("Fetched Orders:", sortedOrders);
+          setOrders(sortedOrders);
+        } else {
+          setError("Failed to load orders.");
+        }
+
+        // Create a book name -> imageUrl lookup map
+        if (booksRes.data && Array.isArray(booksRes.data)) {
+          const bookLookup = {};
+          booksRes.data.forEach(book => {
+            if (book.name && book.imageUrl) {
+              bookLookup[book.name.toLowerCase()] = book.imageUrl;
+            }
+          });
+          console.log("Books lookup map created:", Object.keys(bookLookup).length, "entries");
+          setBooksMap(bookLookup);
+        }
       } catch (err) {
-        console.error("❌ Error fetching orders:", err);
+        console.error("❌ Error fetching data:", err);
         setError("Failed to fetch orders.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchOrders();
+    fetchOrdersAndBooks();
   }, []);
 
   const truncateWithTooltip = (text, length = 20) => (
@@ -34,6 +80,25 @@ const BookOrders = () => {
       <div className="truncate-text" style={{ maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{text}</div>
     </Tooltip>
   );
+
+  const downloadReport = () => {
+    const dataToExport = orders.map((order) => ({
+      "Order ID": order.orderId,
+      "Transaction ID": order.transactionId,
+      "Customer Name": `${order.user?.firstName || ""} ${order.user?.lastName || ""}`.trim(),
+      "Email": order.user?.email || "N/A",
+      "Book Name": order.book?.name || "Unknown Book",
+      "Quantity": order.quantity || 1,
+      "Total Amount": order.totalAmount ? `₹${order.totalAmount.toFixed(2)}` : "0.00",
+      "Order Date": new Date(order.createdAt).toLocaleString(),
+      "Address": order.user?.address || "N/A"
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Book Orders");
+    XLSX.writeFile(workbook, "Book_Orders_Report.csv");
+  };
 
   const columns = [
     {
@@ -53,8 +118,8 @@ const BookOrders = () => {
         <Space>
           <Avatar icon={<UserOutlined />} style={{ backgroundColor: '#2563eb' }} />
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <Text strong className="text-white">{record.user.firstName} {record.user.lastName}</Text>
-            <Text className="text-gray-400" style={{ fontSize: '12px' }}>{record.user.email}</Text>
+            <Text strong className="text-white">{record.user?.firstName} {record.user?.lastName}</Text>
+            <Text className="text-gray-400" style={{ fontSize: '12px' }}>{record.user?.email}</Text>
           </div>
         </Space>
       ),
@@ -62,32 +127,28 @@ const BookOrders = () => {
     {
       title: "BOOK",
       key: "book",
-      render: (_, record) => (
-        <Space>
-          {record.book?.imageUrl ? (
-            <img
-              src={record.book.imageUrl}
-              alt="Book"
-              style={{ width: 40, height: 50, borderRadius: 4, objectFit: 'cover' }}
-            />
-          ) : (
-            <div style={{ width: 40, height: 50, background: '#333', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <BookOutlined style={{ color: '#888' }} />
+      render: (_, record) => {
+        // Get imageUrl from order, or fallback to booksMap lookup
+        const bookName = record.book?.name?.toLowerCase() || "";
+        const imageUrl = record.book?.imageUrl || booksMap[bookName] || "";
+
+        return (
+          <Space>
+            <BookImage src={imageUrl} alt={record.book?.name} />
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <Text className="text-white">{record.book?.name || "Unknown Book"}</Text>
+              <Text className="text-gray-400" style={{ fontSize: '12px' }}>Qty: {record.quantity}</Text>
             </div>
-          )}
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <Text className="text-white">{record.book?.name || "Unknown Book"}</Text>
-            <Text className="text-gray-400" style={{ fontSize: '12px' }}>Qty: {record.quantity}</Text>
-          </div>
-        </Space>
-      ),
+          </Space>
+        );
+      },
     },
     {
       title: "AMOUNT",
       dataIndex: "totalAmount",
       key: "totalAmount",
       align: "right",
-      render: (amount) => <Text strong className="text-green-400">₹{amount.toFixed(2)}</Text>,
+      render: (amount) => <Text strong className="text-green-400">₹{amount ? amount.toFixed(2) : "0.00"}</Text>,
     },
     {
       title: "DATE",
@@ -112,6 +173,14 @@ const BookOrders = () => {
           <h1 className="page-title">Book Orders</h1>
           <p style={{ color: '#888', marginTop: '4px' }}>Track and manage physical book shipments</p>
         </div>
+        <Button
+          type="primary"
+          icon={<DownloadOutlined />}
+          onClick={downloadReport}
+          disabled={orders.length === 0}
+        >
+          Download Report
+        </Button>
       </div>
 
       <div className="glass-card">

@@ -277,14 +277,85 @@ const CourseCard = memo(({ course, onRefresh, index = 0 }) => {
       </div>
 
       <Modal
-        title="Delete Course"
+        title={null}
         open={deleteModalVisible}
         onCancel={() => setDeleteModalVisible(false)}
-        onOk={handleDelete}
-        okText="Delete"
-        okButtonProps={{ danger: true }}
+        footer={null}
+        centered
+        width={400}
+        styles={{
+          content: {
+            background: '#1a1a1a',
+            borderRadius: '16px',
+            border: '1px solid #333',
+            padding: '24px',
+          },
+          mask: {
+            background: 'rgba(0,0,0,0.7)',
+          }
+        }}
       >
-        <p>Delete "{course.title}"? This cannot be undone.</p>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '60px',
+            height: '60px',
+            borderRadius: '50%',
+            background: 'rgba(239, 68, 68, 0.15)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 20px',
+          }}>
+            <span style={{ fontSize: '28px' }}>🗑️</span>
+          </div>
+          <h3 style={{
+            color: '#fff',
+            fontSize: '18px',
+            fontWeight: '600',
+            margin: '0 0 8px 0',
+          }}>Delete Course</h3>
+          <p style={{
+            color: '#a3a3a3',
+            fontSize: '14px',
+            margin: '0 0 24px 0',
+            lineHeight: '1.5',
+          }}>
+            Are you sure you want to delete "<strong style={{ color: '#fff' }}>{course.title}</strong>"?
+            This action cannot be undone.
+          </p>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <button
+              onClick={() => setDeleteModalVisible(false)}
+              style={{
+                padding: '10px 24px',
+                borderRadius: '8px',
+                border: '1px solid #404040',
+                background: '#262626',
+                color: '#d4d4d4',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDelete}
+              style={{
+                padding: '10px 24px',
+                borderRadius: '8px',
+                border: 'none',
+                background: '#ef4444',
+                color: '#fff',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+              }}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
       </Modal>
     </>
   );

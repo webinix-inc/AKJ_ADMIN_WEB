@@ -75,7 +75,7 @@ const Teachers = () => {
       (!filters.experience || teacher.experience === filters.experience) &&
       (!filters.year || teacher.year === filters.year)
     );
-  });
+  }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   // Logic for pagination handled by Ant Design Table, 
   // but preserving original "currentTeachers" slice logic idea if needed for manual paginantion.

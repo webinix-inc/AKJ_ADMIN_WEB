@@ -447,15 +447,85 @@ const CoursesEdit = () => {
 
       {/* Delete Modal */}
       <Modal
-        title="Delete Course"
+        title={null}
         open={deleteConfirmModal}
         onCancel={() => setDeleteConfirmModal(false)}
-        footer={[
-          <Button key="cancel" onClick={() => setDeleteConfirmModal(false)}>Cancel</Button>,
-          <Button key="delete" danger type="primary" onClick={handleDeleteCourse}>Delete</Button>,
-        ]}
+        footer={null}
+        centered
+        width={400}
+        styles={{
+          content: {
+            background: '#1a1a1a',
+            borderRadius: '16px',
+            border: '1px solid #333',
+            padding: '24px',
+          },
+          mask: {
+            background: 'rgba(0,0,0,0.7)',
+          }
+        }}
       >
-        <p>Are you sure you want to delete "{formData.title}"? This cannot be undone.</p>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: '60px',
+            height: '60px',
+            borderRadius: '50%',
+            background: 'rgba(239, 68, 68, 0.15)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 20px',
+          }}>
+            <span style={{ fontSize: '28px' }}>🗑️</span>
+          </div>
+          <h3 style={{
+            color: '#fff',
+            fontSize: '18px',
+            fontWeight: '600',
+            margin: '0 0 8px 0',
+          }}>Delete Course</h3>
+          <p style={{
+            color: '#a3a3a3',
+            fontSize: '14px',
+            margin: '0 0 24px 0',
+            lineHeight: '1.5',
+          }}>
+            Are you sure you want to delete "<strong style={{ color: '#fff' }}>{formData.title}</strong>"?
+            This action cannot be undone.
+          </p>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <button
+              onClick={() => setDeleteConfirmModal(false)}
+              style={{
+                padding: '10px 24px',
+                borderRadius: '8px',
+                border: '1px solid #404040',
+                background: '#262626',
+                color: '#d4d4d4',
+                fontSize: '14px',
+                fontWeight: '500',
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDeleteCourse}
+              style={{
+                padding: '10px 24px',
+                borderRadius: '8px',
+                border: 'none',
+                background: '#ef4444',
+                color: '#fff',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+              }}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
       </Modal>
 
       {/* Header */}
@@ -666,39 +736,7 @@ const CoursesEdit = () => {
             )}
           </div>
 
-          {/* Videos Card */}
-          <div style={{ ...styles.card, marginTop: '16px' }}>
-            <div style={styles.cardHeader}>
-              <VideoCameraOutlined style={styles.cardIcon} />
-              <h3 style={styles.cardTitle}>Course Videos</h3>
-            </div>
-            {isEditMode ? (
-              <Upload
-                multiple
-                beforeUpload={(file) => { setNewVideos([...newVideos, file]); return false; }}
-                onRemove={(file) => setNewVideos(newVideos.filter((v) => v.uid !== file.uid))}
-              >
-                <Button icon={<UploadOutlined />}>Add Video</Button>
-              </Upload>
-            ) : videos.length > 0 ? (
-              videos.map((video, i) => (
-                <div key={i} style={styles.videoItem}>
-                  <video
-                    style={styles.videoThumb}
-                    src={video.url}
-                    onMouseOver={(e) => e.target.play()}
-                    onMouseOut={(e) => { e.target.pause(); e.target.currentTime = 0; }}
-                  />
-                  <span style={{ flex: 1, color: '#fafafa' }}>{video.name}</span>
-                  <Button icon={<PlayCircleOutlined />} onClick={() => setCurrentVideoUrl(video.url)}>
-                    Play
-                  </Button>
-                </div>
-              ))
-            ) : (
-              <p style={{ color: '#737373' }}>No videos available</p>
-            )}
-          </div>
+
         </div>
       </div>
 

@@ -443,3 +443,79 @@
     /* text-white */
     border-color: #3b82f6;
 }
+
+/* Dark styling for Ant Design Select dropdown */
+.dark-dropdown .ant-select-item {
+    color: #e5e5e5;
+}
+
+.dark-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #fff;
+}
+
+.dark-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark-dropdown {
+    background-color: #1f1f1f !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.dark-dropdown .ant-empty-description {
+    color: #888;
+}
+
+/* Ensure the selector text is white */
+.students-container .dark-select .ant-select-selector .ant-select-selection-item,
+.students-container .dark-select .ant-select-selector .ant-select-selection-placeholder {
+    color: #fff !important;
+}
+
+/* Remove default background from the select arrow/icon */
+.students-container .dark-select .ant-select-arrow {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Fix Table Empty State Background */
+.students-container .dark-table .ant-table-placeholder {
+    background: transparent !important;
+}
+
+.students-container .dark-table .ant-table-placeholder .ant-table-cell {
+    border-bottom: none !important;
+}
+
+.students-container .dark-table .ant-table-placeholder:hover>td {
+    background: transparent !important;
+}
+
+/* Fix Table Header Sort/Hover Backgrounds */
+.students-container .dark-table .ant-table-thead>tr>th.ant-table-column-has-sorters:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.students-container .dark-table .ant-table-thead>tr>th.ant-table-column-sort {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.students-container .dark-table td.ant-table-column-sort {
+    background: rgba(255, 255, 255, 0.02) !important;
+}
+
+/* Dark Timeline Overrides - Target the modal directly as it is portalled */
+.dark-modal .ant-timeline-item-head {
+    background-color: transparent !important;
+}
+
+.dark-modal .ant-timeline-item-tail {
+    border-left: 2px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-modal .ant-timeline-item-head-custom {
+    background-color: transparent !important;
+}

@@ -222,53 +222,53 @@ const StudentProfile = () => {
 
                   return (
                     <List.Item
-                      className="border-b border-gray-800 last:border-0 hover:bg-white/5 transition-colors px-4 -mx-4"
+                      className="border-b border-gray-800 last:border-0 hover:bg-white/5 transition-colors px-6 -mx-4 py-6"
                       actions={[
-                        isInstallment && (
-                          <Tooltip title="View Payment Timeline">
-                            <Button
-                              type="link"
-                              icon={<HistoryOutlined />}
-                              onClick={() => handleViewTimeline(item.course)}
-                              className="text-blue-400 hover:text-blue-300 flex items-center gap-1"
-                            >
-                              Timeline
-                            </Button>
-                          </Tooltip>
-                        )
-                      ].filter(Boolean)}
+                        <div key="status" className="flex items-center gap-3">
+                          {isInstallment && (
+                            <Tooltip title="View Payment Timeline">
+                              <Button
+                                type="text"
+                                icon={<HistoryOutlined />}
+                                onClick={() => handleViewTimeline(item.course)}
+                                className="text-blue-400 hover:text-blue-300 flex items-center gap-1 p-0 h-auto"
+                              >
+                                Timeline
+                              </Button>
+                            </Tooltip>
+                          )}
+                          <Tag color="blue" className="m-0">Active</Tag>
+                        </div>
+                      ]}
                     >
                       <List.Item.Meta
                         avatar={
                           <Avatar
                             shape="square"
-                            size={48}
+                            size={52}
                             src={item.course?.thumbnail}
                             icon={<ReadOutlined />}
                             className="bg-white/5"
                           />
                         }
                         title={
-                          <Link to={`/courses_tests/courses/allcourses`} className="text-blue-400 hover:text-blue-300 text-base font-medium">
+                          <Link to={`/courses_tests/courses/allcourses`} className="text-blue-400 hover:text-blue-300 text-base font-medium block mb-1">
                             {item.course?.title || "Untitled Course"}
-                          </Link>
-                        }
-                        description={
-                          <div className="space-y-1">
-                            <span className="text-gray-500 text-xs block">
-                              Enrolled on {item.purchaseDate ? new Date(item.purchaseDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Unknown Date'}
-                            </span>
                             {isInstallment && (
-                              <Tag color="purple" bordered={false} className="text-[10px] px-1 m-0">
+                              <Tag color="purple" bordered={false} className="text-[10px] px-1.5 py-0.5 ml-2 m-0 rounded-sm">
                                 Installment Plan
                               </Tag>
                             )}
+                          </Link>
+                        }
+                        description={
+                          <div className="flex flex-col gap-1">
+                            <span className="text-gray-500 text-xs">
+                              Enrolled on {item.purchaseDate ? new Date(item.purchaseDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Unknown Date'}
+                            </span>
                           </div>
                         }
                       />
-                      <div className="hidden sm:block">
-                        <Tag color="blue" className="m-0">Active</Tag>
-                      </div>
                     </List.Item>
                   );
                 }}

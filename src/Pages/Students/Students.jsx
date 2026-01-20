@@ -89,7 +89,7 @@ const Students = () => {
     }
 
     return matchesSearch && matchesDate;
-  });
+  }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const columns = [
     {

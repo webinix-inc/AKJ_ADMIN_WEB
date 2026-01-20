@@ -10,26 +10,42 @@ import { Button, Dropdown, Popconfirm, Select, Space, Switch, message } from "an
 import React, { useState } from "react";
 import api from "../../api/axios";
 
-// Custom styles for the dropdown
+// Custom styles for the dropdown (dark theme)
 const dropdownStyles = `
-  .course-actions-dropdown .ant-select-dropdown {
-    border-radius: 8px !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+  .course-actions-dropdown .ant-select-selector {
+    background-color: #262626 !important;
+    border-color: #404040 !important;
+    color: #fafafa !important;
   }
   
-  .course-actions-dropdown .ant-select-item {
+  .course-actions-dropdown .ant-select-selection-item {
+    color: #fafafa !important;
+  }
+  
+  .course-actions-dropdown .ant-select-arrow {
+    color: #a3a3a3 !important;
+  }
+  
+  .ant-select-dropdown {
+    background-color: #1a1a1a !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+    border: 1px solid #333 !important;
+  }
+  
+  .ant-select-item {
     padding: 8px 12px !important;
     border-radius: 4px !important;
     margin: 2px 4px !important;
+    color: #d4d4d4 !important;
   }
   
-  .course-actions-dropdown .ant-select-item:hover {
-    background-color: #f0f7ff !important;
-    vertical-align: middle;
+  .ant-select-item:hover {
+    background-color: #262626 !important;
   }
   
-  .course-actions-dropdown .ant-select-item-option-selected {
-    background-color: #e6f7ff !important;
+  .ant-select-item-option-selected {
+    background-color: #333 !important;
     font-weight: 500 !important;
   }
 `;
@@ -150,10 +166,10 @@ const CourseActions = ({ courseId, isPublished, onTogglePublish, onDelete, rootF
       style={{
         padding: "16px",
         minWidth: "300px",
-        background: "#ffffff",
+        background: "#1a1a1a",
         borderRadius: "12px",
-        boxShadow: "0 10px 40px -10px rgba(0,0,0,0.15)",
-        border: "1px solid #f0f0f0"
+        boxShadow: "0 10px 40px -10px rgba(0,0,0,0.5)",
+        border: "1px solid #333"
       }}
     >
       {/* Publish Toggle */}
@@ -163,9 +179,9 @@ const CourseActions = ({ courseId, isPublished, onTogglePublish, onDelete, rootF
           alignItems: "center",
           justifyContent: "space-between",
           padding: "10px 14px",
-          background: "#fafafa",
+          background: "#262626",
           borderRadius: "8px",
-          border: "1px solid #f0f0f0"
+          border: "1px solid #333"
         }}>
           <Space>
             {isPublished ? (
@@ -173,7 +189,7 @@ const CourseActions = ({ courseId, isPublished, onTogglePublish, onDelete, rootF
             ) : (
               <EyeInvisibleOutlined style={{ color: "#737373", fontSize: "16px" }} />
             )}
-            <span style={{ fontWeight: "600", fontSize: "14px", color: isPublished ? "#10b981" : "#525252" }}>
+            <span style={{ fontWeight: "600", fontSize: "14px", color: isPublished ? "#10b981" : "#a3a3a3" }}>
               {isPublished ? "Published" : "Unpublished"}
             </span>
           </Space>
@@ -201,7 +217,7 @@ const CourseActions = ({ courseId, isPublished, onTogglePublish, onDelete, rootF
         </div>
       </div>
 
-      <div style={{ height: "1px", background: "#f0f0f0", margin: "16px 0" }} />
+      <div style={{ height: "1px", background: "#333", margin: "16px 0" }} />
 
       {/* Download Settings */}
       <div style={{ marginBottom: "16px" }}>
@@ -209,7 +225,7 @@ const CourseActions = ({ courseId, isPublished, onTogglePublish, onDelete, rootF
           marginBottom: "8px",
           fontSize: "14px",
           fontWeight: "600",
-          color: "#404040"
+          color: "#fafafa"
         }}>
           Download Settings {downloadLoading && "⏳"}
         </div>
@@ -240,7 +256,7 @@ const CourseActions = ({ courseId, isPublished, onTogglePublish, onDelete, rootF
         />
         <div style={{
           fontSize: "12px",
-          color: "#aaa",
+          color: "#737373",
           marginTop: "8px",
           display: "flex",
           gap: "6px",
@@ -250,53 +266,35 @@ const CourseActions = ({ courseId, isPublished, onTogglePublish, onDelete, rootF
         </div>
       </div>
 
-      <div style={{ height: "1px", background: "#f0f0f0", margin: "16px 0" }} />
+      <div style={{ height: "1px", background: "#333", margin: "16px 0" }} />
 
       {/* Delete Action */}
       <div>
-        <Popconfirm
-          title={
-            <div>
-              <div style={{ fontWeight: "600", marginBottom: "4px", fontSize: "14px" }}>
-                Delete this course?
-              </div>
-              <div style={{ fontSize: "13px", color: "#666" }}>
-                This action cannot be undone.
-              </div>
-            </div>
-          }
-          onConfirm={() => onDelete(courseId)}
-          okText="Delete"
-          cancelText="Cancel"
-          okButtonProps={{ danger: true, size: 'middle' }}
-          cancelButtonProps={{ size: 'middle' }}
-          placement="topRight"
+        <Button
+          block
+          size="large"
+          type="primary"
+          danger
+          icon={<DeleteOutlined />}
+          onClick={(e) => {
+            if (e && typeof e.stopPropagation === 'function') {
+              e.stopPropagation();
+            }
+            onDelete(courseId);
+          }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: "600",
+            borderRadius: "8px",
+            height: "40px",
+            backgroundColor: "#ef4444",
+            borderColor: "#ef4444"
+          }}
         >
-          <Button
-            block
-            size="large"
-            type="primary"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={(e) => {
-              if (e && typeof e.stopPropagation === 'function') {
-                e.stopPropagation();
-              }
-            }}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: "600",
-              borderRadius: "8px",
-              height: "40px",
-              backgroundColor: "#ef4444",
-              borderColor: "#ef4444"
-            }}
-          >
-            Delete Course
-          </Button>
-        </Popconfirm>
+          Delete Course
+        </Button>
       </div>
     </div >
   );

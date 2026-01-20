@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react"; // Force rebuild
 import { Modal, Timeline, Tag, Spin, Alert, Typography, Descriptions } from "antd";
-import { CheckCircleOutlined, ClockCircleOutlined, SyncOutlined } from "@ant-design/icons";
+import { CheckCircleFilled, ClockCircleOutlined, SyncOutlined } from "@ant-design/icons";
 import api from "../../api/axios";
 
 const { Text, Title } = Typography;
@@ -37,7 +37,7 @@ const UserTimelineModal = ({ visible, onCancel, userId, courseId, courseTitle })
     };
 
     const getStatusTag = (isPaid, dueDate) => {
-        if (isPaid) return <Tag color="success" icon={<CheckCircleOutlined />}>Paid</Tag>;
+        if (isPaid) return <Tag color="success" icon={<CheckCircleFilled />}>Paid</Tag>;
 
         const isOverdue = new Date(dueDate) < new Date();
         if (isOverdue) return <Tag color="error" icon={<ClockCircleOutlined />}>Overdue</Tag>;
@@ -49,8 +49,8 @@ const UserTimelineModal = ({ visible, onCancel, userId, courseId, courseTitle })
         <Modal
             title={
                 <div>
-                    <Title level={5} style={{ margin: 0 }}>Installment Timeline</Title>
-                    {courseTitle && <Text type="secondary" style={{ fontSize: '12px' }}>{courseTitle}</Text>}
+                    <Title level={5} style={{ margin: 0, color: '#fff' }}>Installment Timeline</Title>
+                    {courseTitle && <Text style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.65)' }}>{courseTitle}</Text>}
                 </div>
             }
             visible={visible}
@@ -100,12 +100,12 @@ const UserTimelineModal = ({ visible, onCancel, userId, courseId, courseTitle })
                             <Timeline.Item
                                 key={index}
                                 color={item.isPaid ? "green" : new Date(item.dueDate) < new Date() ? "red" : "blue"}
-                                dot={item.isPaid ? <CheckCircleOutlined style={{ fontSize: '16px' }} /> : null}
+                                dot={item.isPaid ? <CheckCircleFilled style={{ fontSize: '16px' }} /> : null}
                             >
                                 <div className="flex justify-between items-start mb-1">
                                     <div>
                                         <Text strong className="text-white block">Installment {item.installmentIndex !== undefined ? item.installmentIndex + 1 : index + 1}</Text>
-                                        <Text type="secondary" className="text-xs">
+                                        <Text className="text-xs text-gray-400">
                                             Due: {item.dueDate ? new Date(item.dueDate).toLocaleDateString() : "N/A"}
                                         </Text>
                                     </div>

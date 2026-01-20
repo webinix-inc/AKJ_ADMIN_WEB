@@ -515,7 +515,7 @@ const FolderContents = () => {
   }, [dispatch, folderId, editingFile]);
 
   const handleRenameFile = useCallback(async () => {
-    const { name, fileId } = editingFile;
+    const { name, fileId } = renamingFile;
     try {
       await dispatch(
         updateFileInFolder({
@@ -529,7 +529,7 @@ const FolderContents = () => {
     } catch (error) {
       console.error("Error renaming file:", error.message);
     }
-  }, [dispatch, folderId, editingFile]);
+  }, [dispatch, folderId, renamingFile]);
 
   useEffect(() => {
     if (!folderId) {
@@ -904,77 +904,143 @@ const FolderContents = () => {
   return (
     <div className="p-4 text-white flex flex-col gap-10">
       <Modal
-        title="Edit Folder Name"
-        visible={isEditFolderModalVisible}
+        title={null}
+        open={isEditFolderModalVisible}
         onOk={handleSaveFolderEdit}
         onCancel={() => setIsEditFolderModalVisible(false)}
-        okText="Save"
-        cancelText="Cancel"
+        footer={null}
+        centered
+        width={400}
+        styles={{
+          content: {
+            background: '#1a1a1a',
+            borderRadius: '16px',
+            border: '1px solid #333',
+            padding: '24px',
+          },
+          mask: {
+            background: 'rgba(0,0,0,0.7)',
+          }
+        }}
       >
-        <Input
-          placeholder="Folder Name"
-          value={newName}
-          onChange={handleNameChange}
-        />
+        <div>
+          <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: '600', margin: '0 0 20px 0' }}>Edit Folder Name</h3>
+          <Input
+            placeholder="Folder Name"
+            value={newName}
+            onChange={handleNameChange}
+            style={{
+              background: '#262626',
+              border: '1px solid #404040',
+              borderRadius: '8px',
+              color: '#fafafa',
+              padding: '10px 14px',
+            }}
+          />
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+            <Button onClick={() => setIsEditFolderModalVisible(false)} style={{ background: '#262626', borderColor: '#404040', color: '#d4d4d4' }}>Cancel</Button>
+            <Button type="primary" onClick={handleSaveFolderEdit}>Save</Button>
+          </div>
+        </div>
       </Modal>
 
       <Modal
-        title="Edit File Details"
-        visible={isEditFileModalVisible}
+        title={null}
+        open={isEditFileModalVisible}
         onOk={() => handleSubmitFileEdit(editingFile.fileId, folderId)}
         onCancel={handleEditFileModalCancel}
-        okText="Save"
-        cancelText="Cancel"
-      >
-        <Input
-          placeholder="File Name"
-          value={editingFile.name}
-          onChange={(e) => handleEditFileChange("name", e.target.value)}
-        />
-        {/* <Input
-          style={{ marginTop: 8 }}
-          placeholder="URL"
-          value={editingFile.url}
-          onChange={(e) => handleEditFileChange("url", e.target.value)}
-        />
-        <TextArea
-          style={{ marginTop: 8 }}
-          placeholder="Description"
-          value={editingFile.description}
-          onChange={(e) => handleEditFileChange("description", e.target.value)}
-        /> */}
-        <Checkbox
-          style={{ marginTop: 8 }}
-          checked={editingFile.isDownloadable}
-          onChange={(e) =>
-            handleEditFileChange("isDownloadable", e.target.checked)
+        footer={null}
+        centered
+        width={400}
+        styles={{
+          content: {
+            background: '#1a1a1a',
+            borderRadius: '16px',
+            border: '1px solid #333',
+            padding: '24px',
+          },
+          mask: {
+            background: 'rgba(0,0,0,0.7)',
           }
-        >
-          Downloadable
-        </Checkbox>
-        <Checkbox
-          style={{ marginTop: 8 }}
-          checked={editingFile.isViewable}
-          onChange={(e) => handleEditFileChange("isViewable", e.target.checked)}
-        >
-          Viewable
-        </Checkbox>
+        }}
+      >
+        <div>
+          <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: '600', margin: '0 0 20px 0' }}>Edit File Details</h3>
+          <Input
+            placeholder="File Name"
+            value={editingFile.name}
+            onChange={(e) => handleEditFileChange("name", e.target.value)}
+            style={{
+              background: '#262626',
+              border: '1px solid #404040',
+              borderRadius: '8px',
+              color: '#fafafa',
+              padding: '10px 14px',
+            }}
+          />
+          <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
+            <Checkbox
+              checked={editingFile.isDownloadable}
+              onChange={(e) => handleEditFileChange("isDownloadable", e.target.checked)}
+              style={{ color: '#a3a3a3' }}
+            >
+              <span style={{ color: '#a3a3a3' }}>Downloadable</span>
+            </Checkbox>
+            <Checkbox
+              checked={editingFile.isViewable}
+              onChange={(e) => handleEditFileChange("isViewable", e.target.checked)}
+              style={{ color: '#a3a3a3' }}
+            >
+              <span style={{ color: '#a3a3a3' }}>Viewable</span>
+            </Checkbox>
+          </div>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+            <Button onClick={handleEditFileModalCancel} style={{ background: '#262626', borderColor: '#404040', color: '#d4d4d4' }}>Cancel</Button>
+            <Button type="primary" onClick={handleSubmitFileEdit}>Save</Button>
+          </div>
+        </div>
       </Modal>
 
       {/* New Modal only for Renaming files */}
       <Modal
-        title="Edit File Name"
-        visible={isRenameFileModalVisible}
+        title={null}
+        open={isRenameFileModalVisible}
         onOk={() => handleRenameFile(renamingFile.fileId, folderId)}
         onCancel={handleRenameFileModalCancel}
-        okText="Save"
-        cancelText="Cancel"
+        footer={null}
+        centered
+        width={400}
+        styles={{
+          content: {
+            background: '#1a1a1a',
+            borderRadius: '16px',
+            border: '1px solid #333',
+            padding: '24px',
+          },
+          mask: {
+            background: 'rgba(0,0,0,0.7)',
+          }
+        }}
       >
-        <Input
-          placeholder="File Name"
-          value={renamingFile.name}
-          onChange={(e) => handleRenameChange("name", e.target.value)}
-        />
+        <div>
+          <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: '600', margin: '0 0 20px 0' }}>Edit File Name</h3>
+          <Input
+            placeholder="File Name"
+            value={renamingFile.name}
+            onChange={(e) => handleRenameChange(e.target.value)}
+            style={{
+              background: '#262626',
+              border: '1px solid #404040',
+              borderRadius: '8px',
+              color: '#fafafa',
+              padding: '10px 14px',
+            }}
+          />
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+            <Button onClick={handleRenameFileModalCancel} style={{ background: '#262626', borderColor: '#404040', color: '#d4d4d4' }}>Cancel</Button>
+            <Button type="primary" onClick={handleRenameFile}>Save</Button>
+          </div>
+        </div>
       </Modal>
 
       {/* Main Content */}

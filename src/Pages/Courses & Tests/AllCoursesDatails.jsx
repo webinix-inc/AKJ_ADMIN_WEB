@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import HOC from '../../Component/HOC/HOC'
 import { useNavigate } from 'react-router-dom';
-
+import './Courses_Tests.css';
 
 import { FaArrowLeft } from "react-icons/fa6";
 import { IoIosArrowDropdown } from "react-icons/io";
@@ -892,7 +892,7 @@ const AllCoursesDatails = () => {
                                         Buy Now
                                     </button>
                                 </div>
-                                
+
                             </div>
                         </div>
                     </div>

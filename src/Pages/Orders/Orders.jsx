@@ -151,7 +151,7 @@ const Orders = () => {
     const worksheet = XLSX.utils.json_to_sheet(filteredData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
-    XLSX.writeFile(workbook, "Orders_Report.xlsx");
+    XLSX.writeFile(workbook, "Orders_Report.csv");
   };
 
   const courseColumns = [
@@ -185,8 +185,7 @@ const Orders = () => {
       render: (_, record) => (
         <Tag color={record.paymentMode === "full" ? "green" : "blue"}>
           {record.paymentMode === "installment"
-            ? `${record.installmentDetails?.installmentIndex + 1 || 1}/${record.installmentDetails?.totalInstallments || 1
-            } Installment`
+            ? `${record.paidInstallments || 0}/${record.totalInstallments || 1} Paid`
             : "Full Payment"}
         </Tag>
       )
@@ -198,6 +197,21 @@ const Orders = () => {
       render: (amount) => <Text strong className="text-green-400">Rs. {amount}</Text>,
     },
   ];
+
+  // 🔥 Calculate paid installments count per user+course combination
+  const paidInstallmentsMap = paidOrders?.reduce((acc, order) => {
+    if (order.paymentMode === "installment") {
+      const key = `${order.userId?._id}-${order.courseId?._id}`;
+      if (!acc[key]) {
+        acc[key] = {
+          paidCount: 0,
+          totalInstallments: order.installmentDetails?.totalInstallments || 1
+        };
+      }
+      acc[key].paidCount += 1;
+    }
+    return acc;
+  }, {}) || {};
 
   const courseData =
     paidOrders
@@ -212,19 +226,27 @@ const Orders = () => {
             (orderDate >= start && orderDate <= end))
         );
       })
-      ?.map((order) => ({
-        key: order?._id || "unknown",
-        userImage: order?.userId?.image || "https://via.placeholder.com/50",
-        fullName: `${order?.userId?.firstName || ""} ${order?.userId?.lastName || ""
-          }`.trim(),
-        courseName: order?.courseId?.title || "No Course Assigned",
-        enrolledDate: order?.createdAt
-          ? format(new Date(order.createdAt), "dd/MM/yyyy")
-          : "N/A",
-        paidAmount: order?.amount ? (order.amount / 100).toFixed(2) : "0.00",
-        paymentMode: order?.paymentMode || "N/A",
-        installmentDetails: order?.installmentDetails || {},
-      })) || [];
+      ?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      ?.map((order) => {
+        const installmentKey = `${order.userId?._id}-${order.courseId?._id}`;
+        const installmentInfo = paidInstallmentsMap[installmentKey] || { paidCount: 0, totalInstallments: 1 };
+
+        return {
+          key: order?._id || "unknown",
+          userImage: order?.userId?.image || "https://via.placeholder.com/50",
+          fullName: `${order?.userId?.firstName || ""} ${order?.userId?.lastName || ""
+            }`.trim(),
+          courseName: order?.courseId?.title || "No Course Assigned",
+          enrolledDate: order?.createdAt
+            ? format(new Date(order.createdAt), "dd/MM/yyyy")
+            : "N/A",
+          paidAmount: order?.amount ? (order.amount / 100).toFixed(2) : "0.00",
+          paymentMode: order?.paymentMode || "N/A",
+          installmentDetails: order?.installmentDetails || {},
+          paidInstallments: installmentInfo.paidCount,
+          totalInstallments: installmentInfo.totalInstallments,
+        };
+      }) || [];
 
   const totalRevenue = calculateTimeframeRevenue();
 
@@ -258,11 +280,9 @@ const Orders = () => {
     colorField: "type",
     radius: 0.8,
     theme: "dark",
-    label: {
-      content: (data) => `${data.type}: ${(data.percent * 100).toFixed(0)}%`,
-      style: { fill: '#fff' }
-    },
-    legend: { position: 'bottom', itemValue: { style: { fill: '#fff' } }, itemName: { style: { fill: '#fff' } } }
+    label: false,
+    legend: { position: 'top', itemValue: { style: { fill: '#fff' } }, itemName: { style: { fill: '#fff' } } },
+    interactions: [{ type: 'element-active' }],
   };
 
   const allCoursesPieConfig = {
@@ -275,11 +295,9 @@ const Orders = () => {
     colorField: "course",
     radius: 0.8,
     theme: "dark",
-    label: {
-      content: (data) => `${(data.percent * 100).toFixed(0)}%`,
-      style: { fill: '#fff' }
-    },
-    legend: { position: 'bottom', itemValue: { style: { fill: '#fff' } }, itemName: { style: { fill: '#fff' } } }
+    label: false,
+    legend: { position: 'top', itemValue: { style: { fill: '#fff' } }, itemName: { style: { fill: '#fff' } } },
+    interactions: [{ type: 'element-active' }],
   };
 
   const monthWiseCourseConfig = {
@@ -292,11 +310,9 @@ const Orders = () => {
     colorField: "month",
     radius: 0.8,
     theme: "dark",
-    label: {
-      content: (data) => `${data.month}`,
-      style: { fill: '#fff' }
-    },
-    legend: { position: 'bottom', itemValue: { style: { fill: '#fff' } }, itemName: { style: { fill: '#fff' } } }
+    label: false,
+    legend: { position: 'top', itemValue: { style: { fill: '#fff' } }, itemName: { style: { fill: '#fff' } } },
+    interactions: [{ type: 'element-active' }],
   };
 
   return (
@@ -430,7 +446,7 @@ const Orders = () => {
               <Spin size="large" />
             </div>
           ) : error ? (
-            <div className="text-red-500 text-center">{error}</div>
+            <div className="text-red-500 text-center">{typeof error === 'object' ? error.message || JSON.stringify(error) : error}</div>
           ) : (
             <Table
               columns={courseColumns}

@@ -393,6 +393,14 @@ const ImportModal = React.memo(
         </div>
 
         <style>{`
+          .dark-tree.ant-tree {
+            background: transparent !important;
+            color: #d4d4d4 !important;
+          }
+          .dark-tree .ant-tree-node-content-wrapper {
+            color: inherit !important;
+            transition: all 0.2s;
+          }
           .dark-tree .ant-tree-node-content-wrapper:hover {
             background-color: #262626 !important;
           }
@@ -406,6 +414,9 @@ const ImportModal = React.memo(
           .dark-tree .ant-tree-checkbox-checked .ant-tree-checkbox-inner {
             background-color: #3b82f6;
             border-color: #3b82f6;
+          }
+          .dark-tree .ant-tree-switcher {
+             color: #666 !important; 
           }
         `}</style>
       </Modal>
